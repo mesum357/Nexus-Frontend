@@ -90,7 +90,6 @@ export default function Feed() {
   const [quickPostFile, setQuickPostFile] = useState<File | null>(null)
   const [quickPostLoading, setQuickPostLoading] = useState(false)
   const [quickPostError, setQuickPostError] = useState<string | null>(null)
-  const pollingRef = useRef<NodeJS.Timeout | null>(null)
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -107,12 +106,6 @@ export default function Feed() {
 
   useEffect(() => {
     fetchPosts()
-    // Poll every 10 seconds
-    if (pollingRef.current) clearInterval(pollingRef.current)
-    pollingRef.current = setInterval(fetchPosts, 10000)
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current)
-    }
   }, [fetchPosts])
 
   useEffect(() => {
@@ -135,8 +128,6 @@ export default function Feed() {
 
   useEffect(() => {
     fetchUnreadCount()
-    const interval = setInterval(fetchUnreadCount, 10000)
-    return () => clearInterval(interval)
   }, [fetchUnreadCount])
 
   const handleQuickImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
