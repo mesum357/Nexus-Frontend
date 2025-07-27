@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Upload, X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,13 +42,17 @@ const cities = [
   'Other'
 ];
 
-export default function CreateProduct() {
+export default function EditProduct() {
   const navigate = useNavigate();
+  const { productId } = useParams();
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
   const [tags, setTags] = useState([]);
   const [newTag, setNewTag] = useState('');
 
@@ -82,6 +86,89 @@ export default function CreateProduct() {
         navigate('/login');
       });
   }, [navigate]);
+
+  useEffect(() => {
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId]);
+
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/marketplace/${productId}`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast({
+            title: "Error",
+            description: "Product not found",
+            variant: "destructive"
+          });
+          navigate('/marketplace');
+          return;
+        }
+        if (response.status === 403) {
+          toast({
+            title: "Error",
+            description: "You don't have permission to edit this product",
+            variant: "destructive"
+          });
+          navigate('/marketplace');
+          return;
+        }
+        throw new Error('Failed to fetch product');
+      }
+
+      const data = await response.json();
+      const productData = data.product;
+
+      // Check if current user is the owner
+      if (currentUser && productData.owner && 
+          currentUser._id !== productData.owner._id && 
+          currentUser._id !== productData.owner) {
+        toast({
+          title: "Error",
+          description: "You don't have permission to edit this product",
+          variant: "destructive"
+        });
+        navigate('/marketplace');
+        return;
+      }
+
+      setProduct(productData);
+      setExistingImages(productData.images || []);
+      setTags(productData.tags || []);
+
+      // Pre-fill form data
+      setFormData({
+        title: productData.title || '',
+        description: productData.description || '',
+        price: productData.price?.toString() || '',
+        priceType: productData.priceType || 'fixed',
+        category: productData.category || '',
+        condition: productData.condition || 'used',
+        location: productData.location || '',
+        city: productData.city || '',
+        contactPreference: productData.contactPreference || 'both',
+        ownerPhone: productData.ownerPhone || currentUser?.phone || '',
+        ownerEmail: productData.ownerEmail || currentUser?.email || ''
+      });
+
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load product",
+        variant: "destructive"
+      });
+      navigate('/marketplace');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -117,9 +204,13 @@ export default function CreateProduct() {
     });
   };
 
-  const removeImage = (index) => {
-    setImageFiles(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  const removeImage = (index, isExisting = false) => {
+    if (isExisting) {
+      setExistingImages(prev => prev.filter((_, i) => i !== index));
+    } else {
+      setImageFiles(prev => prev.filter((_, i) => i !== index));
+      setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    }
   };
 
   const addTag = () => {
@@ -139,7 +230,7 @@ export default function CreateProduct() {
     if (!currentUser) {
       toast({
         title: "Error",
-        description: "Please log in to create a product",
+        description: "Please log in to edit a product",
         variant: "destructive"
       });
       return;
@@ -155,16 +246,7 @@ export default function CreateProduct() {
       return;
     }
 
-    if (imageFiles.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please upload at least one image",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setLoading(true);
+    setSaving(true);
 
     try {
       const submitData = new FormData();
@@ -174,18 +256,21 @@ export default function CreateProduct() {
         submitData.append(key, formData[key]);
       });
 
-      // Add images
+      // Add new images
       imageFiles.forEach(file => {
         submitData.append('images', file);
       });
+
+      // Add existing images that weren't removed
+      submitData.append('existingImages', JSON.stringify(existingImages));
 
       // Add tags
       if (tags.length > 0) {
         submitData.append('tags', JSON.stringify(tags));
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/marketplace`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/api/marketplace/${productId}`, {
+        method: 'PUT',
         credentials: 'include',
         body: submitData
       });
@@ -193,34 +278,47 @@ export default function CreateProduct() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create product');
+        throw new Error(data.error || 'Failed to update product');
       }
 
       toast({
         title: "Success",
-        description: "Product created successfully!"
+        description: "Product updated successfully!"
       });
 
       navigate('/marketplace');
     } catch (error) {
-      console.error('Error creating product:', error);
+      console.error('Error updating product:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create product",
+        description: error.message || "Failed to update product",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  if (!currentUser) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="pt-20">
           <div className="max-w-4xl mx-auto p-4">
-            <div className="text-center">Loading...</div>
+            <div className="text-center">Loading product...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser || !product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-20">
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="text-center">Product not found or access denied</div>
           </div>
         </div>
       </div>
@@ -246,9 +344,9 @@ export default function CreateProduct() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Marketplace
             </Button>
-            <h1 className="text-3xl font-bold text-foreground">List Your Product</h1>
+            <h1 className="text-3xl font-bold text-foreground">Edit Product</h1>
             <p className="text-muted-foreground mt-2">
-              Create a new listing to sell your item across Pakistan
+              Update your product listing
             </p>
           </motion.div>
 
@@ -398,13 +496,41 @@ export default function CreateProduct() {
                 {/* Images */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Product Images *</CardTitle>
+                    <CardTitle>Product Images</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Existing Images */}
+                    {existingImages.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Current Images</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {existingImages.map((image, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={`${API_BASE_URL}${image}`}
+                                alt={`Existing ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-1 right-1 h-6 w-6 p-0"
+                                onClick={() => removeImage(index, true)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Upload New Images */}
                     <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
                       <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                       <p className="text-sm text-muted-foreground mb-2">
-                        Upload up to 10 images (Max 10MB each)
+                        Upload additional images (Max 10 total)
                       </p>
                       <input
                         type="file"
@@ -421,26 +547,30 @@ export default function CreateProduct() {
                       </label>
                     </div>
 
+                    {/* New Image Previews */}
                     {imagePreviews.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {imagePreviews.map((preview, index) => (
-                          <div key={index} className="relative">
-                            <img
-                              src={preview}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-lg"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute top-1 right-1 h-6 w-6 p-0"
-                              onClick={() => removeImage(index)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">New Images</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {imagePreviews.map((preview, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={preview}
+                                alt={`New ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-1 right-1 h-6 w-6 p-0"
+                                onClick={() => removeImage(index)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -532,15 +662,22 @@ export default function CreateProduct() {
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="mt-8 flex justify-end"
+              className="mt-8 flex justify-end gap-4"
             >
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/marketplace')}
+              >
+                Cancel
+              </Button>
               <Button
                 type="submit"
                 size="lg"
-                disabled={loading}
+                disabled={saving}
                 className="bg-orange-500 hover:bg-orange-600"
               >
-                {loading ? 'Creating...' : 'Create Listing'}
+                {saving ? 'Updating...' : 'Update Product'}
               </Button>
             </motion.div>
           </form>
@@ -548,4 +685,4 @@ export default function CreateProduct() {
       </div>
     </div>
   );
-}
+} 

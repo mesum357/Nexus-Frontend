@@ -37,6 +37,7 @@ import Notifications from "./pages/feed/Notifications";
 // Marketplace Module Pages
 import ProductDetail from "./pages/marketplace/ProductDetail";
 import CreateProduct from "./pages/marketplace/CreateProduct";
+import EditProduct from "./pages/marketplace/EditProduct";
 import UserDashboard from "./pages/marketplace/UserDashboard";
 
 // Store Module Pages
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/marketplace/product/:productId" element={<ProductDetail />} />
           <Route path="/marketplace/create" element={<CreateProduct />} />
+          <Route path="/marketplace/edit/:productId" element={<EditProduct />} />
           <Route path="/marketplace/dashboard" element={<UserDashboard />} />
           
           <Route path="/store/shop/:shopId" element={<ShopDetail />} />

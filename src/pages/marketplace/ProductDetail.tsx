@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Heart, Share2, MapPin, Clock, Eye, Star, ShieldCheck, MessageCircle, Phone } from 'lucide-react'
@@ -8,53 +8,105 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import Navbar from '@/components/Navbar'
+import { API_BASE_URL } from '@/lib/config'
+import { useToast } from '@/hooks/use-toast'
 
-// Mock product data
-const productData = {
-  id: 1,
-  title: "iPhone 14 Pro Max - Excellent Condition",
-  price: "PKR 280,000",
-  originalPrice: "PKR 320,000",
-  discount: "12% OFF",
-  location: "Lahore, Punjab",
-  time: "2 hours ago",
-  images: [
-    "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=600&h=400&fit=crop"
-  ],
-  category: "Electronics",
-  condition: "Used",
-  description: "Selling my iPhone 14 Pro Max in excellent condition. Only 6 months old, all accessories included. Phone is in pristine condition with no scratches or damage. Battery health is 98%. Original box and charger included.",
-  features: [
-    "256GB Storage",
-    "Pro Camera System",
-    "All accessories included", 
-    "6 months warranty remaining",
-    "Face ID working perfectly"
-  ],
-  seller: {
-    name: "Ahmad Hassan",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    rating: 4.8,
-    totalSales: 45,
-    joinDate: "Member since 2020",
-    verified: true
-  },
-  views: 234,
-  favorites: 18,
-  safety: [
-    "Meet in public places",
-    "Check item before payment",
-    "Avoid advance payments"
-  ]
-}
+
 
 export default function ProductDetail() {
   const { productId } = useParams()
   const navigate = useNavigate()
+  const { toast } = useToast()
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
   const [isFavorited, setIsFavorited] = useState(false)
+
+  // Fetch product data
+  const fetchProduct = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`${API_BASE_URL}/api/marketplace/${productId}`, {
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast({
+            title: "Error",
+            description: "Product not found",
+            variant: "destructive"
+          })
+          navigate('/marketplace')
+          return
+        }
+        throw new Error('Failed to fetch product')
+      }
+
+      const data = await response.json()
+      setProduct(data.product)
+    } catch (error) {
+      console.error('Error fetching product:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load product",
+        variant: "destructive"
+      })
+      navigate('/marketplace')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (productId) {
+      fetchProduct()
+    }
+  }, [productId])
+
+  // Format price for display
+  const formatPrice = (price) => {
+    if (price === 0) return 'Free'
+    return `PKR ${price.toLocaleString()}`
+  }
+
+  // Get time ago from date
+  const getTimeAgo = (dateString) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) return 'Just now'
+    if (diffInHours < 24) return `${diffInHours}h ago`
+    if (diffInHours < 48) return '1 day ago'
+    return `${Math.floor(diffInHours / 24)}d ago`
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">Loading product...</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">Product not found</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,15 +145,15 @@ export default function ProductDetail() {
                   {/* Main Image */}
                   <div className="relative mb-4">
                     <img
-                      src={productData.images[selectedImage]}
-                      alt={productData.title}
+                      src={product.images && product.images.length > 0 ? `${API_BASE_URL}${product.images[selectedImage]}` : 'https://via.placeholder.com/600x400?text=No+Image'}
+                      alt={product.title}
                       className="w-full h-96 object-cover rounded-lg"
                     />
-                    {productData.discount && (
-                      <Badge className="absolute top-4 left-4 bg-marketplace-primary hover:bg-marketplace-primary">
-                        {productData.discount}
-                      </Badge>
-                    )}
+                                          {product.featured && (
+                        <Badge className="absolute top-4 left-4 bg-orange-500 hover:bg-orange-600">
+                          Featured
+                        </Badge>
+                      )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -115,23 +167,25 @@ export default function ProductDetail() {
                   </div>
 
                   {/* Image Thumbnails */}
-                  <div className="flex gap-2 overflow-x-auto">
-                    {productData.images.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                          selectedImage === index ? 'border-marketplace-primary' : 'border-transparent'
-                        }`}
-                      >
-                        <img
-                          src={image}
-                          alt={`View ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
+                  {product.images && product.images.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto">
+                      {product.images.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedImage(index)}
+                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+                            selectedImage === index ? 'border-orange-500' : 'border-transparent'
+                          }`}
+                        >
+                          <img
+                            src={`${API_BASE_URL}${image}`}
+                            alt={`View ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -147,37 +201,35 @@ export default function ProductDetail() {
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <Badge variant="outline">{productData.category}</Badge>
-                    <Badge variant="outline">{productData.condition}</Badge>
+                    <Badge variant="outline">{product.category}</Badge>
+                    <Badge variant="outline">{product.condition}</Badge>
                   </div>
                   
                   <h1 className="text-2xl font-bold text-foreground mb-4">
-                    {productData.title}
+                    {product.title}
                   </h1>
                   
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-3xl font-bold text-marketplace-primary">
-                      {productData.price}
+                    <span className="text-3xl font-bold text-orange-500">
+                      {formatPrice(product.price)}
                     </span>
-                    {productData.originalPrice && (
-                      <span className="text-lg text-muted-foreground line-through">
-                        {productData.originalPrice}
-                      </span>
+                    {product.priceType === 'negotiable' && (
+                      <Badge variant="outline" className="text-sm">Negotiable</Badge>
                     )}
                   </div>
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span>{productData.location}</span>
+                      <span>{product.location}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      <span>{productData.time}</span>
+                      <span>{getTimeAgo(product.createdAt)}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Eye className="h-4 w-4" />
-                      <span>{productData.views} views</span>
+                      <span>{product.views} views</span>
                     </div>
                   </div>
 
@@ -205,25 +257,22 @@ export default function ProductDetail() {
                   
                   <div className="flex items-center gap-3 mb-4">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={productData.seller.avatar} />
-                      <AvatarFallback>{productData.seller.name[0]}</AvatarFallback>
+                      <AvatarImage src={product.owner?.profileImage} />
+                      <AvatarFallback>{product.ownerName?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-foreground">{productData.seller.name}</h4>
-                        {productData.seller.verified && (
-                          <ShieldCheck className="h-4 w-4 text-marketplace-success" />
-                        )}
+                        <h4 className="font-medium text-foreground">{product.ownerName}</h4>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          <span>{productData.seller.rating}</span>
+                          <span>4.5</span>
                         </div>
                         <span>•</span>
-                        <span>{productData.seller.totalSales} sales</span>
+                        <span>Member since {new Date(product.owner?.createdAt || product.createdAt).getFullYear()}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">{productData.seller.joinDate}</p>
+                      <p className="text-xs text-muted-foreground">{product.ownerEmail}</p>
                     </div>
                   </div>
 
@@ -241,12 +290,18 @@ export default function ProductDetail() {
                     Safety Tips
                   </h3>
                   <ul className="space-y-2 text-sm text-muted-foreground">
-                    {productData.safety.map((tip, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-marketplace-warning mt-2 flex-shrink-0" />
-                        {tip}
-                      </li>
-                    ))}
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
+                      Meet in public places
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
+                      Check item before payment
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
+                      Avoid advance payments
+                    </li>
                   </ul>
                 </CardContent>
               </Card>
@@ -264,19 +319,36 @@ export default function ProductDetail() {
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold text-foreground mb-4">Product Details</h3>
                 
-                <p className="text-muted-foreground mb-6">{productData.description}</p>
+                <p className="text-muted-foreground mb-6">{product.description}</p>
 
-                <Separator className="my-6" />
+                {product.tags && product.tags.length > 0 && (
+                  <>
+                    <Separator className="my-6" />
+                    <h4 className="font-medium text-foreground mb-3">Tags:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {product.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </>
+                )}
 
-                <h4 className="font-medium text-foreground mb-3">Key Features:</h4>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {productData.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="w-1.5 h-1.5 rounded-full bg-marketplace-success" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                {product.specifications && Object.keys(product.specifications).length > 0 && (
+                  <>
+                    <Separator className="my-6" />
+                    <h4 className="font-medium text-foreground mb-3">Specifications:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.entries(product.specifications).map(([key, value]) => (
+                        <div key={key} className="flex justify-between">
+                          <span className="text-sm font-medium text-foreground">{key}:</span>
+                          <span className="text-sm text-muted-foreground">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </motion.div>
