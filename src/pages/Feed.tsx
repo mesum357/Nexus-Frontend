@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import Navbar from '@/components/Navbar'
 import PostCard from '@/components/feed/PostCard'
 import CreatePost from '@/components/feed/CreatePost'
@@ -46,7 +47,7 @@ const sidebarMenuItems = [
   { icon: Home, label: 'Home', active: true },
   { icon: Search, label: 'Explore' },
   { icon: Users, label: 'Friends' },
-  { icon: Bell, label: 'Notifications', badge: 3 },
+  { icon: Bell, label: 'Notifications' },
   { icon: MessageSquare, label: 'Messages', badge: 2 },
   { icon: User, label: 'Profile' }
 ]
@@ -92,6 +93,8 @@ export default function Feed() {
   const [quickPostError, setQuickPostError] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [showComingSoon, setShowComingSoon] = useState(false)
+  const [comingSoonMessage, setComingSoonMessage] = useState('')
 
   const fetchPosts = useCallback(() => {
     setLoading(true)
@@ -208,15 +211,6 @@ export default function Feed() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-foreground mb-4">Menu</h3>
                   <div className="space-y-2">
-                    <div className="flex flex-col items-center gap-4 mb-6">
-                      <Link to="/feed/notifications">
-                        <Button variant="ghost" size="icon" className="relative">
-                          <Bell className="w-6 h-6" />
-                          {/* Optionally, show a badge for unread count */}
-                          <span className="absolute top-0 right-0 bg-primary text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">{unreadCount}</span>
-                        </Button>
-                      </Link>
-                    </div>
                     {sidebarMenuItems.map((item, index) => (
                       <Button
                         key={index}
@@ -224,15 +218,28 @@ export default function Feed() {
                         className="w-full justify-start gap-3 relative"
                         onClick={() => {
                           if (item.label === 'Home') navigate('/feed')
+                          if (item.label === 'Explore') {
+                            setComingSoonMessage('Explore feature is coming soon! Discover trending topics, hashtags, and popular posts from across Pakistan.')
+                            setShowComingSoon(true)
+                          }
                           if (item.label === 'Friends') navigate('/feed/friends')
                           if (item.label === 'Notifications') navigate('/feed/notifications')
+                          if (item.label === 'Messages') {
+                            setComingSoonMessage('Messages feature is coming soon! Connect with other users through private messaging.')
+                            setShowComingSoon(true)
+                          }
                           if (item.label === 'Profile') navigate('/feed/profile')
                           if (item.label === 'Create Post') navigate('/feed/create')
                         }}
                       >
                         <item.icon className="h-5 w-5" />
                         {item.label}
-                        {item.badge && (
+                        {item.label === 'Notifications' && unreadCount > 0 && (
+                          <Badge className="ml-auto bg-primary text-white text-xs">
+                            {unreadCount}
+                          </Badge>
+                        )}
+                        {item.badge && item.label !== 'Notifications' && (
                           <Badge className="ml-auto bg-primary text-white text-xs">
                             {item.badge}
                           </Badge>
@@ -459,6 +466,23 @@ export default function Feed() {
           </div>
         </div>
       </div>
+      
+      {/* Coming Soon Dialog */}
+      <Dialog open={showComingSoon} onOpenChange={setShowComingSoon}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">🚀 Coming Soon!</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground mb-4">
+              {comingSoonMessage}
+            </p>
+            <Button onClick={() => setShowComingSoon(false)} className="w-full">
+              Got it!
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

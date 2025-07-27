@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, UserPlus, UserMinus, MessageCircle, MoreHorizontal, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -8,84 +8,164 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import { API_BASE_URL } from "@/lib/config";
+import { useToast } from "@/hooks/use-toast";
 
 const Friends = () => {
   const [activeTab, setActiveTab] = useState("friends");
   const [searchQuery, setSearchQuery] = useState("");
+  const [friends, setFriends] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sentRequests, setSentRequests] = useState(new Set());
   const navigate = useNavigate();
-  
-  const friends = [
-    {
-      id: 1,
-      name: "Emma Watson",
-      username: "@emmawatson",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b5c1?w=150&h=150&fit=crop",
-      isOnline: true,
-      mutualFriends: 12,
-      lastActive: "Active now",
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      username: "@johndoe",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
-      isOnline: false,
-      mutualFriends: 8,
-      lastActive: "2h ago",
-    },
-    {
-      id: 3,
-      name: "Lisa Chen",
-      username: "@lisachen",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
-      isOnline: true,
-      mutualFriends: 15,
-      lastActive: "Active now",
-    },
-    {
-      id: 4,
-      name: "Alex Rodriguez",
-      username: "@alexr",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop",
-      isOnline: false,
-      mutualFriends: 5,
-      lastActive: "1d ago",
-    },
-  ];
+  const { toast } = useToast();
 
-  const suggestions = [
-    {
-      id: 5,
-      name: "Sophie Turner",
-      username: "@sophiet",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop",
-      mutualFriends: 3,
-      reason: "Mutual friends",
-    },
-    {
-      id: 6,
-      name: "Mike Johnson",
-      username: "@mikej",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
-      mutualFriends: 7,
-      reason: "People you may know",
-    },
-  ];
+  // Fetch friends data
+  const fetchFriendsData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/friends`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch friends data');
+      }
+      
+      const data = await response.json();
+      setFriends(data.friends || []);
+      setSuggestions(data.suggestions || []);
+      setRequests(data.requests || []);
+      setSentRequests(new Set(data.sentRequests || []));
+    } catch (error) {
+      console.error('Error fetching friends data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load friends data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const requests = [
-    {
-      id: 7,
-      name: "David Kim",
-      username: "@davidkim",
-      avatar: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150&h=150&fit=crop",
-      mutualFriends: 2,
-      time: "2d ago",
-    },
-  ];
+  useEffect(() => {
+    fetchFriendsData();
+  }, []);
+
+  // Send friend request
+  const handleSendRequest = async (userId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/friends/request/${userId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to send friend request');
+      }
+      
+      // Add to sent requests set
+      setSentRequests(prev => new Set(prev).add(userId));
+      
+      toast({
+        title: "Success",
+        description: "Friend request sent successfully"
+      });
+      
+      // Refresh data
+      fetchFriendsData();
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send friend request",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Accept friend request
+  const handleAcceptRequest = async (requestId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/friends/accept/${requestId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to accept friend request');
+      }
+      
+      toast({
+        title: "Success",
+        description: "Friend request accepted"
+      });
+      
+      // Refresh data
+      fetchFriendsData();
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to accept friend request",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Decline friend request
+  const handleDeclineRequest = async (requestId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/friends/decline/${requestId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to decline friend request');
+      }
+      
+      toast({
+        title: "Success",
+        description: "Friend request declined"
+      });
+      
+      // Refresh data
+      fetchFriendsData();
+    } catch (error) {
+      console.error('Error declining friend request:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to decline friend request",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Remove suggestion
+  const handleRemoveSuggestion = (suggestionId) => {
+    setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
+    // Also remove from sent requests if it was there
+    setSentRequests(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(suggestionId);
+      return newSet;
+    });
+    toast({
+      title: "Success",
+      description: "Suggestion removed"
+    });
+  };
 
   const filteredFriends = friends.filter(friend =>
     friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    friend.username.toLowerCase().includes(searchQuery.toLowerCase())
+    friend.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderFriendCard = (friend: any, showActions = true) => (
@@ -106,7 +186,7 @@ const Friends = () => {
             <h3 className="font-medium truncate">{friend.name}</h3>
             {friend.isOnline && <Badge variant="secondary" className="text-xs">Online</Badge>}
           </div>
-          <p className="text-sm text-muted-foreground">{friend.username}</p>
+          <p className="text-sm text-muted-foreground">{friend.email}</p>
           <p className="text-xs text-muted-foreground">
             {friend.mutualFriends} mutual friends • {friend.lastActive || friend.time}
           </p>
@@ -184,7 +264,12 @@ const Friends = () => {
       </div>
 
       {/* Content */}
-      <div className="space-y-3">
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
         {activeTab === "friends" && (
           <>
             {filteredFriends.map((friend) => renderFriendCard(friend))}
@@ -208,24 +293,49 @@ const Friends = () => {
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium">{person.name}</h3>
-                    <p className="text-sm text-muted-foreground">{person.username}</p>
+                    <p className="text-sm text-muted-foreground">{person.email}</p>
                     <p className="text-xs text-muted-foreground">
                       {person.mutualFriends} mutual friends • {person.reason}
                     </p>
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button size="sm" variant="default" className="bg-gradient-social">
-                      <UserPlus className="w-4 h-4 mr-1" />
-                      Add
-                    </Button>
-                    <Button size="sm" variant="outline">
+                    {sentRequests.has(person.id) ? (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        disabled
+                        className="text-muted-foreground"
+                      >
+                        Request sent
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        variant="default" 
+                        className="bg-gradient-social"
+                        onClick={() => handleSendRequest(person.id)}
+                      >
+                        <UserPlus className="w-4 h-4 mr-1" />
+                        Add
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleRemoveSuggestion(person.id)}
+                    >
                       Remove
                     </Button>
                   </div>
                 </div>
               </Card>
             ))}
+            {suggestions.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No suggestions available</p>
+              </div>
+            )}
           </>
         )}
 
@@ -241,17 +351,26 @@ const Friends = () => {
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium">{request.name}</h3>
-                    <p className="text-sm text-muted-foreground">{request.username}</p>
+                    <p className="text-sm text-muted-foreground">{request.email}</p>
                     <p className="text-xs text-muted-foreground">
                       {request.mutualFriends} mutual friends • {request.time}
                     </p>
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button size="sm" variant="default" className="bg-gradient-social">
+                    <Button 
+                      size="sm" 
+                      variant="default" 
+                      className="bg-gradient-social"
+                      onClick={() => handleAcceptRequest(request.id)}
+                    >
                       Accept
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleDeclineRequest(request.id)}
+                    >
                       <UserMinus className="w-4 h-4" />
                     </Button>
                   </div>
@@ -265,7 +384,8 @@ const Friends = () => {
             )}
           </>
         )}
-      </div>
+        </div>
+      )}
     </div>
     </>
   );

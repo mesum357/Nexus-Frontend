@@ -1,13 +1,19 @@
-import { useState } from "react";
-import { Settings, Grid, Heart, Bookmark, UserPlus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Settings, Grid, Heart, Bookmark, UserPlus, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "@/lib/config";
+import Navbar from "@/components/Navbar";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("posts");
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
   const stats = [
     { label: "Posts", value: "42" },
@@ -21,29 +27,81 @@ const Profile = () => {
     likes: Math.floor(Math.random() * 100) + 10,
   }));
 
-  return (
-    <div className="max-w-4xl mx-auto p-4 animate-fade-in">
-      {/* Profile Header */}
-      <Card className="p-6 mb-6 shadow-soft">
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-          <Avatar className="w-32 h-32 border-4 border-blue-light">
-            <AvatarImage src="https://images.unsplash.com/photo-1494790108755-2616b612b5c1?w=300&h=300&fit=crop" alt="Profile" />
-            <AvatarFallback>SM</AvatarFallback>
-          </Avatar>
-          
-          <div className="flex-1 text-center md:text-left">
-            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-              <h1 className="text-2xl font-bold">Sarah Miller</h1>
-              <div className="flex gap-2 justify-center md:justify-start">
-                <Button variant="default" size="sm" className="bg-gradient-social hover:opacity-90">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Follow
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </div>
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        setCurrentUser(data.user || null);
+        setLoading(false);
+      })
+      .catch(() => {
+        setCurrentUser(null);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-20">
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="text-center">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-20">
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-4">Please log in to view your profile</h2>
+              <Button onClick={() => navigate('/login')}>Go to Login</Button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="pt-20">
+        <div className="max-w-4xl mx-auto p-4">
+              {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/feed')}
+          className="gap-2 mb-4"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Feed
+        </Button>
+
+        {/* Profile Header */}
+        <Card className="p-6 mb-6 shadow-soft">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            <Avatar className="w-32 h-32 border-4 border-blue-light">
+              <AvatarImage src={currentUser.profileImage} alt="Profile" />
+              <AvatarFallback>{currentUser.username?.[0] || 'U'}</AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                <h1 className="text-2xl font-bold">{currentUser.username || 'User'}</h1>
+                <div className="flex gap-2 justify-center md:justify-start">
+                  <Button variant="outline" size="sm">
+                    <Settings className="w-4 h-4" />
+                    Edit Profile
+                  </Button>
+                </div>
+              </div>
             
             <div className="flex justify-center md:justify-start gap-8 mb-4">
               {stats.map((stat) => (
@@ -56,17 +114,16 @@ const Profile = () => {
             
             <div className="mb-4">
               <p className="text-foreground mb-2">
-                ✨ Content Creator & Designer
+                {currentUser.email || 'No email provided'}
               </p>
               <p className="text-muted-foreground text-sm">
-                Sharing moments that matter 📸 | Coffee enthusiast ☕ | Living life one adventure at a time 🌟
+                {currentUser.city ? `📍 ${currentUser.city}` : '📍 Location not set'}
               </p>
             </div>
             
             <div className="flex gap-2 justify-center md:justify-start">
-              <Badge variant="secondary">Designer</Badge>
-              <Badge variant="secondary">Creator</Badge>
-              <Badge variant="secondary">Travel</Badge>
+              <Badge variant="secondary">Member</Badge>
+              {currentUser.city && <Badge variant="secondary">{currentUser.city}</Badge>}
             </div>
           </div>
         </div>
@@ -119,6 +176,8 @@ const Profile = () => {
             </div>
           </Card>
         ))}
+      </div>
+        </div>
       </div>
     </div>
   );

@@ -29,6 +29,7 @@ import StudentDashboard from "./pages/education/StudentDashboard";
 // Feed Module Pages
 import PostDetail from "./pages/feed/PostDetail";
 import UserProfile from "./pages/feed/UserProfile";
+import Profile from "./pages/feed/Profile";
 import CreatePost from "./pages/feed/CreatePost";
 import Friends from "./pages/feed/Friends";
 import Notifications from "./pages/feed/Notifications";
@@ -67,8 +68,8 @@ const App = () => (
           
           <Route path="/feed" element={<Feed />} />
           <Route path="/feed/post/:id" element={<PostDetail />} />
-          <Route path="/feed/profile/:username" element={<UserProfile />} />
-          <Route path="/feed/profile" element={<UserProfile />} />
+                  <Route path="/feed/profile/:username" element={<UserProfile />} />
+        <Route path="/feed/profile" element={<Profile />} />
           <Route path="/feed/create" element={<CreatePost />} />
           <Route path="/feed/friends" element={<Friends />} />
           <Route path="/feed/notifications" element={<Notifications />} />
