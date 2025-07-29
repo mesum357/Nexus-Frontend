@@ -12,6 +12,7 @@ import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { getProfileImageUrl } from '@/lib/utils'
 
 export default function PostDetail() {
   const { id } = useParams()
@@ -339,7 +340,7 @@ export default function PostDetail() {
             className={`flex items-start gap-3${level > 0 ? ' ml-8' : ''}`}
           >
             <Avatar>
-              <AvatarImage src={comment.user.profileImage} />
+              <AvatarImage src={getProfileImageUrl(comment.user.profileImage)} />
               <AvatarFallback>{comment.user.username[0]}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
@@ -419,7 +420,7 @@ export default function PostDetail() {
                       className="flex items-start gap-3 ml-8"
                     >
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={reply.user.profileImage} />
+                        <AvatarImage src={getProfileImageUrl(reply.user.profileImage)} />
                         <AvatarFallback>{reply.user.username[0]}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -548,12 +549,17 @@ export default function PostDetail() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={post.user?.profileImage} />
+                      <AvatarImage src={getProfileImageUrl(post.user?.profileImage)} />
                       <AvatarFallback>{post.user?.username?.[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-foreground text-lg">{post.user?.username || 'Unknown User'}</p>
+                        <p className="font-semibold text-foreground text-lg">
+                          {post.user?.fullName || (post.user?.username?.includes('@') ? post.user.username.split('@')[0] : post.user?.username) || 'Unknown User'}
+                        </p>
+                        {post.user?.fullName && (
+                          <p className="text-sm text-muted-foreground">@{post.user.username}</p>
+                        )}
                         {post.user?.verified && (
                           <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
                             <div className="w-2 h-2 bg-white rounded-full" />
@@ -578,9 +584,9 @@ export default function PostDetail() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
                   )}
                 </div>
 
@@ -644,7 +650,7 @@ export default function PostDetail() {
                 {/* Add Comment */}
                 <div className="flex items-start gap-3 mb-6 pb-6 border-b border-border">
                   <Avatar>
-                    <AvatarImage src={currentUser?.profileImage} />
+                    <AvatarImage src={getProfileImageUrl(currentUser?.profileImage)} />
                     <AvatarFallback>{currentUser?.username?.[0] || 'You'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 flex gap-2">

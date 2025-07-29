@@ -15,12 +15,14 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { API_BASE_URL } from '@/lib/config'
 import { Textarea } from '@/components/ui/textarea'
+import { getProfileImageUrl } from '@/lib/utils'
 
 interface PostType {
   _id: string;
-  user: {
+    user: {
     _id: string;
     username: string;
+    fullName?: string;
     email?: string;
     profileImage?: string;
     city?: string;
@@ -37,8 +39,21 @@ interface UserType {
   _id: string;
   username: string;
   email?: string;
+  mobile?: string;
   profileImage?: string;
   city?: string;
+  fullName?: string;
+  bio?: string;
+}
+
+interface SuggestedUser {
+  _id: string;
+  username: string;
+  fullName?: string;
+  email?: string;
+  profileImage?: string;
+  city?: string;
+  followerCount?: number;
 }
 
 const cities = ['All Cities', 'Lahore', 'Karachi', 'Islamabad', 'Faisalabad', 'Rawalpindi', 'Multan', 'Peshawar', 'Quetta']
@@ -46,7 +61,7 @@ const cities = ['All Cities', 'Lahore', 'Karachi', 'Islamabad', 'Faisalabad', 'R
 const sidebarMenuItems = [
   { icon: Home, label: 'Home', active: true },
   { icon: Search, label: 'Explore' },
-  { icon: Users, label: 'Friends' },
+  { icon: Users, label: 'Followers' },
   { icon: Bell, label: 'Notifications' },
   { icon: MessageSquare, label: 'Messages', badge: 2 },
   { icon: User, label: 'Profile' }
@@ -59,24 +74,6 @@ const trendingTopics = [
   "#TechStartups",
   "#Karachi",
   "#Lahore"
-]
-
-const suggestedUsers = [
-  {
-    name: "Tech Pakistan",
-    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=40&h=40&fit=crop&crop=face",
-    followers: "12.5K"
-  },
-  {
-    name: "Business Hub",
-    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=40&h=40&fit=crop&crop=face",
-    followers: "8.2K"
-  },
-  {
-    name: "Education PK",
-    avatar: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=40&h=40&fit=crop&crop=face",
-    followers: "15.1K"
-  }
 ]
 
 export default function Feed() {
@@ -95,6 +92,13 @@ export default function Feed() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [showComingSoon, setShowComingSoon] = useState(false)
   const [comingSoonMessage, setComingSoonMessage] = useState('')
+  const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([])
+  const [trendingHashtags, setTrendingHashtags] = useState<string[]>([])
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const [currentSuggestionsIndex, setCurrentSuggestionsIndex] = useState(0)
+  const [allSuggestedUsers, setAllSuggestedUsers] = useState<SuggestedUser[]>([])
+  const [lastSuggestionsFetch, setLastSuggestionsFetch] = useState<number>(0)
+  const [timeUntilRefresh, setTimeUntilRefresh] = useState<string | null>(null)
 
   const fetchPosts = useCallback(() => {
     setLoading(true)
@@ -107,6 +111,113 @@ export default function Feed() {
       .catch(() => setLoading(false))
   }, [])
 
+  const fetchSuggestedUsers = useCallback(async () => {
+    if (!currentUser) return;
+    
+    const now = Date.now();
+    const fiveHoursInMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+    
+    // Check if we need to refresh (5 hours have passed or no previous fetch)
+    if (lastSuggestionsFetch > 0 && (now - lastSuggestionsFetch) < fiveHoursInMs) {
+      // If we have cached suggestions and 5 hours haven't passed, just use them
+      return;
+    }
+    
+    try {
+      setLoadingSuggestions(true);
+      const response = await fetch(`${API_BASE_URL}/api/follow/suggestions`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const allUsers = data.suggestions || [];
+        setAllSuggestedUsers(allUsers);
+        
+        // Get first 4 suggestions
+        const firstFour = allUsers.slice(0, 4);
+        setSuggestedUsers(firstFour);
+        setCurrentSuggestionsIndex(0);
+        
+        // Update the last fetch timestamp
+        setLastSuggestionsFetch(now);
+      }
+    } catch (error) {
+      console.error('Error fetching suggested users:', error);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, [currentUser, lastSuggestionsFetch]);
+
+  const fetchTrendingHashtags = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feed/trending-hashtags`);
+      if (response.ok) {
+        const data = await response.json();
+        setTrendingHashtags(data.hashtags || trendingTopics);
+      } else {
+        setTrendingHashtags(trendingTopics);
+      }
+    } catch (error) {
+      console.error('Error fetching trending hashtags:', error);
+      setTrendingHashtags(trendingTopics);
+    }
+  }, []);
+
+  const handleFollowUser = async (userId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/follow/${userId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        // Refresh suggested users
+        fetchSuggestedUsers();
+      }
+    } catch (error) {
+      console.error('Error following user:', error);
+    }
+  };
+
+  const rotateSuggestions = useCallback(() => {
+    if (allSuggestedUsers.length <= 4) return;
+    
+    setCurrentSuggestionsIndex(prevIndex => {
+      const nextIndex = (prevIndex + 4) % allSuggestedUsers.length;
+      const newSuggestions = allSuggestedUsers.slice(nextIndex, nextIndex + 4);
+      setSuggestedUsers(newSuggestions);
+      return nextIndex;
+    });
+  }, [allSuggestedUsers]);
+
+  const refreshSuggestions = useCallback(() => {
+    // Force refresh by resetting the timestamp
+    setLastSuggestionsFetch(0);
+    fetchSuggestedUsers();
+  }, [fetchSuggestedUsers]);
+
+  const getTimeUntilRefresh = useCallback(() => {
+    if (lastSuggestionsFetch === 0) return null;
+    
+    const now = Date.now();
+    const fiveHoursInMs = 5 * 60 * 60 * 1000;
+    const timeElapsed = now - lastSuggestionsFetch;
+    const timeRemaining = fiveHoursInMs - timeElapsed;
+    
+    if (timeRemaining <= 0) return null;
+    
+    const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+    const minutes = Math.floor((timeRemaining % (60 * 60 * 1000)) / (60 * 1000));
+    
+    return `${hours}h ${minutes}m`;
+  }, [lastSuggestionsFetch]);
+
+  const handleHashtagClick = (hashtag: string) => {
+    setSearchTerm(hashtag);
+    // You can also navigate to a hashtag-specific page or filter posts
+  };
+
   useEffect(() => {
     fetchPosts()
   }, [fetchPosts])
@@ -114,8 +225,14 @@ export default function Feed() {
   useEffect(() => {
     fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
       .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => setCurrentUser(data.user || null))
-      .catch(() => setCurrentUser(null))
+      .then(data => {
+        console.log('Current user data received:', data);
+        setCurrentUser(data.user || null);
+      })
+      .catch((error) => {
+        console.log('Error fetching current user:', error);
+        setCurrentUser(null);
+      })
   }, [])
 
   // Fetch unread notification count
@@ -132,6 +249,50 @@ export default function Feed() {
   useEffect(() => {
     fetchUnreadCount()
   }, [fetchUnreadCount])
+
+  useEffect(() => {
+    fetchSuggestedUsers();
+    fetchTrendingHashtags();
+  }, [fetchSuggestedUsers, fetchTrendingHashtags]);
+
+  // Set up rotation interval for suggested users
+  useEffect(() => {
+    if (allSuggestedUsers.length > 4) {
+      const interval = setInterval(rotateSuggestions, 5000); // Rotate every 5 seconds
+      return () => clearInterval(interval);
+    }
+  }, [allSuggestedUsers, rotateSuggestions]);
+
+  // Set up 5-hour refresh interval for suggested users
+  useEffect(() => {
+    if (lastSuggestionsFetch > 0) {
+      const fiveHoursInMs = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
+      const timeUntilRefresh = fiveHoursInMs - (Date.now() - lastSuggestionsFetch);
+      
+      if (timeUntilRefresh > 0) {
+        const refreshTimer = setTimeout(() => {
+          fetchSuggestedUsers();
+        }, timeUntilRefresh);
+        
+        return () => clearTimeout(refreshTimer);
+      } else {
+        // If 5 hours have already passed, refresh immediately
+        fetchSuggestedUsers();
+      }
+    }
+  }, [lastSuggestionsFetch, fetchSuggestedUsers]);
+
+  // Update time until refresh display
+  useEffect(() => {
+    const updateTimeDisplay = () => {
+      setTimeUntilRefresh(getTimeUntilRefresh());
+    };
+    
+    updateTimeDisplay();
+    const interval = setInterval(updateTimeDisplay, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, [getTimeUntilRefresh]);
 
   const handleQuickImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -210,6 +371,7 @@ export default function Feed() {
               <Card>
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-foreground mb-4">Menu</h3>
+                  
                   <div className="space-y-2">
                     {sidebarMenuItems.map((item, index) => (
                       <Button
@@ -222,13 +384,22 @@ export default function Feed() {
                             setComingSoonMessage('Explore feature is coming soon! Discover trending topics, hashtags, and popular posts from across Pakistan.')
                             setShowComingSoon(true)
                           }
-                          if (item.label === 'Friends') navigate('/feed/friends')
+                          if (item.label === 'Followers') navigate('/feed/followers')
                           if (item.label === 'Notifications') navigate('/feed/notifications')
                           if (item.label === 'Messages') {
                             setComingSoonMessage('Messages feature is coming soon! Connect with other users through private messaging.')
                             setShowComingSoon(true)
                           }
-                          if (item.label === 'Profile') navigate('/feed/profile')
+                          if (item.label === 'Profile') {
+                            console.log('Profile clicked, currentUser:', currentUser);
+                            if (currentUser && currentUser.username) {
+                              console.log('Navigating to:', `/feed/profile/${currentUser.username}`);
+                              navigate(`/feed/profile/${currentUser.username}`);
+                            } else {
+                              console.log('No currentUser or username, navigating to /feed/profile');
+                              navigate('/feed/profile');
+                            }
+                          }
                           if (item.label === 'Create Post') navigate('/feed/create')
                         }}
                       >
@@ -249,6 +420,54 @@ export default function Feed() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* User Profile Section */}
+              {currentUser && (
+                <Card>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-foreground mb-4">Your Profile</h3>
+                    <div className="flex items-center gap-3 mb-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage 
+                          src={getProfileImageUrl(currentUser.profileImage)} 
+                        />
+                        <AvatarFallback>{currentUser.username[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">
+                          {currentUser.fullName || currentUser.username}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          @{currentUser.username}
+                        </p>
+                        {currentUser.city && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            📍 {currentUser.city}
+                          </p>
+                        )}
+                        {currentUser.mobile && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            📱 {currentUser.mobile}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {currentUser.bio && (
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                        {currentUser.bio}
+                      </p>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => navigate(`/feed/profile/${currentUser.username}`)}
+                    >
+                      View Profile
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
               {/* City Filter */}
               <Card>
                 <CardContent className="p-4">
@@ -286,11 +505,12 @@ export default function Feed() {
                     Trending
                   </h3>
                   <div className="space-y-2">
-                    {trendingTopics.map((topic, index) => (
+                    {trendingHashtags.map((topic, index) => (
                       <Badge
                         key={index}
                         variant="secondary"
                         className="w-full justify-start cursor-pointer hover:bg-primary/10"
+                        onClick={() => handleHashtagClick(topic)}
                       >
                         {topic}
                       </Badge>
@@ -301,24 +521,58 @@ export default function Feed() {
               {/* Suggested Users */}
               <Card>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Suggested Users
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Suggested Users
+                      {timeUntilRefresh && (
+                        <span className="text-xs text-muted-foreground font-normal">
+                          (refreshes in {timeUntilRefresh})
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={refreshSuggestions}
+                      disabled={loadingSuggestions}
+                      className="h-6 w-6 p-0"
+                      title="Refresh suggestions"
+                    >
+                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </Button>
                   </h3>
                   <div className="space-y-3">
                     {suggestedUsers.map((user, index) => (
-                      <div key={index} className="flex items-center justify-between">
+                      <div key={`${user._id}-${currentSuggestionsIndex}-${index}`} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.avatar} />
-                            <AvatarFallback>{user.name[0]}</AvatarFallback>
+                            <AvatarImage 
+                              src={getProfileImageUrl(user.profileImage)} 
+                            />
+                            <AvatarFallback>
+                              {(user.fullName || user.username)[0]}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="text-sm font-medium text-foreground">{user.name}</p>
-                            <p className="text-xs text-muted-foreground">{user.followers} followers</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {user.fullName || (user.username.includes('@') ? user.username.split('@')[0] : user.username)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {user.followerCount || 0} followers
+                            </p>
                           </div>
                         </div>
-                        <Button size="sm" variant="outline">Follow</Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleFollowUser(user._id)}
+                          disabled={loadingSuggestions}
+                        >
+                          {loadingSuggestions ? '...' : 'Follow'}
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -381,7 +635,7 @@ export default function Feed() {
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <Avatar>
-                        <AvatarImage src={currentUser?.profileImage} />
+                        <AvatarImage src={getProfileImageUrl(currentUser?.profileImage)} />
                         <AvatarFallback>{currentUser?.username?.[0] || 'U'}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">

@@ -22,12 +22,12 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ username: email, password }),
+        body: JSON.stringify({ email, password }),
       })
       const data = await response.json()
       if (response.ok) {
         toast({ title: 'Login successful', description: 'Welcome back!' })
-        navigate('/dashboard')
+        navigate('/')
       } else {
         toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })
       }

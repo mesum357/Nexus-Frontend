@@ -1,20 +1,52 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import bgImage from '@/assets/hero-home.jpg'
 import { useToast } from '@/components/ui/use-toast'
 import { API_BASE_URL } from '@/lib/config'
+import { Camera } from 'lucide-react'
 
 export default function Signup() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [mobile, setMobile] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
-  const { toast } = useToast();
+  const { toast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: 'File too large', description: 'Please select an image smaller than 5MB', variant: 'destructive' })
+        return
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({ title: 'Invalid file type', description: 'Please select an image file', variant: 'destructive' })
+        return
+      }
+
+      setProfileImage(file)
+      
+      // Create preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setProfileImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,11 +56,20 @@ export default function Signup() {
     }
     setIsSubmitting(true)
     try {
+      const formData = new FormData()
+      formData.append('fullName', fullName)
+      formData.append('email', email)
+      formData.append('mobile', mobile)
+      formData.append('password', password)
+      formData.append('confirmPassword', confirmPassword)
+      if (profileImage) {
+        formData.append('profileImage', profileImage)
+      }
+
       const response = await fetch(`${API_BASE_URL}/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ username: email, email, password, confirmPassword }),
+        body: formData,
       })
       const data = await response.json()
       if (response.ok) {
@@ -58,6 +99,39 @@ export default function Signup() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Profile Image Section */}
+          <div className="text-center">
+            <Label className="text-white mb-3 block">Profile Photo</Label>
+            <div className="flex flex-col items-center space-y-3">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={profileImagePreview || undefined} />
+                <AvatarFallback className="text-lg">
+                  {fullName ? fullName[0] : 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30"
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                {profileImagePreview ? 'Change Photo' : 'Upload Photo'}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              {profileImagePreview && (
+                <p className="text-xs text-green-300">Photo selected ✓</p>
+              )}
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="fullName" className="text-white">Full Name</Label>
             <Input
@@ -78,6 +152,18 @@ export default function Signup() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+              required
+              className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
+            />
+          </div>
+          <div>
+            <Label htmlFor="mobile" className="text-white">Mobile Number</Label>
+            <Input
+              id="mobile"
+              type="tel"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              placeholder="Enter your mobile number"
               required
               className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
             />

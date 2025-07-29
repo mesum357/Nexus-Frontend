@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
-import { Settings, Grid, Heart, Bookmark, UserPlus, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "@/lib/config";
-import Navbar from "@/components/Navbar";
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, Settings, Edit, Camera } from 'lucide-react'
+import Navbar from '@/components/Navbar'
+import { API_BASE_URL } from '@/lib/config'
+import { getProfileImageUrl } from '@/lib/utils'
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -84,24 +84,24 @@ const Profile = () => {
           Back to Feed
         </Button>
 
-        {/* Profile Header */}
-        <Card className="p-6 mb-6 shadow-soft">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <Avatar className="w-32 h-32 border-4 border-blue-light">
-              <AvatarImage src={currentUser.profileImage} alt="Profile" />
+      {/* Profile Header */}
+      <Card className="p-6 mb-6 shadow-soft">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+          <Avatar className="w-32 h-32 border-4 border-blue-light">
+              <AvatarImage src={getProfileImageUrl(currentUser.profileImage)} alt="Profile" />
               <AvatarFallback>{currentUser.username?.[0] || 'U'}</AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+          </Avatar>
+          
+          <div className="flex-1 text-center md:text-left">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
                 <h1 className="text-2xl font-bold">{currentUser.username || 'User'}</h1>
-                <div className="flex gap-2 justify-center md:justify-start">
-                  <Button variant="outline" size="sm">
-                    <Settings className="w-4 h-4" />
+              <div className="flex gap-2 justify-center md:justify-start">
+                <Button variant="outline" size="sm">
+                  <Settings className="w-4 h-4" />
                     Edit Profile
-                  </Button>
-                </div>
+                </Button>
               </div>
+            </div>
             
             <div className="flex justify-center md:justify-start gap-8 mb-4">
               {stats.map((stat) => (

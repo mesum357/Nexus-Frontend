@@ -13,10 +13,11 @@ interface ShopMediaStepProps {
 const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const ownerProfileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (
     file: File,
-    type: 'logo' | 'banner'
+    type: 'logo' | 'banner' | 'ownerProfile'
   ) => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -27,10 +28,15 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
             shopLogo: file,
             logoPreview: result
           });
-        } else {
+        } else if (type === 'banner') {
           updateData({
             shopBanner: file,
             bannerPreview: result
+          });
+        } else {
+          updateData({
+            ownerProfilePhoto: file,
+            ownerProfilePreview: result
           });
         }
       };
@@ -40,7 +46,7 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
 
   const handleDrop = (
     e: React.DragEvent<HTMLDivElement>,
-    type: 'logo' | 'banner'
+    type: 'logo' | 'banner' | 'ownerProfile'
   ) => {
     e.preventDefault();
     const files = e.dataTransfer.files;
@@ -53,19 +59,25 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
     e.preventDefault();
   };
 
-  const removeImage = (type: 'logo' | 'banner') => {
+  const removeImage = (type: 'logo' | 'banner' | 'ownerProfile') => {
     if (type === 'logo') {
       updateData({
         shopLogo: null,
         logoPreview: ''
       });
       if (logoInputRef.current) logoInputRef.current.value = '';
-    } else {
+    } else if (type === 'banner') {
       updateData({
         shopBanner: null,
         bannerPreview: ''
       });
       if (bannerInputRef.current) bannerInputRef.current.value = '';
+    } else {
+      updateData({
+        ownerProfilePhoto: null,
+        ownerProfilePreview: ''
+      });
+      if (ownerProfileInputRef.current) ownerProfileInputRef.current.value = '';
     }
   };
 
@@ -75,21 +87,23 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
     type,
     preview,
     aspectRatio,
-    inputRef
+    inputRef,
+    required = true
   }: {
     title: string;
     description: string;
-    type: 'logo' | 'banner';
+    type: 'logo' | 'banner' | 'ownerProfile';
     preview: string;
     aspectRatio: string;
     inputRef: React.RefObject<HTMLInputElement>;
+    required?: boolean;
   }) => (
     <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-md">
       <CardContent className="p-6">
         <div className="space-y-4">
           <div>
             <Label className="text-sm font-medium">
-              {title} <span className="text-destructive">*</span>
+              {title} {required && <span className="text-destructive">*</span>}
             </Label>
             <p className="text-xs text-muted-foreground mt-1">{description}</p>
           </div>
@@ -165,7 +179,7 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Shop Logo */}
         <ImageUploadCard
           title="Shop Logo"
@@ -185,10 +199,21 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
           aspectRatio="aspect-[3/1]"
           inputRef={bannerInputRef}
         />
+
+        {/* Owner Profile Photo */}
+        <ImageUploadCard
+          title="Owner Profile Photo"
+          description="Your profile photo that will appear on the shop page (recommended: 400x400px)"
+          type="ownerProfile"
+          preview={data.ownerProfilePreview}
+          aspectRatio="aspect-square"
+          inputRef={ownerProfileInputRef}
+          required={false}
+        />
       </div>
 
       {/* Preview Section */}
-      {(data.logoPreview || data.bannerPreview) && (
+      {(data.logoPreview || data.bannerPreview || data.ownerProfilePreview) && (
         <Card className="bg-muted/30">
           <CardContent className="p-6">
             <Label className="text-sm font-medium mb-4 block">Preview</Label>
@@ -220,6 +245,22 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
                       alt="Logo preview"
                       className="w-full h-full object-cover"
                     />
+                  </div>
+                </div>
+              )}
+              
+              {data.ownerProfilePreview && (
+                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="w-16 h-16 rounded-full overflow-hidden shadow-md">
+                    <img
+                      src={data.ownerProfilePreview}
+                      alt="Owner profile preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Owner Profile Photo</p>
+                    <p className="text-xs text-muted-foreground">Will appear on your shop page</p>
                   </div>
                 </div>
               )}

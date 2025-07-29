@@ -189,7 +189,11 @@ export default function Store() {
             description: shop.shopDescription || '',
             businessType: shop.shopType,
             ownerName: shop.ownerName || 'Shop Owner',
-            ownerDp: shop.ownerDp || '',
+            ownerDp: shop.ownerDp 
+              ? (shop.ownerDp.startsWith('/uploads/')
+                  ? `${API_BASE_URL}${shop.ownerDp}`
+                  : `${API_BASE_URL}/uploads/${shop.ownerDp}`)
+              : '',
             products: shop.products || [],
           }))} />
         )}

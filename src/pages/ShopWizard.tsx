@@ -38,8 +38,10 @@ const ShopWizard: React.FC = () => {
     categories: [],
     shopLogo: null,
     shopBanner: null,
+    ownerProfilePhoto: null,
     logoPreview: '',
     bannerPreview: '',
+    ownerProfilePreview: '',
     facebookUrl: '',
     instagramHandle: '',
     whatsappNumber: '',
@@ -120,6 +122,7 @@ const ShopWizard: React.FC = () => {
       formData.append('whatsappNumber', shopData.whatsappNumber);
       if (shopData.shopLogo) formData.append('shopLogo', shopData.shopLogo);
       if (shopData.shopBanner) formData.append('shopBanner', shopData.shopBanner);
+      if (shopData.ownerProfilePhoto) formData.append('ownerProfilePhoto', shopData.ownerProfilePhoto);
       if (shopData.products.length > 0) {
         formData.append('products', JSON.stringify(shopData.products.map(product => ({
           ...product,

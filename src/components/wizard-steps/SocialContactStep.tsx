@@ -13,6 +13,16 @@ interface SocialContactStepProps {
 const SocialContactStep: React.FC<SocialContactStepProps> = ({ data, updateData }) => {
   const socialLinks = [
     {
+      id: 'whatsapp',
+      label: 'WhatsApp Business Number',
+      icon: MessageCircle,
+      placeholder: '+92 300 1234567',
+      value: data.whatsappNumber,
+      onChange: (value: string) => updateData({ whatsappNumber: value }),
+      required: true,
+      description: 'Your WhatsApp number for customer inquiries (required)'
+    },
+    {
       id: 'facebook',
       label: 'Facebook Page URL',
       icon: Facebook,
@@ -20,7 +30,7 @@ const SocialContactStep: React.FC<SocialContactStepProps> = ({ data, updateData 
       value: data.facebookUrl,
       onChange: (value: string) => updateData({ facebookUrl: value }),
       required: false,
-      description: 'Link to your Facebook business page'
+      description: 'Link to your Facebook business page (optional)'
     },
     {
       id: 'instagram',
@@ -30,17 +40,7 @@ const SocialContactStep: React.FC<SocialContactStepProps> = ({ data, updateData 
       value: data.instagramHandle,
       onChange: (value: string) => updateData({ instagramHandle: value }),
       required: false,
-      description: 'Your Instagram username (with or without @)'
-    },
-    {
-      id: 'whatsapp',
-      label: 'WhatsApp Business Number',
-      icon: MessageCircle,
-      placeholder: '+92 300 1234567',
-      value: data.whatsappNumber,
-      onChange: (value: string) => updateData({ whatsappNumber: value }),
-      required: true,
-      description: 'Your WhatsApp number for customer inquiries'
+      description: 'Your Instagram username (with or without @) (optional)'
     },
     {
       id: 'website',

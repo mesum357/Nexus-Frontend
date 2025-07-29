@@ -19,6 +19,7 @@ interface Institute {
   rating?: number;
   verified?: boolean;
   students?: string;
+  totalStudents?: string;
   courses?: string;
   specialization?: string;
   admissionStatus?: string;
@@ -164,7 +165,7 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
           {/* Students Count */}
           <div className="flex items-center gap-2 mb-4">
             <Users className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">{institute.students || 'N/A'}</span>
+            <span className="text-sm font-medium">{institute.totalStudents || institute.students || 'N/A'}</span>
             <span className="text-xs text-muted-foreground">Total Students</span>
           </div>
 
@@ -182,16 +183,16 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
           {/* Owner Actions */}
           {currentUser && institute.owner && String(currentUser._id) === String(institute.owner) && (
             <div className="space-y-2">
-              <Button
-                variant="outline"
+            <Button
+              variant="outline"
                 className="w-full"
-                onClick={e => {
-                  e.stopPropagation();
-                  navigate(`/education/edit/${id}`);
-                }}
-              >
-                Edit Institute
-              </Button>
+              onClick={e => {
+                e.stopPropagation();
+                navigate(`/education/edit/${id}`);
+              }}
+            >
+              Edit Institute
+            </Button>
               <Button
                 variant="destructive"
                 size="sm"

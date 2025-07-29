@@ -21,6 +21,7 @@ interface Institute {
   rating?: number;
   verified?: boolean;
   students?: string;
+  totalStudents?: string;
   courses?: string;
   specialization?: string;
   admissionStatus?: string;

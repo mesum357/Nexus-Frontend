@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, Video, Smile, X, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -6,7 +6,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { useToast } from '@/hooks/use-toast'
 import { API_BASE_URL } from '@/lib/config'
+import { getProfileImageUrl } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
 
 interface CreatePostProps {
@@ -85,8 +87,8 @@ export default function CreatePost({ onPostCreated, currentUser }: CreatePostPro
       <Card className="mb-6">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarImage src={currentUser?.profileImage} />
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={getProfileImageUrl(currentUser?.profileImage)} />
               <AvatarFallback>{currentUser?.username?.[0] || 'U'}</AvatarFallback>
             </Avatar>
             <Dialog>
@@ -107,8 +109,8 @@ export default function CreatePost({ onPostCreated, currentUser }: CreatePostPro
                 >
                   {/* User Info */}
                   <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={currentUser?.profileImage} />
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={getProfileImageUrl(currentUser?.profileImage)} />
                       <AvatarFallback>{currentUser?.username?.[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div>

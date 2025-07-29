@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Star, MapPin, Users, BookOpen, GraduationCap, Phone, Mail, Check, ArrowLeft, Globe, Calendar, Building2 } from 'lucide-react'
+import { Star, MapPin, Users, BookOpen, GraduationCap, Phone, Mail, Check, ArrowLeft, Calendar, Building2, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import Navbar from '@/components/Navbar'
 import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '@/lib/config'
@@ -22,6 +23,7 @@ interface Institute {
   rating?: number;
   verified?: boolean;
   students?: string;
+  totalStudents?: string;
   courses?: string;
   specialization?: string;
   admissionStatus?: string;
@@ -30,6 +32,7 @@ interface Institute {
   owner?: string;
   website?: string;
   established?: string;
+  establishedYear?: number;
   description?: string;
 }
 
@@ -108,8 +111,13 @@ export default function InstituteDetail() {
         return res.json()
       })
       .then(data => {
-        setInstitute(data.institute)
-        setIsLoading(false)
+        console.log('Institute data received:', data.institute);
+        if (data.institute) {
+          setInstitute(data.institute)
+          setIsLoading(false)
+        } else {
+          throw new Error('Institute data not found in response')
+        }
       })
       .catch(err => {
         setError(err.message)
@@ -396,7 +404,9 @@ export default function InstituteDetail() {
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-foreground">{institute.students || 'N/A'}</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {institute.totalStudents || institute.students || 'N/A'}
+                    </p>
                     <p className="text-sm text-muted-foreground">Students</p>
                   </CardContent>
                 </Card>
@@ -404,7 +414,9 @@ export default function InstituteDetail() {
                 <Card>
                   <CardContent className="p-6 text-center">
                     <BookOpen className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-foreground">{institute.specialization ? institute.specialization.split(', ').length : 'N/A'}</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {institute.specialization ? institute.specialization.split(', ').length : 'N/A'}
+                    </p>
                     <p className="text-sm text-muted-foreground">Courses</p>
                   </CardContent>
                 </Card>
@@ -412,7 +424,9 @@ export default function InstituteDetail() {
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-foreground">{institute.established || 'N/A'}</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {institute.establishedYear || institute.established || 'N/A'}
+                    </p>
                     <p className="text-sm text-muted-foreground">Established</p>
                   </CardContent>
                 </Card>
@@ -440,7 +454,7 @@ export default function InstituteDetail() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {institute.specialization ? 
                         institute.specialization.split(', ').map((course, index) => (
-                          <Badge key={index} variant="secondary" className="p-2 justify-center">
+                        <Badge key={index} variant="secondary" className="p-2 justify-center">
                             {course}
                           </Badge>
                         ))
@@ -543,22 +557,22 @@ export default function InstituteDetail() {
                       <div className="space-y-4">
                         {reviews.map((review) => (
                           <div key={review._id} className="border-b border-border pb-4 last:border-b-0">
-                            <div className="flex items-start gap-3">
-                              <Avatar>
+                        <div className="flex items-start gap-3">
+                          <Avatar>
                                 <AvatarFallback>
                                   {review.reviewer.username ? review.reviewer.username[0].toUpperCase() : 'U'}
                                 </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
                                   <p className="font-semibold text-foreground">
                                     {review.reviewer.username || 'Anonymous'}
                                   </p>
-                                  <div className="flex">
-                                    {Array.from({ length: review.rating }).map((_, i) => (
-                                      <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    ))}
-                                  </div>
+                              <div className="flex">
+                                {Array.from({ length: review.rating }).map((_, i) => (
+                                  <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                ))}
+                              </div>
                                   <span className="text-sm text-muted-foreground">
                                     {formatDate(review.createdAt)}
                                   </span>
@@ -574,7 +588,7 @@ export default function InstituteDetail() {
                             </div>
                           </div>
                         ))}
-                      </div>
+                        </div>
                     ) : (
                       <div className="text-center py-8">
                         <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -608,12 +622,24 @@ export default function InstituteDetail() {
                   <Button className="w-full bg-primary hover:bg-primary/90">
                     Apply Now
                   </Button>
-                  <Button variant="outline" className="w-full">
-                    View Courses
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Download Brochure
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        View Courses
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuItem onClick={() => navigate(`/education/courses/${id}`)}>
+                        All Courses
+                      </DropdownMenuItem>
+                      {institute.specialization && institute.specialization.split(', ').map((course, index) => (
+                        <DropdownMenuItem key={index} onClick={() => navigate(`/education/courses/${id}?specialization=${course}`)}>
+                          {course}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   
                   {/* Owner Actions */}
                   {isAuthenticated && currentUser && institute && String(institute.owner) === String(currentUser._id) && (
@@ -656,10 +682,6 @@ export default function InstituteDetail() {
                   <div className="flex items-center gap-3">
                     <Mail className="h-4 w-4 text-primary" />
                     <span className="text-muted-foreground">{institute.email || 'Not provided'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-4 w-4 text-primary" />
-                    <span className="text-muted-foreground">{institute.website || 'Not provided'}</span>
                   </div>
                 </CardContent>
               </Card>

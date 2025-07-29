@@ -80,6 +80,12 @@ export default function Shop() {
   const [editProductIndex, setEditProductIndex] = useState<number | null>(null);
   const [deleteProductIndex, setDeleteProductIndex] = useState<number | null>(null);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+  const [showGalleryUpload, setShowGalleryUpload] = useState(false);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [deletingGalleryImage, setDeletingGalleryImage] = useState<number | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!shopId) return;
@@ -105,7 +111,11 @@ export default function Shop() {
             rating: data.shop.rating || 4.5,
             totalReviews: data.shop.totalReviews || 0,
             ownerName: data.shop.ownerName || 'Shop Owner',
-            ownerDp: data.shop.ownerDp || '',
+            ownerDp: data.shop.ownerDp 
+              ? (data.shop.ownerDp.startsWith('/uploads/')
+                  ? `${API_BASE_URL}${data.shop.ownerDp}`
+                  : `${API_BASE_URL}/uploads/${data.shop.ownerDp}`)
+              : '',
             shopDescription: data.shop.shopDescription || data.shop.description,
             businessType: data.shop.shopType || data.shop.businessType,
             city: data.shop.city,
@@ -118,12 +128,10 @@ export default function Shop() {
             },
             websiteUrl: data.shop.websiteUrl || '',
             products: data.shop.products || [],
-            gallery: (data.shop.products || []).flatMap((p) =>
-              (p.images || []).map((img: string) =>
-                img.startsWith('/uploads/')
-                  ? `${API_BASE_URL}${img}`
-                  : `${API_BASE_URL}/uploads/${img}`
-              )
+            gallery: (data.shop.gallery || []).map((img: string) =>
+              img.startsWith('/uploads/')
+                ? `${API_BASE_URL}${img}`
+                : `${API_BASE_URL}/uploads/${img}`
             ),
             owner: data.shop.owner // Ensure owner is set
           });
@@ -320,6 +328,115 @@ export default function Shop() {
     }
   };
 
+  // Gallery upload functions
+  const handleGalleryUpload = (files: FileList | null) => {
+    if (!files) return;
+    const newFiles: File[] = Array.from(files);
+    const newPreviews: string[] = [];
+    let loaded = 0;
+    newFiles.forEach((file, idx) => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          newPreviews[idx] = result;
+          loaded++;
+          if (loaded === newFiles.length) {
+            setGalleryFiles(prev => [...prev, ...newFiles]);
+            setGalleryPreviews(prev => [...prev, ...newPreviews]);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleGalleryDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleGalleryDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleGalleryUpload(e.dataTransfer.files);
+    }
+  };
+
+  const handleUploadGallery = async () => {
+    if (galleryFiles.length === 0) {
+      toast({ title: 'No images selected', description: 'Please select at least one image to upload', variant: 'destructive' });
+      return;
+    }
+
+    setIsUploadingGallery(true);
+    try {
+      const formData = new FormData();
+      galleryFiles.forEach((file, index) => {
+        formData.append('galleryImages', file);
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/shop/${shopId}/gallery`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        toast({ title: 'Gallery updated', description: 'Images uploaded successfully' });
+        setShowGalleryUpload(false);
+        setGalleryFiles([]);
+        setGalleryPreviews([]);
+        // Refresh shop data to show new gallery images
+        window.location.reload();
+      } else {
+        toast({ title: 'Error', description: result.error || 'Failed to upload images', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Network Error', description: 'Could not connect to server.', variant: 'destructive' });
+    } finally {
+      setIsUploadingGallery(false);
+    }
+  };
+
+  const handleDeleteGalleryImage = async (imageIndex: number) => {
+    if (!shop?.gallery) return;
+    
+    setDeletingGalleryImage(imageIndex);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/shop/${shopId}/gallery/${imageIndex}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        toast({ title: 'Image deleted', description: 'Gallery image removed successfully' });
+        // Refresh shop data to show updated gallery
+        window.location.reload();
+      } else {
+        toast({ title: 'Error', description: result.error || 'Failed to delete image', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Network Error', description: 'Could not connect to server.', variant: 'destructive' });
+    } finally {
+      setDeletingGalleryImage(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -449,23 +566,152 @@ export default function Shop() {
               {/* Gallery */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Gallery</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Gallery</CardTitle>
+                    {currentUser && String(shop.owner) === String(currentUser._id) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowGalleryUpload(!showGalleryUpload)}
+                      >
+                        {showGalleryUpload ? 'Cancel' : 'Add Images'}
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
+                  {/* Gallery Upload Section for Shop Owner */}
+                  {showGalleryUpload && currentUser && String(shop.owner) === String(currentUser._id) && (
+                    <div className="mb-6 p-4 border rounded-lg bg-muted/30">
+                      <h4 className="font-medium mb-3">Upload Gallery Images</h4>
+                      
+                      {/* Drag & Drop Area */}
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                          dragActive ? 'border-primary bg-primary/5' : 'border-border'
+                        }`}
+                        onDragEnter={handleGalleryDrag}
+                        onDragLeave={handleGalleryDrag}
+                        onDragOver={handleGalleryDrag}
+                        onDrop={handleGalleryDrop}
+                      >
+                        <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Drag and drop images here, or click to select
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => galleryInputRef.current?.click()}
+                        >
+                          Choose Images
+                        </Button>
+                        <input
+                          ref={galleryInputRef}
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleGalleryUpload(e.target.files)}
+                        />
+                      </div>
+
+                      {/* Preview Uploaded Images */}
+                      {galleryPreviews.length > 0 && (
+                        <div className="mt-4">
+                          <h5 className="font-medium mb-2">Preview ({galleryPreviews.length} images)</h5>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            {galleryPreviews.map((preview, index) => (
+                              <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
+                                <img
+                                  src={preview}
+                                  alt={`Preview ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                                <button
+                                  onClick={() => removeGalleryImage(index)}
+                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-4 flex gap-2">
+                            <Button
+                              onClick={handleUploadGallery}
+                              disabled={isUploadingGallery}
+                              className="flex-1"
+                            >
+                              {isUploadingGallery ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                'Upload Images'
+                              )}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowGalleryUpload(false);
+                                setGalleryFiles([]);
+                                setGalleryPreviews([]);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Gallery Display */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {shop.gallery && shop.gallery.length > 0 ? shop.gallery.map((image: string, index: number) => (
                       <motion.div
                         key={index}
                         whileHover={{ scale: 1.05 }}
-                        className="aspect-square rounded-lg overflow-hidden"
+                        className="relative aspect-square rounded-lg overflow-hidden group"
                       >
                         <img
                           src={image}
                           alt={`Gallery ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
+                        {/* Delete button for shop owner */}
+                        {currentUser && String(shop.owner) === String(currentUser._id) && (
+                          <button
+                            onClick={() => handleDeleteGalleryImage(index)}
+                            disabled={deletingGalleryImage === index}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            {deletingGalleryImage === index ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                          </button>
+                        )}
                       </motion.div>
-                    )) : <div className="text-muted-foreground">No images available.</div>}
+                    )) : (
+                      <div className="col-span-full text-center py-8 text-muted-foreground">
+                        {currentUser && String(shop.owner) === String(currentUser._id) ? (
+                          <div>
+                            <ImageIcon className="w-12 h-12 mx-auto mb-2 text-muted-foreground/50" />
+                            <p>No images in gallery yet.</p>
+                            <p className="text-sm">Click "Add Images" to upload photos to your gallery.</p>
+                          </div>
+                        ) : (
+                          <div>
+                            <ImageIcon className="w-12 h-12 mx-auto mb-2 text-muted-foreground/50" />
+                            <p>No images available.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -515,8 +761,8 @@ export default function Shop() {
                             {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
                               <div className="flex gap-2 mt-2">
                                 <Button size="sm" variant="outline" onClick={() => handleEditProduct(idx)}>
-                                  Edit
-                                </Button>
+                                Edit
+                              </Button>
                                 <Button 
                                   size="sm" 
                                   variant="destructive" 

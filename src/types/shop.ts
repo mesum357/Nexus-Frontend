@@ -6,8 +6,10 @@ export interface ShopData {
   categories: string[];
   shopLogo: File | null;
   shopBanner: File | null;
+  ownerProfilePhoto: File | null;
   logoPreview: string;
   bannerPreview: string;
+  ownerProfilePreview: string;
   products: Array<{
     id: string;
     name: string;

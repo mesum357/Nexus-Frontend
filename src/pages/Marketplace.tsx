@@ -474,8 +474,8 @@ export default function Marketplace() {
                   <p className="text-muted-foreground">Loading products...</p>
                 </div>
               ) : products.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {products.map((product, index) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {products.map((product, index) => (
                   <motion.div
                     key={product._id || index}
                     initial={{ y: 50, opacity: 0 }}
@@ -497,13 +497,13 @@ export default function Marketplace() {
                           </Badge>
                         )}
                         <div className="absolute top-2 right-2 flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                             className="h-8 w-8 bg-white/80 hover:bg-white"
-                          >
-                            <Heart className="h-4 w-4" />
-                          </Button>
+                        >
+                          <Heart className="h-4 w-4" />
+                        </Button>
                           {isProductOwner(product) && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>

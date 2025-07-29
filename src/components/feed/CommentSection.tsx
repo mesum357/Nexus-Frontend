@@ -1,17 +1,20 @@
-import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { API_BASE_URL } from '@/lib/config';
-import { Heart, MessageCircle, CornerDownRight, Trash2, Edit, ChevronDown, ChevronUp, MoreHorizontal } from 'lucide-react';
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent } from '@/components/ui/card'
+import { MessageCircle, Reply, MoreHorizontal, Trash2, Edit, Heart, CornerDownRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { API_BASE_URL } from '@/lib/config'
+import { getProfileImageUrl } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useNavigate } from 'react-router-dom'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 interface UserType {
   _id: string;
   username: string;
+  fullName?: string;
   profileImage?: string;
 }
 
@@ -29,6 +32,7 @@ interface CommentSectionProps {
   currentUser?: {
     _id: string;
     username: string;
+    fullName?: string;
     email?: string;
     profileImage?: string;
     city?: string;
@@ -287,14 +291,19 @@ const CommentSection = forwardRef(function CommentSection(
           return (
             <div key={comment._id} className="flex items-start gap-3">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={comment.user.profileImage} />
+                <AvatarImage src={getProfileImageUrl(comment.user.profileImage)} />
                 <AvatarFallback>{comment.user.username[0]}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="bg-gray-100 rounded-lg p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-semibold text-sm">{comment.user.username}</span>
+                      <span className="font-semibold text-sm">
+                        {comment.user.fullName || (comment.user.username.includes('@') ? comment.user.username.split('@')[0] : comment.user.username)}
+                      </span>
+                      {comment.user.fullName && (
+                        <span className="text-xs text-muted-foreground ml-1">@{comment.user.username}</span>
+                      )}
                       <span className="text-xs text-muted-foreground ml-2">{new Date(comment.createdAt).toLocaleString()}</span>
                     </div>
                     {currentUser && String(comment.user._id) === String(currentUser._id) ? (
@@ -386,14 +395,19 @@ const CommentSection = forwardRef(function CommentSection(
                     {visibleReplies.map((reply) => (
                       <div key={reply._id} className="flex items-start gap-3 ml-8">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={reply.user.profileImage} />
+                          <AvatarImage src={getProfileImageUrl(reply.user.profileImage)} />
                           <AvatarFallback>{reply.user.username[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="bg-gray-50 rounded-lg p-2">
                             <div className="flex items-center justify-between">
                               <div>
-                                <span className="font-semibold text-xs">{reply.user.username}</span>
+                                <span className="font-semibold text-xs">
+                                  {reply.user.fullName || (reply.user.username.includes('@') ? reply.user.username.split('@')[0] : reply.user.username)}
+                                </span>
+                                {reply.user.fullName && (
+                                  <span className="text-xs text-muted-foreground ml-1">@{reply.user.username}</span>
+                                )}
                                 <span className="text-xs text-muted-foreground ml-2">{new Date(reply.createdAt).toLocaleString()}</span>
                               </div>
                               {currentUser && String(reply.user._id) === String(currentUser._id) ? (

@@ -32,6 +32,7 @@ import UserProfile from "./pages/feed/UserProfile";
 import Profile from "./pages/feed/Profile";
 import CreatePost from "./pages/feed/CreatePost";
 import Friends from "./pages/feed/Friends";
+import Followers from "./pages/feed/Followers";
 import Notifications from "./pages/feed/Notifications";
 
 // Marketplace Module Pages
@@ -69,10 +70,11 @@ const App = () => (
           
           <Route path="/feed" element={<Feed />} />
           <Route path="/feed/post/:id" element={<PostDetail />} />
-                  <Route path="/feed/profile/:username" element={<UserProfile />} />
+          <Route path="/feed/profile/:username" element={<UserProfile />} />
         <Route path="/feed/profile" element={<Profile />} />
           <Route path="/feed/create" element={<CreatePost />} />
           <Route path="/feed/friends" element={<Friends />} />
+          <Route path="/feed/followers" element={<Followers />} />
           <Route path="/feed/notifications" element={<Notifications />} />
           
           <Route path="/marketplace" element={<Marketplace />} />

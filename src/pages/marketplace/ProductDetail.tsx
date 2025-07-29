@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import Navbar from '@/components/Navbar'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
-
+import { getProfileImageUrl } from '@/lib/utils'
 
 
 export default function ProductDetail() {
@@ -152,8 +152,8 @@ export default function ProductDetail() {
                                           {product.featured && (
                         <Badge className="absolute top-4 left-4 bg-orange-500 hover:bg-orange-600">
                           Featured
-                        </Badge>
-                      )}
+                      </Badge>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -168,23 +168,23 @@ export default function ProductDetail() {
 
                   {/* Image Thumbnails */}
                   {product.images && product.images.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto">
+                  <div className="flex gap-2 overflow-x-auto">
                       {product.images.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedImage(index)}
-                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
                             selectedImage === index ? 'border-orange-500' : 'border-transparent'
-                          }`}
-                        >
-                          <img
+                        }`}
+                      >
+                        <img
                             src={`${API_BASE_URL}${image}`}
-                            alt={`View ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ))}
-                    </div>
+                          alt={`View ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
                   )}
                 </CardContent>
               </Card>
@@ -257,7 +257,7 @@ export default function ProductDetail() {
                   
                   <div className="flex items-center gap-3 mb-4">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={product.owner?.profileImage} />
+                      <AvatarImage src={getProfileImageUrl(product.owner?.profileImage)} />
                       <AvatarFallback>{product.ownerName?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -301,7 +301,7 @@ export default function ProductDetail() {
                     <li className="flex items-start gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
                       Avoid advance payments
-                    </li>
+                      </li>
                   </ul>
                 </CardContent>
               </Card>
@@ -323,7 +323,7 @@ export default function ProductDetail() {
 
                 {product.tags && product.tags.length > 0 && (
                   <>
-                    <Separator className="my-6" />
+                <Separator className="my-6" />
                     <h4 className="font-medium text-foreground mb-3">Tags:</h4>
                     <div className="flex flex-wrap gap-2">
                       {product.tags.map((tag, index) => (
@@ -345,7 +345,7 @@ export default function ProductDetail() {
                           <span className="text-sm font-medium text-foreground">{key}:</span>
                           <span className="text-sm text-muted-foreground">{value}</span>
                         </div>
-                      ))}
+                  ))}
                     </div>
                   </>
                 )}
