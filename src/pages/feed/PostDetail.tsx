@@ -38,6 +38,7 @@ export default function PostDetail() {
   const [deleteCommentId, setDeleteCommentId] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [commentDropdownOpen, setCommentDropdownOpen] = useState(null)
+  const [sharing, setSharing] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -318,6 +319,29 @@ export default function PostDetail() {
       }
       return newSet
     })
+  }
+
+  const handleShare = async () => {
+    setSharing(true)
+    
+    try {
+      const postUrl = `${window.location.origin}/feed/post/${id}`
+      await navigator.clipboard.writeText(postUrl)
+      
+      toast({
+        title: "Link copied!",
+        description: "Post link has been copied to your clipboard.",
+      })
+    } catch (error) {
+      console.error('Failed to copy link:', error)
+      toast({
+        title: "Error",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSharing(false)
+    }
   }
 
   // Helper to render comments and their replies recursively
@@ -627,9 +651,14 @@ export default function PostDetail() {
                       <MessageCircle className="h-5 w-5" />
                       Comment
                     </Button>
-                    <Button variant="ghost" className="gap-2 text-muted-foreground hover:text-primary">
+                    <Button 
+                      variant="ghost" 
+                      className="gap-2 text-muted-foreground hover:text-primary"
+                      onClick={handleShare}
+                      disabled={sharing}
+                    >
                       <Share className="h-5 w-5" />
-                      Share
+                      {sharing ? 'Copying...' : 'Share'}
                     </Button>
                   </div>
                 </div>

@@ -11,6 +11,7 @@ import Navbar from '@/components/Navbar'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import { getProfileImageUrl } from '@/lib/utils'
+import { RichTextDisplay } from '@/components/ui/rich-text-display'
 
 
 export default function ProductDetail() {
@@ -21,6 +22,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
   const [isFavorited, setIsFavorited] = useState(false)
+  const [sharing, setSharing] = useState(false)
 
   // Fetch product data
   const fetchProduct = async () => {
@@ -80,6 +82,29 @@ export default function ProductDetail() {
     if (diffInHours < 24) return `${diffInHours}h ago`
     if (diffInHours < 48) return '1 day ago'
     return `${Math.floor(diffInHours / 24)}d ago`
+  }
+
+  const handleShare = async () => {
+    setSharing(true)
+    
+    try {
+      const productUrl = `${window.location.origin}/marketplace/product/${productId}`
+      await navigator.clipboard.writeText(productUrl)
+      
+      toast({
+        title: "Link copied!",
+        description: "Product link has been copied to your clipboard.",
+      })
+    } catch (error) {
+      console.error('Failed to copy link:', error)
+      toast({
+        title: "Error",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSharing(false)
+    }
   }
 
   if (loading) {
@@ -242,9 +267,14 @@ export default function ProductDetail() {
                       <Phone className="h-5 w-5 mr-2" />
                       Call Seller
                     </Button>
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handleShare}
+                      disabled={sharing}
+                    >
                       <Share2 className="h-5 w-5 mr-2" />
-                      Share
+                      {sharing ? 'Copying...' : 'Share'}
                     </Button>
                   </div>
                 </CardContent>
@@ -319,7 +349,7 @@ export default function ProductDetail() {
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold text-foreground mb-4">Product Details</h3>
                 
-                <p className="text-muted-foreground mb-6">{product.description}</p>
+                <RichTextDisplay content={String(product.description || '')} className="text-muted-foreground mb-6" />
 
                 {product.tags && product.tags.length > 0 && (
                   <>

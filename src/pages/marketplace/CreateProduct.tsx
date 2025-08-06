@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, X, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, Plus, Trash2, Crop } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import { API_BASE_URL } from '@/lib/config';
+import { ImageCropper } from '@/components/ui/image-cropper';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 const categories = [
   'Electronics',
@@ -51,6 +53,11 @@ export default function CreateProduct() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [tags, setTags] = useState([]);
   const [newTag, setNewTag] = useState('');
+
+  // Image cropper states
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImageFile, setTempImageFile] = useState(null);
+  const [croppingIndex, setCroppingIndex] = useState(-1); // -1 for new image, >=0 for editing existing
 
   const [formData, setFormData] = useState({
     title: '',
@@ -104,17 +111,62 @@ export default function CreateProduct() {
       return;
     }
 
-    const newFiles = [...imageFiles, ...files];
-    setImageFiles(newFiles);
+    // Open cropper for the first file
+    if (files.length > 0) {
+      setTempImageFile(files[0]);
+      setCroppingIndex(-1); // New image
+      setShowCropper(true);
+    }
+  };
 
-    // Create previews
-    files.forEach(file => {
+  // Handle cropped image
+  const handleCropComplete = (croppedFile) => {
+    if (croppingIndex === -1) {
+      // Adding new image
+      const newFiles = [...imageFiles, croppedFile];
+      setImageFiles(newFiles);
+
+      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreviews(prev => [...prev, e.target.result]);
       };
-      reader.readAsDataURL(file);
-    });
+      reader.readAsDataURL(croppedFile);
+    } else {
+      // Editing existing image
+      const newFiles = [...imageFiles];
+      newFiles[croppingIndex] = croppedFile;
+      setImageFiles(newFiles);
+
+      // Update preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newPreviews = [...imagePreviews];
+        newPreviews[croppingIndex] = e.target.result;
+        setImagePreviews(newPreviews);
+      };
+      reader.readAsDataURL(croppedFile);
+    }
+
+    setTempImageFile(null);
+    setCroppingIndex(-1);
+    setShowCropper(false);
+  };
+
+  // Handle editing existing image
+  const handleEditImage = (index) => {
+    if (imageFiles[index]) {
+      setTempImageFile(imageFiles[index]);
+      setCroppingIndex(index);
+      setShowCropper(true);
+    }
+  };
+
+  // Close cropper without applying
+  const handleCloseCropper = () => {
+    setShowCropper(false);
+    setTempImageFile(null);
+    setCroppingIndex(-1);
   };
 
   const removeImage = (index) => {
@@ -280,10 +332,9 @@ export default function CreateProduct() {
 
                     <div>
                       <label className="text-sm font-medium">Description *</label>
-                      <Textarea
-                        name="description"
+                      <RichTextEditor
                         value={formData.description}
-                        onChange={handleInputChange}
+                        onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                         placeholder="Describe your product in detail"
                         rows={4}
                         maxLength={1000}
@@ -424,21 +475,32 @@ export default function CreateProduct() {
                     {imagePreviews.length > 0 && (
                       <div className="grid grid-cols-2 gap-2">
                         {imagePreviews.map((preview, index) => (
-                          <div key={index} className="relative">
+                          <div key={index} className="relative group">
                             <img
                               src={preview}
                               alt={`Preview ${index + 1}`}
                               className="w-full h-24 object-cover rounded-lg"
                             />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute top-1 right-1 h-6 w-6 p-0"
-                              onClick={() => removeImage(index)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1 rounded-lg">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 bg-white/90 hover:bg-white"
+                                onClick={() => handleEditImage(index)}
+                              >
+                                <Crop className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => removeImage(index)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -544,6 +606,17 @@ export default function CreateProduct() {
               </Button>
             </motion.div>
           </form>
+
+          {/* Image Cropper Component */}
+          <ImageCropper
+            isOpen={showCropper}
+            onClose={handleCloseCropper}
+            imageFile={tempImageFile}
+            imageSrc={tempImageFile ? undefined : (croppingIndex >= 0 ? imagePreviews[croppingIndex] : undefined)}
+            onCropComplete={handleCropComplete}
+            aspectRatio={1}
+            title="Crop Product Image"
+          />
         </div>
       </div>
     </div>

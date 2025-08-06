@@ -6,7 +6,6 @@ import { API_BASE_URL } from '../lib/config'
 
 const navigationLinks = [
   { name: 'Store', href: '/store' },
-  { name: 'Create Shop', href: '/create-shop' },
   { name: 'Education', href: '/education' },
   { name: 'Feed', href: '/feed' },
   { name: 'Marketplace', href: '/marketplace' },

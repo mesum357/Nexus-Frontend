@@ -10,6 +10,7 @@ import Navbar from '@/components/Navbar'
 import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
+import { RichTextDisplay } from '@/components/ui/rich-text-display'
 
 // Interface for Institute data
 interface Institute {
@@ -42,7 +43,10 @@ interface Review {
   reviewer: {
     _id: string;
     username: string;
+    fullName?: string;
     email: string;
+    profileImage?: string;
+    city?: string;
   };
   rating: number;
   comment: string;
@@ -387,9 +391,10 @@ export default function InstituteDetail() {
                     <CardTitle>About the Institute</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {institute.description || 'No description available for this institute.'}
-                    </p>
+                    <RichTextDisplay 
+                      content={institute.description || 'No description available for this institute.'} 
+                      className="text-muted-foreground leading-relaxed" 
+                    />
                   </CardContent>
                 </Card>
               </motion.div>
@@ -560,13 +565,13 @@ export default function InstituteDetail() {
                         <div className="flex items-start gap-3">
                           <Avatar>
                                 <AvatarFallback>
-                                  {review.reviewer.username ? review.reviewer.username[0].toUpperCase() : 'U'}
+                                  {(review.reviewer.fullName || review.reviewer.username) ? (review.reviewer.fullName || review.reviewer.username)[0].toUpperCase() : 'U'}
                                 </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                                   <p className="font-semibold text-foreground">
-                                    {review.reviewer.username || 'Anonymous'}
+                                    {review.reviewer.fullName || review.reviewer.username || 'Anonymous'}
                                   </p>
                               <div className="flex">
                                 {Array.from({ length: review.rating }).map((_, i) => (

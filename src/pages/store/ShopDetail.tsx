@@ -8,6 +8,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Navbar from '@/components/Navbar'
+import { useToast } from '@/hooks/use-toast'
+import { useState } from 'react'
+import { RichTextDisplay } from '@/components/ui/rich-text-display'
 
 // Mock shop data
 const shopData = {
@@ -85,6 +88,31 @@ const shopData = {
 export default function ShopDetail() {
   const { shopId } = useParams()
   const navigate = useNavigate()
+  const { toast } = useToast()
+  const [sharing, setSharing] = useState(false)
+
+  const handleShare = async () => {
+    setSharing(true)
+    
+    try {
+      const shopUrl = `${window.location.origin}/store/shop/${shopId}`
+      await navigator.clipboard.writeText(shopUrl)
+      
+      toast({
+        title: "Link copied!",
+        description: "Shop link has been copied to your clipboard.",
+      })
+    } catch (error) {
+      console.error('Failed to copy link:', error)
+      toast({
+        title: "Error",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSharing(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -173,7 +201,7 @@ export default function ShopDetail() {
                           </div>
                         </div>
 
-                        <p className="text-muted-foreground mb-4">{shopData.description}</p>
+                        <RichTextDisplay content={shopData.description} className="text-muted-foreground mb-4" />
 
                         {/* Stats */}
                         <div className="flex gap-6">
@@ -202,9 +230,13 @@ export default function ShopDetail() {
                           <Heart className="h-4 w-4 mr-2" />
                           Follow
                         </Button>
-                        <Button variant="outline">
+                        <Button 
+                          variant="outline"
+                          onClick={handleShare}
+                          disabled={sharing}
+                        >
                           <Share2 className="h-4 w-4 mr-2" />
-                          Share
+                          {sharing ? 'Copying...' : 'Share'}
                         </Button>
                       </div>
                     </div>

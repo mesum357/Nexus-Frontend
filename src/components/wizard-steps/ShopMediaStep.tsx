@@ -1,9 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Crop } from 'lucide-react';
 import { ShopData } from '@/types/shop';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 interface ShopMediaStepProps {
   data: ShopData;
@@ -15,33 +16,113 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const ownerProfileInputRef = useRef<HTMLInputElement>(null);
 
+  // Image cropper states
+  const [showLogoCropper, setShowLogoCropper] = useState(false);
+  const [showBannerCropper, setShowBannerCropper] = useState(false);
+  const [showOwnerProfileCropper, setShowOwnerProfileCropper] = useState(false);
+  const [tempLogoFile, setTempLogoFile] = useState<File | null>(null);
+  const [tempBannerFile, setTempBannerFile] = useState<File | null>(null);
+  const [tempOwnerProfileFile, setTempOwnerProfileFile] = useState<File | null>(null);
+
   const handleFileUpload = (
     file: File,
     type: 'logo' | 'banner' | 'ownerProfile'
   ) => {
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (type === 'logo') {
-          updateData({
-            shopLogo: file,
-            logoPreview: result
-          });
-        } else if (type === 'banner') {
-          updateData({
-            shopBanner: file,
-            bannerPreview: result
-          });
-        } else {
-          updateData({
-            ownerProfilePhoto: file,
-            ownerProfilePreview: result
-          });
-        }
-      };
-      reader.readAsDataURL(file);
+      if (type === 'logo') {
+        setTempLogoFile(file);
+        setShowLogoCropper(true);
+      } else if (type === 'banner') {
+        setTempBannerFile(file);
+        setShowBannerCropper(true);
+      } else {
+        setTempOwnerProfileFile(file);
+        setShowOwnerProfileCropper(true);
+      }
     }
+  };
+
+  // Handle cropped logo
+  const handleLogoCropComplete = (croppedFile: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      updateData({
+        shopLogo: croppedFile,
+        logoPreview: result
+      });
+    };
+    reader.readAsDataURL(croppedFile);
+    setTempLogoFile(null);
+    setShowLogoCropper(false);
+  };
+
+  // Handle cropped banner
+  const handleBannerCropComplete = (croppedFile: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      updateData({
+        shopBanner: croppedFile,
+        bannerPreview: result
+      });
+    };
+    reader.readAsDataURL(croppedFile);
+    setTempBannerFile(null);
+    setShowBannerCropper(false);
+  };
+
+  // Handle cropped owner profile
+  const handleOwnerProfileCropComplete = (croppedFile: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      updateData({
+        ownerProfilePhoto: croppedFile,
+        ownerProfilePreview: result
+      });
+    };
+    reader.readAsDataURL(croppedFile);
+    setTempOwnerProfileFile(null);
+    setShowOwnerProfileCropper(false);
+  };
+
+  // Handle editing existing images
+  const handleEditLogo = () => {
+    if (data.shopLogo) {
+      setTempLogoFile(data.shopLogo);
+      setShowLogoCropper(true);
+    }
+  };
+
+  const handleEditBanner = () => {
+    if (data.shopBanner) {
+      setTempBannerFile(data.shopBanner);
+      setShowBannerCropper(true);
+    }
+  };
+
+  const handleEditOwnerProfile = () => {
+    if (data.ownerProfilePhoto) {
+      setTempOwnerProfileFile(data.ownerProfilePhoto);
+      setShowOwnerProfileCropper(true);
+    }
+  };
+
+  // Close cropper without applying
+  const handleCloseLogoCropper = () => {
+    setShowLogoCropper(false);
+    setTempLogoFile(null);
+  };
+
+  const handleCloseBannerCropper = () => {
+    setShowBannerCropper(false);
+    setTempBannerFile(null);
+  };
+
+  const handleCloseOwnerProfileCropper = () => {
+    setShowOwnerProfileCropper(false);
+    setTempOwnerProfileFile(null);
   };
 
   const handleDrop = (
@@ -97,7 +178,18 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
     aspectRatio: string;
     inputRef: React.RefObject<HTMLInputElement>;
     required?: boolean;
-  }) => (
+  }) => {
+    const handleEdit = () => {
+      if (type === 'logo') {
+        handleEditLogo();
+      } else if (type === 'banner') {
+        handleEditBanner();
+      } else {
+        handleEditOwnerProfile();
+      }
+    };
+
+    return (
     <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-md">
       <CardContent className="p-6">
         <div className="space-y-4">
@@ -120,7 +212,16 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
                   alt={`${title} preview`}
                   className="w-full h-full object-cover rounded-lg"
                 />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2 rounded-lg">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEdit}
+                    className="flex items-center gap-2 bg-white/90 hover:bg-white"
+                  >
+                    <Crop className="w-4 h-4" />
+                    Adjust & Crop
+                  </Button>
                   <Button
                     variant="destructive"
                     size="sm"
@@ -170,6 +271,7 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
       </CardContent>
     </Card>
   );
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -268,6 +370,37 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Image Cropper Components */}
+      <ImageCropper
+        isOpen={showLogoCropper}
+        onClose={handleCloseLogoCropper}
+        imageFile={tempLogoFile}
+        imageSrc={tempLogoFile ? undefined : data.logoPreview || undefined}
+        onCropComplete={handleLogoCropComplete}
+        aspectRatio={1}
+        title="Crop Logo"
+      />
+      
+      <ImageCropper
+        isOpen={showBannerCropper}
+        onClose={handleCloseBannerCropper}
+        imageFile={tempBannerFile}
+        imageSrc={tempBannerFile ? undefined : data.bannerPreview || undefined}
+        onCropComplete={handleBannerCropComplete}
+        aspectRatio={3}
+        title="Crop Banner"
+      />
+      
+      <ImageCropper
+        isOpen={showOwnerProfileCropper}
+        onClose={handleCloseOwnerProfileCropper}
+        imageFile={tempOwnerProfileFile}
+        imageSrc={tempOwnerProfileFile ? undefined : data.ownerProfilePreview || undefined}
+        onCropComplete={handleOwnerProfileCropComplete}
+        aspectRatio={1}
+        title="Crop Profile Photo"
+      />
     </div>
   );
 };

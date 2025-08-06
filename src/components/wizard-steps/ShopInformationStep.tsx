@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShopData } from '@/types/shop';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 interface ShopInformationStepProps {
   data: ShopData;
@@ -85,17 +86,13 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
         <Label htmlFor="shopDescription" className="text-sm font-medium">
           Shop Description <span className="text-destructive">*</span>
         </Label>
-        <Textarea
-          id="shopDescription"
-          placeholder="Describe your shop, what you sell/offer, and what makes you unique..."
+        <RichTextEditor
           value={data.shopDescription}
-          onChange={(e) => updateData({ shopDescription: e.target.value })}
+          onChange={(value) => updateData({ shopDescription: value })}
+          placeholder="Describe your shop, what you sell/offer, and what makes you unique..."
           rows={4}
-          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20 resize-none"
+          maxLength={500}
         />
-        <p className="text-xs text-muted-foreground">
-          {data.shopDescription.length}/500 characters
-        </p>
       </div>
     </div>
   );

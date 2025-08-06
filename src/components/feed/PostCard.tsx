@@ -57,6 +57,7 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
   const [saving, setSaving] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [sharing, setSharing] = useState(false)
   // TODO: Fetch and show comments, implement comment UI
 
   const handleLike = async (e: React.MouseEvent) => {
@@ -163,6 +164,30 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
   const handleCancelEdit = () => {
     setEditing(false)
     setEditContent(post.content)
+  }
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSharing(true)
+    
+    try {
+      const postUrl = `${window.location.origin}/feed/post/${post._id}`
+      await navigator.clipboard.writeText(postUrl)
+      
+      toast({
+        title: "Link copied!",
+        description: "Post link has been copied to your clipboard.",
+      })
+    } catch (error) {
+      console.error('Failed to copy link:', error)
+      toast({
+        title: "Error",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSharing(false)
+    }
   }
 
   return (
@@ -299,10 +324,11 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
               <Button 
                 variant="ghost" 
                 className="flex-1 gap-2 text-muted-foreground hover:text-primary"
-                onClick={(e) => e.stopPropagation()}
+                onClick={handleShare}
+                disabled={sharing}
               >
                 <Share className="h-4 w-4" />
-                Share
+                {sharing ? 'Copying...' : 'Share'}
               </Button>
             </div>
           </div>
