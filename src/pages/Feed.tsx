@@ -14,7 +14,7 @@ import Navbar from '@/components/Navbar'
 import PostCard from '@/components/feed/PostCard'
 import CreatePost from '@/components/feed/CreatePost'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { API_BASE_URL } from '@/lib/config'
 import { Textarea } from '@/components/ui/textarea'
 import { getProfileImageUrl } from '@/lib/utils'
@@ -108,6 +108,7 @@ const trendingTopics = [
 
 export default function Feed() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [selectedCity, setSelectedCity] = useState('All Cities')
   const [searchTerm, setSearchTerm] = useState('')
   const [showAllCities, setShowAllCities] = useState(false)
@@ -131,6 +132,21 @@ export default function Feed() {
   const [lastSuggestionsFetch, setLastSuggestionsFetch] = useState<number>(0)
   const [timeUntilRefresh, setTimeUntilRefresh] = useState<string | null>(null)
 
+  const fetchTrendingHashtags = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feed/trending-hashtags`);
+      if (response.ok) {
+        const data = await response.json();
+        setTrendingHashtags(data.hashtags || trendingTopics);
+      } else {
+        setTrendingHashtags(trendingTopics);
+      }
+    } catch (error) {
+      console.error('Error fetching trending hashtags:', error);
+      setTrendingHashtags(trendingTopics);
+    }
+  }, []);
+
   const fetchPosts = useCallback(() => {
     setLoading(true)
     fetch(`${API_BASE_URL}/api/feed/posts`)
@@ -138,9 +154,11 @@ export default function Feed() {
       .then(data => {
         setPosts(data.posts || [])
         setLoading(false)
+        // Refresh trending hashtags after fetching posts
+        fetchTrendingHashtags()
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [fetchTrendingHashtags])
 
   const fetchSuggestedUsers = useCallback(async () => {
     if (!currentUser) return;
@@ -233,21 +251,6 @@ export default function Feed() {
     }
   }, [currentUser, lastSuggestionsFetch]);
 
-  const fetchTrendingHashtags = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/feed/trending-hashtags`);
-      if (response.ok) {
-        const data = await response.json();
-        setTrendingHashtags(data.hashtags || trendingTopics);
-      } else {
-        setTrendingHashtags(trendingTopics);
-      }
-    } catch (error) {
-      console.error('Error fetching trending hashtags:', error);
-      setTrendingHashtags(trendingTopics);
-    }
-  }, []);
-
   const handleFollowUser = async (userId: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/follow/${userId}`, {
@@ -299,12 +302,34 @@ export default function Feed() {
 
   const handleHashtagClick = (hashtag: string) => {
     setSearchTerm(hashtag);
-    // You can also navigate to a hashtag-specific page or filter posts
+    // Filter posts to show only those containing the hashtag
+    const hashtagWithoutHash = hashtag.replace(/^#/, '');
+    const postsWithHashtag = posts.filter(post => {
+      // Check if hashtag is in post content
+      const contentHasHashtag = post.content && post.content.toLowerCase().includes(hashtag.toLowerCase());
+      // Check if hashtag is in post hashtags array
+      const hashtagsHasHashtag = post.hashtags && post.hashtags.some(tag => 
+        tag.toLowerCase().includes(hashtagWithoutHash.toLowerCase())
+      );
+      return contentHasHashtag || hashtagsHasHashtag;
+    });
+    // You can implement a more sophisticated filtering system here
   };
 
   useEffect(() => {
     fetchPosts()
   }, [fetchPosts])
+
+  // Handle refresh parameter from CreatePost
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('refresh') === 'true') {
+      // Clear the refresh parameter
+      navigate(location.pathname, { replace: true });
+      // Refresh trending hashtags
+      fetchTrendingHashtags();
+    }
+  }, [location.search, navigate, location.pathname, fetchTrendingHashtags]);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {

@@ -205,7 +205,8 @@ export default function CreatePost() {
       setMedia([])
       setMediaPreviews([])
       
-      navigate('/feed')
+      // Navigate to feed with a refresh parameter to trigger trending hashtags update
+      navigate('/feed?refresh=true')
     } catch (error) {
       console.error('Error creating post:', error)
       toast({
