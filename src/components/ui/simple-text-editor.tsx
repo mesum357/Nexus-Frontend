@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { sanitizeHtml, stripHtml } from '@/lib/sanitize-html';
 
-interface RichTextEditorProps {
+interface SimpleTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -35,65 +35,70 @@ const colors = [
   { label: 'Gray', value: 'text-gray-600' },
 ];
 
-export function RichTextEditor({
+export function SimpleTextEditor({
   value,
   onChange,
   placeholder = "Enter description...",
   rows = 4,
   maxLength,
   className = ""
-}: RichTextEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
+}: SimpleTextEditorProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [selectedFontSize, setSelectedFontSize] = useState('text-base');
   const [selectedColor, setSelectedColor] = useState('text-foreground');
 
   useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.innerHTML = value;
+    if (textareaRef.current) {
+      textareaRef.current.value = stripHtml(value);
     }
   }, [value]);
 
-  const execCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    editorRef.current?.focus();
-  };
-
   const handleInput = () => {
-    if (editorRef.current) {
-      const html = editorRef.current.innerHTML;
+    if (textareaRef.current) {
+      const text = textareaRef.current.value;
+      // Convert plain text to simple HTML with formatting
+      let html = text;
+      
+      if (isBold) {
+        html = `<strong>${html}</strong>`;
+      }
+      if (isItalic) {
+        html = `<em>${html}</em>`;
+      }
+      
       const sanitizedHtml = sanitizeHtml(html);
       onChange(sanitizedHtml);
     }
   };
 
   const toggleBold = () => {
-    execCommand('bold');
     setIsBold(!isBold);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
   };
 
   const toggleItalic = () => {
-    execCommand('italic');
     setIsItalic(!isItalic);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
   };
 
   const changeFontSize = (size: string) => {
-    execCommand('fontSize', '7'); // Set a base size
-    // Apply custom styling
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const span = document.createElement('span');
-      span.className = size;
-      range.surroundContents(span);
-    }
     setSelectedFontSize(size);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
   };
 
   const changeColor = (color: string) => {
-    execCommand('foreColor', color);
     setSelectedColor(color);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
   };
 
   const getCurrentFontSize = () => {
@@ -184,16 +189,21 @@ export function RichTextEditor({
 
       {/* Editor */}
       <div className="relative">
-        <div
-          ref={editorRef}
-          contentEditable
+        <textarea
+          ref={textareaRef}
           onInput={handleInput}
-          className={`min-h-[${rows * 1.5}rem] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-left ${
+          className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none ${
             maxLength && stripHtml(value).length > maxLength * 0.9 ? 'border-orange-300' : ''
           }`}
-          style={{ minHeight: `${rows * 1.5}rem` }}
+          style={{ 
+            minHeight: `${rows * 1.5}rem`,
+            direction: 'ltr',
+            textAlign: 'left',
+            writingMode: 'horizontal-tb'
+          }}
+          placeholder={placeholder}
+          rows={rows}
           dir="ltr"
-          data-placeholder={placeholder}
         />
         {maxLength && (
           <div className="text-xs text-muted-foreground mt-1 text-right">
@@ -201,23 +211,6 @@ export function RichTextEditor({
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        [contenteditable]:empty:before {
-          content: attr(data-placeholder);
-          color: #9ca3af;
-          pointer-events: none;
-        }
-        [contenteditable] {
-          direction: ltr !important;
-          text-align: left !important;
-          writing-mode: horizontal-tb !important;
-        }
-        [contenteditable] * {
-          direction: ltr !important;
-          text-align: left !important;
-        }
-      `}</style>
     </div>
   );
 }

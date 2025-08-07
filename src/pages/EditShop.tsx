@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { SimpleTextEditor } from '@/components/ui/simple-text-editor';
 import Navbar from '@/components/Navbar';
 import { API_BASE_URL } from '@/lib/config';
 
@@ -357,13 +357,13 @@ export default function EditShop() {
                   <CardTitle>Shop Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RichTextEditor
-                    value={formData.shopDescription}
-                    onChange={(value) => setFormData(prev => ({ ...prev, shopDescription: value }))}
-                    placeholder="Describe your shop, what you sell/offer, and what makes you unique..."
-                    rows={6}
-                    maxLength={1000}
-                  />
+                                     <SimpleTextEditor
+                     value={formData.shopDescription}
+                     onChange={(value) => setFormData(prev => ({ ...prev, shopDescription: value }))}
+                     placeholder="Describe your shop, what you sell/offer, and what makes you unique..."
+                     rows={6}
+                     maxLength={1000}
+                   />
                 </CardContent>
               </Card>
             </motion.div>
