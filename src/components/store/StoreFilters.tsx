@@ -12,9 +12,30 @@ import {
 } from '@/components/ui/select'
 
 const cities = [
-  "Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad",
-  "Peshawar", "Quetta", "Multan", "Gujranwala", "Sialkot",
-  "Hyderabad", "Bahawalpur", "Sargodha", "Sukkur", "Larkana"
+  'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad',
+  'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala',
+  'Hyderabad', 'Bahawalpur', 'Sargodha', 'Sukkur', 'Larkana',
+  'Sheikhupura', 'Mardan', 'Gujrat', 'Kasur', 'Dera Ghazi Khan',
+  'Sahiwal', 'Nawabshah', 'Mingora', 'Burewala', 'Jhelum',
+  'Kamoke', 'Hafizabad', 'Khanewal', 'Vehari', 'Dera Ismail Khan',
+  'Nowshera', 'Charsadda', 'Jhang', 'Mandi Bahauddin', 'Ahmadpur East',
+  'Kamalia', 'Gojra', 'Mansehra', 'Kabirwala', 'Okara', 'Gilgit',
+  'Mirpur Khas', 'Rahim Yar Khan', 'Leiah', 'Muzaffargarh', 'Khanpur',
+  'Jampur', 'Dadu', 'Khairpur', 'Pakpattan', 'Bahawalnagar',
+  'Tando Adam', 'Tando Allahyar', 'Mirpur Mathelo', 'Shikarpur', 'Jacobabad',
+  'Ghotki', 'Mehar', 'Tando Muhammad Khan', 'Dera Allahyar', 'Shahdadkot',
+  'Matiari', 'Gambat', 'Nasirabad', 'Mehrabpur', 'Rohri', 'Pano Aqil',
+  'Sakrand', 'Umerkot', 'Chhor', 'Kunri', 'Pithoro', 'Samaro',
+  'Goth Garelo', 'Ranipur', 'Dokri', 'Lakhi', 'Dingro', 'Kandhkot',
+  'Kashmore', 'Ubauro', 'Sadiqabad', 'Liaquatpur', 'Uch Sharif',
+  'Alipur', 'Jatoi', 'Taunsa', 'Kot Addu', 'Layyah', 'Chobara',
+  'Kot Sultan', 'Bhakkar', 'Darya Khan', 'Kallur Kot', 'Mankera',
+  'Dullewala', 'Daud Khel', 'Pindi Gheb', 'Fateh Jang', 'Gujar Khan',
+  'Kallar Syedan', 'Taxila', 'Wah Cantonment', 'Murree', 'Kahuta',
+  'Kotli Sattian', 'Chakwal', 'Attock', 'Abbottabad', 'Haripur',
+  'Batagram', 'Shangla', 'Swat', 'Buner', 'Malakand',
+  'Dir', 'Chitral', 'Kohistan', 'Torghar', 'Bannu', 'Tank',
+  'Kohat', 'Hangu', 'Karak', 'Lakki Marwat', 'Dera Ismail Khan'
 ]
 
 const categories = [
