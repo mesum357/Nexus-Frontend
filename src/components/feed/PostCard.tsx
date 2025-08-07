@@ -28,6 +28,9 @@ interface PostCardProps {
     };
     content: string;
     image?: string;
+    city?: string;
+    location?: string;
+    hashtags?: string[];
     likes: string[];
     comments: string[];
     createdAt: string;
@@ -222,7 +225,15 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>{new Date(post.createdAt).toLocaleString()}</span>
-                  {post.user.city && <><span>•</span><div className="flex items-center gap-1"><MapPin className="h-3 w-3" /><span>{post.user.city}</span></div></>}
+                  {(post.city || post.user.city) && (
+                    <>
+                      <span>•</span>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{post.city || post.user.city}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -289,6 +300,27 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
                   alt="Post content"
                   className="w-full max-h-96 object-cover hover:scale-105 transition-transform duration-300"
                 />
+              </div>
+            )}
+            
+            {/* Location and Hashtags */}
+            {(post.location || (post.hashtags && post.hashtags.length > 0)) && (
+              <div className="mt-4 space-y-2">
+                {post.location && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{post.location}</span>
+                  </div>
+                )}
+                {post.hashtags && post.hashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {post.hashtags.map((hashtag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {hashtag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

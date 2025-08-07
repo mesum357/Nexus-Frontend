@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { Shop as ShopType } from './Store'
 import heroStoreImage from '@/assets/hero-store.jpg'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon, Edit, Settings, Share2 } from 'lucide-react'
+import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon, Edit, Settings, Share2, Wrench } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -577,12 +577,27 @@ export default function Shop() {
                   <div className="flex-1">
                     <h1 className="text-4xl font-bold mb-2">{shop.shopName}</h1>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                      <UIBadge 
-                        variant={shop.shopType === 'Product Seller' ? 'default' : 'secondary'}
-                        className="text-xs sm:text-sm px-1 py-0.5 sm:px-3 sm:py-1"
-                      >
-                        {shop.shopType}
-                      </UIBadge>
+                      {/* Mobile: Icon only */}
+                      <div className="sm:hidden">
+                        {shop.shopType === 'Product Seller' ? (
+                          <div className="bg-blue-500 text-white rounded-full p-1.5 w-8 h-8 flex items-center justify-center">
+                            <Package className="h-4 w-4" />
+                          </div>
+                        ) : (
+                          <div className="bg-green-500 text-white rounded-full p-1.5 w-8 h-8 flex items-center justify-center">
+                            <Wrench className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
+                      {/* Desktop: Full badge */}
+                      <div className="hidden sm:block">
+                        <UIBadge 
+                          variant={shop.shopType === 'Product Seller' ? 'default' : 'secondary'}
+                          className="text-sm px-3 py-1"
+                        >
+                          {shop.shopType}
+                        </UIBadge>
+                      </div>
                       <div className="flex items-center">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
                         <span className="font-medium">{shop.rating}</span>

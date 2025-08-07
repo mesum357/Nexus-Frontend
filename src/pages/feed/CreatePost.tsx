@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, MapPin, Hash, Image, Video, X } from 'lucide-react'
+import { ArrowLeft, Upload, MapPin, Hash, Image, Video, X, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -11,27 +11,90 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import Navbar from '@/components/Navbar'
+import { API_BASE_URL } from '@/lib/config'
+import { getProfileImageUrl } from '@/lib/utils'
 
 const cities = [
-  "Karachi", "Lahore", "Islamabad", "Faisalabad", "Multan",
-  "Peshawar", "Quetta", "Rawalpindi", "Gujranwala", "Sialkot"
+  'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad',
+  'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala',
+  'Hyderabad', 'Bahawalpur', 'Sargodha', 'Sukkur', 'Larkana',
+  'Sheikhupura', 'Mardan', 'Gujrat', 'Kasur', 'Dera Ghazi Khan',
+  'Sahiwal', 'Nawabshah', 'Mingora', 'Burewala', 'Jhelum',
+  'Kamoke', 'Hafizabad', 'Khanewal', 'Vehari', 'Dera Ismail Khan',
+  'Nowshera', 'Charsadda', 'Jhang', 'Mandi Bahauddin', 'Ahmadpur East',
+  'Kamalia', 'Gojra', 'Mansehra', 'Kabirwala', 'Okara', 'Gilgit',
+  'Mirpur Khas', 'Rahim Yar Khan', 'Leiah', 'Muzaffargarh', 'Khanpur',
+  'Jampur', 'Dadu', 'Khairpur', 'Pakpattan', 'Bahawalnagar',
+  'Tando Adam', 'Tando Allahyar', 'Mirpur Mathelo', 'Shikarpur', 'Jacobabad',
+  'Ghotki', 'Mehar', 'Tando Muhammad Khan', 'Dera Allahyar', 'Shahdadkot',
+  'Matiari', 'Gambat', 'Nasirabad', 'Mehrabpur', 'Rohri', 'Pano Aqil',
+  'Sakrand', 'Umerkot', 'Chhor', 'Kunri', 'Pithoro', 'Samaro',
+  'Goth Garelo', 'Ranipur', 'Dokri', 'Lakhi', 'Dingro', 'Kandhkot',
+  'Kashmore', 'Ubauro', 'Sadiqabad', 'Liaquatpur', 'Uch Sharif',
+  'Alipur', 'Jatoi', 'Taunsa', 'Kot Addu', 'Layyah', 'Chobara',
+  'Kot Sultan', 'Bhakkar', 'Darya Khan', 'Kallur Kot', 'Mankera',
+  'Dullewala', 'Daud Khel', 'Pindi Gheb', 'Fateh Jang', 'Gujar Khan',
+  'Kallar Syedan', 'Taxila', 'Wah Cantonment', 'Murree', 'Kahuta',
+  'Kotli Sattian', 'Chakwal', 'Attock', 'Abbottabad', 'Haripur',
+  'Batagram', 'Shangla', 'Swat', 'Buner', 'Malakand',
+  'Dir', 'Chitral', 'Kohistan', 'Torghar', 'Bannu', 'Tank',
+  'Kohat', 'Hangu', 'Karak', 'Lakki Marwat', 'Dera Ismail Khan'
 ]
 
-const currentUser = {
-  name: "You",
-  avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+interface User {
+  _id: string;
+  username: string;
+  fullName?: string;
+  email?: string;
+  profileImage?: string;
+  city?: string;
 }
 
 export default function CreatePost() {
   const navigate = useNavigate()
   const { toast } = useToast()
   
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [content, setContent] = useState('')
   const [city, setCity] = useState('')
   const [hashtags, setHashtags] = useState('')
   const [location, setLocation] = useState('')
   const [media, setMedia] = useState<File[]>([])
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([])
+  const [citySearch, setCitySearch] = useState('')
+
+  // Fetch current user
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUser(data.user || data || null);
+        } else {
+          console.log('User not authenticated, redirecting to login');
+          navigate('/login');
+          return;
+        }
+      } catch (error) {
+        console.log('Error fetching current user:', error);
+        navigate('/login');
+        return;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCurrentUser();
+  }, [navigate]);
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -64,8 +127,22 @@ export default function CreatePost() {
     setMediaPreviews(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Filter cities based on search
+  const filteredCities = cities.filter(cityName =>
+    cityName.toLowerCase().includes(citySearch.toLowerCase())
+  )
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to create a post",
+        variant: "destructive"
+      })
+      return
+    }
     
     if (!content.trim()) {
       toast({
@@ -76,31 +153,98 @@ export default function CreatePost() {
       return
     }
 
-    if (!city) {
+    setSubmitting(true)
+    
+    try {
+      const formData = new FormData()
+      formData.append('content', content)
+      
+      // Add city if selected
+      if (city) {
+        formData.append('city', city)
+      }
+      
+      // Add location if provided
+      if (location) {
+        formData.append('location', location)
+      }
+      
+      // Add hashtags if provided
+      if (hashtags) {
+        formData.append('hashtags', hashtags)
+      }
+      
+      // Add image if uploaded
+      if (media.length > 0) {
+        formData.append('image', media[0]) // Backend currently supports single image
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/api/feed/post`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create post')
+      }
+      
+      const data = await response.json()
+      
       toast({
-        title: "Missing city",
-        description: "Please select your city",
+        title: "Post created successfully!",
+        description: "Your post is now live in the feed"
+      })
+      
+      // Reset form
+      setContent('')
+      setCity('')
+      setHashtags('')
+      setLocation('')
+      setMedia([])
+      setMediaPreviews([])
+      
+      navigate('/feed')
+    } catch (error) {
+      console.error('Error creating post:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create post",
         variant: "destructive"
       })
-      return
+    } finally {
+      setSubmitting(false)
     }
+  }
 
-    const postData = {
-      content,
-      city,
-      hashtags: hashtags.split(' ').filter(tag => tag.startsWith('#')),
-      location,
-      media,
-      timestamp: new Date().toISOString()
-    }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-20">
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="text-center">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-    toast({
-      title: "Post created successfully!",
-      description: "Your post is now live in the feed"
-    })
-
-    console.log('Post data:', postData)
-    navigate('/feed')
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-20">
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-4">Please log in to create a post</h2>
+              <Button onClick={() => navigate('/login')}>Go to Login</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -145,8 +289,8 @@ export default function CreatePost() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={currentUser.avatar} />
-                    <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
+                    <AvatarImage src={getProfileImageUrl(currentUser.profileImage)} />
+                    <AvatarFallback>{currentUser.username?.[0] || 'U'}</AvatarFallback>
                   </Avatar>
                   Create a Post
                 </CardTitle>
@@ -173,20 +317,46 @@ export default function CreatePost() {
                   {/* City & Location */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label>City *</Label>
-                      <Select value={city} onValueChange={setCity}>
+                      <Label>City (Optional)</Label>
+                                             <Select 
+                         value={city} 
+                         onValueChange={setCity}
+                         onOpenChange={(open) => {
+                           if (!open) {
+                             setCitySearch('')
+                           }
+                         }}
+                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select your city" />
                         </SelectTrigger>
                         <SelectContent>
-                          {cities.map(cityOption => (
-                            <SelectItem key={cityOption} value={cityOption}>
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4" />
-                                {cityOption}
+                          {/* Search Input */}
+                          <div className="flex items-center px-3 py-2">
+                            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                            <Input
+                              placeholder="Search cities..."
+                              value={citySearch}
+                              onChange={(e) => setCitySearch(e.target.value)}
+                              className="border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                          </div>
+                          {/* City Options */}
+                          <div className="max-h-60 overflow-y-auto">
+                            {filteredCities.map(cityOption => (
+                              <SelectItem key={cityOption} value={cityOption}>
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="h-4 w-4" />
+                                  {cityOption}
+                                </div>
+                              </SelectItem>
+                            ))}
+                            {filteredCities.length === 0 && (
+                              <div className="px-3 py-2 text-sm text-muted-foreground">
+                                No cities found
                               </div>
-                            </SelectItem>
-                          ))}
+                            )}
+                          </div>
                         </SelectContent>
                       </Select>
                     </div>
@@ -283,14 +453,16 @@ export default function CreatePost() {
                       variant="outline"
                       onClick={() => navigate('/feed')}
                       className="flex-1"
+                      disabled={submitting}
                     >
                       Cancel
                     </Button>
                     <Button
                       type="submit"
                       className="flex-1 bg-primary hover:bg-primary-hover"
+                      disabled={submitting}
                     >
-                      Post
+                      {submitting ? 'Posting...' : 'Post'}
                     </Button>
                   </div>
                 </form>

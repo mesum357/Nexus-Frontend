@@ -30,7 +30,7 @@ const Followers = () => {
   const [following, setFollowing] = useState<User[]>([]);
   const [suggestions, setSuggestions] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -193,41 +193,44 @@ const Followers = () => {
   };
 
   const renderUserCard = (user: User, showFollowButton = true, isFollowing = false) => (
-    <Card key={user._id} className="p-4 hover:shadow-soft transition-all duration-200">
-      <div className="flex items-center gap-3">
-        <Avatar className="h-12 w-12">
+    <Card key={user._id} className="p-3 sm:p-4 hover:shadow-soft transition-all duration-200">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
           <AvatarImage src={getProfileImageUrl(user.profileImage)} alt={user.fullName || user.username} />
           <AvatarFallback>{user.fullName?.[0] || user.username[0]}</AvatarFallback>
         </Avatar>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium">{user.fullName || user.username}</h3>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
+          <h3 className="font-medium text-sm sm:text-base">{user.fullName || user.username}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">{user.email}</p>
           {user.city && (
             <p className="text-xs text-muted-foreground">{user.city}</p>
           )}
         </div>
         
         {showFollowButton && (
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2">
             {isFollowing ? (
               <Button 
                 size="sm" 
                 variant="outline"
                 onClick={() => handleUnfollow(user._id)}
+                className="text-xs px-2 sm:px-3"
               >
-                <UserMinus className="w-4 h-4 mr-1" />
-                Unfollow
+                <UserMinus className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                <span className="hidden sm:inline">Unfollow</span>
+                <span className="sm:hidden">Unfollow</span>
               </Button>
             ) : (
               <Button 
                 size="sm" 
                 variant="default" 
-                className="bg-gradient-social"
+                className="bg-gradient-social text-xs px-2 sm:px-3"
                 onClick={() => handleFollow(user._id)}
               >
-                <UserPlus className="w-4 h-4 mr-1" />
-                Follow
+                <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                <span className="hidden sm:inline">Follow</span>
+                <span className="sm:hidden">Follow</span>
               </Button>
             )}
           </div>
@@ -261,14 +264,14 @@ const Followers = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate("/feed")}
-            className="mb-4 -ml-2"
+            className="mb-4 -ml-2 w-full sm:w-auto"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Feed
           </Button>
           
           {/* Header */}
-          <h1 className="text-2xl font-bold mb-4">Followers</h1>
+          <h1 className="text-xl sm:text-2xl font-bold mb-4">Followers</h1>
         
         {/* Search */}
         <div className="relative mb-4">
@@ -282,7 +285,7 @@ const Followers = () => {
         </div>
         
         {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {[
             { id: "followers", label: "Followers", count: followers.length, icon: Users },
             { id: "following", label: "Following", count: following.length, icon: Users },
@@ -294,13 +297,15 @@ const Followers = () => {
               size="sm"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "whitespace-nowrap",
+                "whitespace-nowrap text-xs px-2 sm:px-3 flex-shrink-0",
                 activeTab === tab.id && "bg-gradient-social"
               )}
+              title={tab.label}
             >
-              <tab.icon className="w-4 h-4 mr-1" />
-              {tab.label} {tab.count > 0 && (
-                <Badge variant="secondary" className="ml-2">
+              <tab.icon className="w-4 h-4 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline ml-1">{tab.label}</span>
+              {tab.count > 0 && (
+                <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs">
                   {tab.count}
                 </Badge>
               )}
@@ -315,7 +320,7 @@ const Followers = () => {
           <p className="text-muted-foreground">Loading...</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
         {activeTab === "followers" && (
           <>
             {filteredFollowers.map((user) => renderUserCard(user, false))}
