@@ -573,10 +573,10 @@ export default function Shop() {
             />
             <div className="absolute inset-0 bg-black/40 flex items-end">
               <div className="p-8 text-white w-full">
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1">
                     <h1 className="text-4xl font-bold mb-2">{shop.shopName}</h1>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       <UIBadge variant={shop.shopType === 'Product Seller' ? 'default' : 'secondary'}>
                         {shop.shopType}
                       </UIBadge>
@@ -590,12 +590,12 @@ export default function Shop() {
                   
                   {/* Shop Owner Actions */}
                   {currentUser && String(shop.owner) === String(currentUser._id) && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto min-w-0">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/shop/${shopId}/edit`)}
-                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                        className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex-1 sm:flex-none min-w-0"
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit Shop
@@ -604,7 +604,7 @@ export default function Shop() {
                         variant="destructive"
                         size="sm"
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="bg-red-600/80 border-red-600/20 text-white hover:bg-red-600"
+                        className="bg-red-600/80 border-red-600/20 text-white hover:bg-red-600 flex-1 sm:flex-none min-w-0"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete Shop
@@ -847,15 +847,21 @@ export default function Shop() {
                               {/* Removed additional images preview since only one image is supported */}
                             </div>
                             {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
-                              <div className="flex gap-2 mt-2">
-                                <Button size="sm" variant="outline" onClick={() => handleEditProduct(idx)}>
-                                Edit
-                              </Button>
+                              <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full min-w-0">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleEditProduct(idx)}
+                                  className="flex-1 sm:flex-none min-w-0"
+                                >
+                                  Edit
+                                </Button>
                                 <Button 
                                   size="sm" 
                                   variant="destructive" 
                                   onClick={() => setDeleteProductIndex(idx)}
                                   disabled={isDeletingProduct}
+                                  className="flex-1 sm:flex-none min-w-0"
                                 >
                                   {isDeletingProduct && deleteProductIndex === idx ? (
                                     <Loader2 className="animate-spin w-4 h-4" />
