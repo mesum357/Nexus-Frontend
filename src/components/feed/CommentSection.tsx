@@ -347,7 +347,13 @@ const CommentSection = forwardRef(function CommentSection(
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
+                    <div 
+                      className="text-sm text-gray-700 mt-1"
+                      dangerouslySetInnerHTML={{ 
+                        __html: comment.content || '' 
+                      }}
+                      style={{ direction: 'ltr' }}
+                    />
                   )}
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Button

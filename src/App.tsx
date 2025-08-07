@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Store from "./pages/Store";
 import CreateShop from "./pages/ShopWizard";
 import Shop from "./pages/Shop";
+import EditShop from "./pages/EditShop";
 import Education from "./pages/Education";
 import Feed from "./pages/Feed";
 import Marketplace from "./pages/Marketplace";
@@ -62,6 +63,7 @@ const App = () => (
           <Route path="/store" element={<Store />} />
           <Route path="/create-shop" element={<CreateShop />} />
           <Route path="/shop/:shopId" element={<Shop />} />
+          <Route path="/shop/:shopId/edit" element={<EditShop />} />
           <Route path="/education" element={<Education />} />
           <Route path="/education/institute/:id" element={<InstituteDetail />} />
           <Route path="/education/create" element={<CreateInstitute />} />

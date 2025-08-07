@@ -59,9 +59,13 @@ export default function CourseCard({ course, index }: CourseCardProps) {
             {course.title}
           </h3>
           
-          <p className="text-muted-foreground mb-4 line-clamp-3">
-            {course.description}
-          </p>
+          <div 
+            className="text-muted-foreground mb-4 line-clamp-3"
+            dangerouslySetInnerHTML={{ 
+              __html: course.description || '' 
+            }}
+            style={{ direction: 'ltr' }}
+          />
 
           <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">

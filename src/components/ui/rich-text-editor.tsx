@@ -191,7 +191,7 @@ export function RichTextEditor({
           className={`min-h-[${rows * 1.5}rem] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary ${
             maxLength && stripHtml(value).length > maxLength * 0.9 ? 'border-orange-300' : ''
           }`}
-          style={{ minHeight: `${rows * 1.5}rem` }}
+          style={{ minHeight: `${rows * 1.5}rem`, direction: 'ltr', textAlign: 'left' }}
           data-placeholder={placeholder}
         />
         {maxLength && (

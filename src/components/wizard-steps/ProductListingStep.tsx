@@ -373,9 +373,13 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
                     <Badge variant="outline" className="text-xs">
                       {product.category}
                     </Badge>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {product.description}
-                    </p>
+                    <div 
+                      className="text-sm text-muted-foreground line-clamp-2"
+                      dangerouslySetInnerHTML={{ 
+                        __html: product.description || '' 
+                      }}
+                      style={{ direction: 'ltr' }}
+                    />
                     <div className="flex items-center justify-between">
                       <div>
                         {product.discountPercentage > 0 ? (

@@ -274,7 +274,13 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
                 </div>
               </div>
             ) : (
-            <p className="text-foreground leading-relaxed whitespace-pre-line">{post.content}</p>
+            <div 
+              className="text-foreground leading-relaxed whitespace-pre-line"
+              dangerouslySetInnerHTML={{ 
+                __html: post.content || '' 
+              }}
+              style={{ direction: 'ltr' }}
+            />
             )}
             {post.image && (
               <div className="mt-4 rounded-xl overflow-hidden">

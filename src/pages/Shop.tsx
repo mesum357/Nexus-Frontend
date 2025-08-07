@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { Shop as ShopType } from './Store'
 import heroStoreImage from '@/assets/hero-store.jpg'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon } from 'lucide-react'
+import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon, Edit, Settings } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -59,6 +59,7 @@ interface CurrentUser {
 
 export default function Shop() {
   const { shopId } = useParams();
+  const navigate = useNavigate();
   const [shop, setShop] = useState<ShopWithGallery | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -78,6 +79,8 @@ export default function Shop() {
   const [dragActive, setDragActive] = useState(false);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [editProductIndex, setEditProductIndex] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingShop, setIsDeletingShop] = useState(false);
   const [deleteProductIndex, setDeleteProductIndex] = useState<number | null>(null);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const [showGalleryUpload, setShowGalleryUpload] = useState(false);
@@ -437,6 +440,31 @@ export default function Shop() {
     }
   };
 
+  const handleDeleteShop = async () => {
+    if (!shopId) return;
+    
+    setIsDeletingShop(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/shop/${shopId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        toast({ title: 'Success', description: 'Shop deleted successfully' });
+        navigate('/store');
+      } else {
+        const result = await response.json();
+        toast({ title: 'Error', description: result.error || 'Failed to delete shop', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Network Error', description: 'Could not connect to server.', variant: 'destructive' });
+    } finally {
+      setIsDeletingShop(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -520,17 +548,45 @@ export default function Shop() {
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black/40 flex items-end">
-              <div className="p-8 text-white">
-                <h1 className="text-4xl font-bold mb-2">{shop.shopName}</h1>
-                <div className="flex items-center gap-4">
-                  <UIBadge variant={shop.shopType === 'Product Seller' ? 'default' : 'secondary'}>
-                    {shop.shopType}
-                  </UIBadge>
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                    <span className="font-medium">{shop.rating}</span>
-                    <span className="text-white/80 ml-1">({shop.totalReviews} reviews)</span>
+              <div className="p-8 text-white w-full">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h1 className="text-4xl font-bold mb-2">{shop.shopName}</h1>
+                    <div className="flex items-center gap-4">
+                      <UIBadge variant={shop.shopType === 'Product Seller' ? 'default' : 'secondary'}>
+                        {shop.shopType}
+                      </UIBadge>
+                      <div className="flex items-center">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                        <span className="font-medium">{shop.rating}</span>
+                        <span className="text-white/80 ml-1">({shop.totalReviews} reviews)</span>
+                      </div>
+                    </div>
                   </div>
+                  
+                  {/* Shop Owner Actions */}
+                  {currentUser && String(shop.owner) === String(currentUser._id) && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/shop/${shopId}/edit`)}
+                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Shop
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="bg-red-600/80 border-red-600/20 text-white hover:bg-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Shop
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -550,9 +606,13 @@ export default function Shop() {
                   <CardTitle>About This Shop</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {shop.shopDescription || shop.description || ''}
-                  </p>
+                  <div 
+                    className="text-muted-foreground leading-relaxed"
+                    dangerouslySetInnerHTML={{ 
+                      __html: shop.shopDescription || shop.description || '' 
+                    }}
+                    style={{ direction: 'ltr' }}
+                  />
                   <div className="flex flex-wrap gap-2 mt-4">
                     {(shop.categories || []).map((category: string) => (
                       <UIBadge key={category} variant="outline">
@@ -1064,6 +1124,41 @@ export default function Shop() {
                       </>
                     ) : (
                       'Delete Product'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Shop Confirmation Dialog */}
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+                <h3 className="text-lg font-semibold mb-4">Delete Shop</h3>
+                <p className="text-muted-foreground mb-6">
+                  Are you sure you want to delete this shop? This action cannot be undone and will permanently remove all shop data, products, and images.
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeletingShop}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteShop}
+                    disabled={isDeletingShop}
+                  >
+                    {isDeletingShop ? (
+                      <>
+                        <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete Shop'
                     )}
                   </Button>
                 </div>

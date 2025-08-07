@@ -100,9 +100,13 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ data, updateData })
             </div>
             <div>
               <Label className="text-sm text-muted-foreground">Description</Label>
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                {data.shopDescription || 'No description provided'}
-              </p>
+              <div 
+                className="text-sm text-muted-foreground line-clamp-3"
+                dangerouslySetInnerHTML={{ 
+                  __html: data.shopDescription || 'No description provided' 
+                }}
+                style={{ direction: 'ltr' }}
+              />
             </div>
           </div>
         </InfoCard>

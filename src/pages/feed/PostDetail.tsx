@@ -390,7 +390,13 @@ export default function PostDetail() {
                   </div>
                 </div>
               ) : (
-                  <p className="text-foreground">{comment.content}</p>
+                  <div 
+                    className="text-foreground"
+                    dangerouslySetInnerHTML={{ 
+                      __html: comment.content || '' 
+                    }}
+                    style={{ direction: 'ltr' }}
+                  />
                 )}
               </div>
               <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
@@ -470,7 +476,13 @@ export default function PostDetail() {
                               </div>
                             </div>
                           ) : (
-                            <p className="text-foreground text-xs">{reply.content}</p>
+                            <div 
+                              className="text-foreground text-xs"
+                              dangerouslySetInnerHTML={{ 
+                                __html: reply.content || '' 
+                              }}
+                              style={{ direction: 'ltr' }}
+                            />
                           )}
                           <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                             <Button variant="ghost" size="sm" onClick={() => handleLikeComment(reply._id)} disabled={likeLoading[reply._id]}>
@@ -616,9 +628,13 @@ export default function PostDetail() {
 
                 {/* Post Content */}
                 <div className="mb-6">
-                  <p className="text-foreground leading-relaxed text-lg mb-4">
-                    {post.content}
-                  </p>
+                  <div 
+                    className="text-foreground leading-relaxed text-lg mb-4"
+                    dangerouslySetInnerHTML={{ 
+                      __html: post.content || '' 
+                    }}
+                    style={{ direction: 'ltr' }}
+                  />
                   
                   {post.image && (
                     <div className="rounded-lg overflow-hidden">

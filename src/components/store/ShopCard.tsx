@@ -90,9 +90,13 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
           </h3>
 
           {/* Description */}
-          <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
-            {shop.description}
-          </p>
+          <div 
+            className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2"
+            dangerouslySetInnerHTML={{ 
+              __html: shop.description || '' 
+            }}
+            style={{ direction: 'ltr' }}
+          />
 
           {/* Location & Category */}
           <div className="flex items-center gap-3 sm:gap-4 mb-4 text-xs text-muted-foreground">
