@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Upload, X, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, Loader2, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { ImageCropper } from '@/components/ui/image-cropper';
 import Navbar from '@/components/Navbar';
 import { API_BASE_URL } from '@/lib/config';
 
@@ -55,6 +58,11 @@ export default function EditProduct() {
   const [existingImages, setExistingImages] = useState([]);
   const [tags, setTags] = useState([]);
   const [newTag, setNewTag] = useState('');
+
+  // Image cropping states
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [cropFile, setCropFile] = useState(null);
+  const [cropIndex, setCropIndex] = useState(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -180,28 +188,40 @@ export default function EditProduct() {
   };
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    
-    if (imageFiles.length + files.length > 10) {
-      toast({
-        title: "Error",
-        description: "Maximum 10 images allowed",
-        variant: "destructive"
-      });
-      return;
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        setCropFile(file);
+        setCropIndex(imageFiles.length);
+        setShowImageCropper(true);
+      } else {
+        toast({
+          title: "Error",
+          description: "Please select an image file",
+          variant: "destructive"
+        });
+      }
     }
+  };
 
-    const newFiles = [...imageFiles, ...files];
-    setImageFiles(newFiles);
+  const handleCropComplete = (croppedFile) => {
+    const newImageFiles = [...imageFiles];
+    const newImagePreviews = [...imagePreviews];
+    
+    newImageFiles.push(croppedFile);
+    newImagePreviews.push(URL.createObjectURL(croppedFile));
+    
+    setImageFiles(newImageFiles);
+    setImagePreviews(newImagePreviews);
+    setShowImageCropper(false);
+    setCropFile(null);
+    setCropIndex(null);
+  };
 
-    // Create previews
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreviews(prev => [...prev, e.target.result]);
-      };
-      reader.readAsDataURL(file);
-    });
+  const handleCloseCropper = () => {
+    setShowImageCropper(false);
+    setCropFile(null);
+    setCropIndex(null);
   };
 
   const removeImage = (index, isExisting = false) => {
@@ -378,13 +398,10 @@ export default function EditProduct() {
 
                     <div>
                       <label className="text-sm font-medium">Description *</label>
-                      <Textarea
-                        name="description"
+                      <RichTextEditor
                         value={formData.description}
-                        onChange={handleInputChange}
+                        onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
                         placeholder="Describe your product in detail"
-                        rows={4}
-                        maxLength={1000}
                       />
                     </div>
 
@@ -683,6 +700,26 @@ export default function EditProduct() {
           </form>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      {showImageCropper && cropFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 max-w-4xl w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Crop Product Image</h3>
+              <Button variant="ghost" onClick={handleCloseCropper}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <ImageCropper
+              file={cropFile}
+              onCropComplete={handleCropComplete}
+              aspectRatio={4/3}
+              onCancel={handleCloseCropper}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

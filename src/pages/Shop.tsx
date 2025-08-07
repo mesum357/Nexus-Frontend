@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { Shop as ShopType } from './Store'
 import heroStoreImage from '@/assets/hero-store.jpg'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon, Edit, Settings } from 'lucide-react'
+import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon, Edit, Settings, Share2 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -88,6 +88,7 @@ export default function Shop() {
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [deletingGalleryImage, setDeletingGalleryImage] = useState<number | null>(null);
+  const [sharing, setSharing] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -155,6 +156,29 @@ export default function Shop() {
       .then(data => setCurrentUser(data.user || null))
       .catch(() => setCurrentUser(null));
   }, []);
+
+  const handleShare = async () => {
+    setSharing(true);
+    
+    try {
+      const shopUrl = `${window.location.origin}/shop/${shopId}`;
+      await navigator.clipboard.writeText(shopUrl);
+      
+      toast({
+        title: "Link copied!",
+        description: "Shop link has been copied to your clipboard.",
+      });
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      toast({
+        title: "Error",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSharing(false);
+    }
+  };
 
   const handleProductImageUpload = (files: FileList | null) => {
     if (!files) return;
@@ -607,11 +631,15 @@ export default function Shop() {
                 </CardHeader>
                 <CardContent>
                   <div 
-                    className="text-muted-foreground leading-relaxed"
+                    className="text-muted-foreground leading-relaxed prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ 
                       __html: shop.shopDescription || shop.description || '' 
                     }}
-                    style={{ direction: 'ltr' }}
+                    style={{ 
+                      direction: 'ltr',
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word'
+                    }}
                   />
                   <div className="flex flex-wrap gap-2 mt-4">
                     {(shop.categories || []).map((category: string) => (
@@ -926,11 +954,14 @@ export default function Shop() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="space-y-3">
-                    <Button className="w-full" size="lg">
-                      Contact Shop
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      Share Shop
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handleShare}
+                      disabled={sharing}
+                    >
+                      <Share2 className="h-4 w-4 mr-2" />
+                      {sharing ? 'Copying...' : 'Share Shop'}
                     </Button>
                   </div>
                 </CardContent>

@@ -77,7 +77,11 @@ const ShopWizard: React.FC = () => {
   };
 
   const handleNext = () => {
+    console.log('handleNext called, currentStep:', currentStep);
+    console.log('shopData:', shopData);
+    
     if (!validateStep(currentStep)) {
+      console.log('Validation failed for step:', currentStep);
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before proceeding.",
@@ -86,8 +90,13 @@ const ShopWizard: React.FC = () => {
       return;
     }
 
+    console.log('Validation passed, proceeding to next step');
     if (currentStep < STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep(prev => {
+        const newStep = prev + 1;
+        console.log('Setting currentStep from', prev, 'to', newStep);
+        return newStep;
+      });
     }
   };
 
@@ -170,20 +179,29 @@ const ShopWizard: React.FC = () => {
   };
 
   const renderStepContent = () => {
+    console.log('renderStepContent called with currentStep:', currentStep);
+    
     switch (currentStep) {
       case 0:
+        console.log('Rendering ShopInformationStep');
         return <ShopInformationStep data={shopData} updateData={updateShopData} />;
       case 1:
+        console.log('Rendering BusinessCategoriesStep');
         return <BusinessCategoriesStep data={shopData} updateData={updateShopData} />;
       case 2:
+        console.log('Rendering ShopMediaStep');
         return <ShopMediaStep data={shopData} updateData={updateShopData} />;
       case 3:
+        console.log('Rendering SocialContactStep');
         return <SocialContactStep data={shopData} updateData={updateShopData} />;
       case 4:
+        console.log('Rendering ProductListingStep');
         return <ProductListingStep data={shopData} updateData={updateShopData} />;
       case 5:
+        console.log('Rendering ReviewSubmitStep');
         return <ReviewSubmitStep data={shopData} updateData={updateShopData} />;
       default:
+        console.log('Rendering null (default case)');
         return null;
     }
   };

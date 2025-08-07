@@ -1,18 +1,19 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Upload, Plus, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import Navbar from '@/components/Navbar'
-import { useEffect } from 'react'
-import { API_BASE_URL } from '@/lib/config'
-import { useToast } from '@/hooks/use-toast'
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Upload, X, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { ImageCropper } from '@/components/ui/image-cropper';
+import Navbar from '@/components/Navbar';
+import { API_BASE_URL } from '@/lib/config';
 
 const steps = [
   "Basic Information",
@@ -37,6 +38,12 @@ export default function EditInstitute() {
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast();
   const [courseError, setCourseError] = useState<string | null>(null);
+
+  // Image cropping states
+  const [showLogoCropper, setShowLogoCropper] = useState(false);
+  const [showBannerCropper, setShowBannerCropper] = useState(false);
+  const [logoCropFile, setLogoCropFile] = useState<File | null>(null);
+  const [bannerCropFile, setBannerCropFile] = useState<File | null>(null);
 
   // Fetch institute data for editing
   useEffect(() => {
@@ -147,17 +154,55 @@ export default function EditInstitute() {
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
       if (type === 'logo') {
-        setLogoFile(file)
-        setLogoPreview(URL.createObjectURL(file))
+        setLogoCropFile(file);
+        setShowLogoCropper(true);
       } else {
-        setBannerFile(file)
-        setBannerPreview(URL.createObjectURL(file))
+        setBannerCropFile(file);
+        setShowBannerCropper(true);
       }
     }
-  }
+  };
+
+  const handleLogoCropComplete = (croppedFile: File) => {
+    setLogoFile(croppedFile);
+    setLogoPreview(URL.createObjectURL(croppedFile));
+    setShowLogoCropper(false);
+    setLogoCropFile(null);
+  };
+
+  const handleBannerCropComplete = (croppedFile: File) => {
+    setBannerFile(croppedFile);
+    setBannerPreview(URL.createObjectURL(croppedFile));
+    setShowBannerCropper(false);
+    setBannerCropFile(null);
+  };
+
+  const handleEditLogo = () => {
+    if (logoFile) {
+      setLogoCropFile(logoFile);
+      setShowLogoCropper(true);
+    }
+  };
+
+  const handleEditBanner = () => {
+    if (bannerFile) {
+      setBannerCropFile(bannerFile);
+      setShowBannerCropper(true);
+    }
+  };
+
+  const handleCloseLogoCropper = () => {
+    setShowLogoCropper(false);
+    setLogoCropFile(null);
+  };
+
+  const handleCloseBannerCropper = () => {
+    setShowBannerCropper(false);
+    setBannerCropFile(null);
+  };
 
   const handleSubmit = async () => {
     // Check if user is authenticated
@@ -330,6 +375,17 @@ export default function EditInstitute() {
                 placeholder="Describe what your institute specializes in"
               />
             </div>
+
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <RichTextEditor
+                value={form.description || ''}
+                onChange={(value) => setForm({ ...form, description: value })}
+                placeholder="Describe your institute, its mission, and what makes it unique"
+                rows={6}
+                maxLength={2000}
+              />
+            </div>
           </div>
         )
 
@@ -407,16 +463,25 @@ export default function EditInstitute() {
                         alt="Logo preview"
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLogoFile(null)
-                          setLogoPreview(null)
-                        }}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <div className="absolute -top-2 -right-2 flex space-x-1">
+                        <button
+                          type="button"
+                          onClick={handleEditLogo}
+                          className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600"
+                        >
+                          <Upload className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLogoFile(null)
+                            setLogoPreview(null)
+                          }}
+                          className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -450,16 +515,25 @@ export default function EditInstitute() {
                         alt="Banner preview"
                         className="w-32 h-20 object-cover rounded border-2 border-gray-200"
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setBannerFile(null)
-                          setBannerPreview(null)
-                        }}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <div className="absolute -top-2 -right-2 flex space-x-1">
+                        <button
+                          type="button"
+                          onClick={handleEditBanner}
+                          className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600"
+                        >
+                          <Upload className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBannerFile(null)
+                            setBannerPreview(null)
+                          }}
+                          className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -665,6 +739,45 @@ export default function EditInstitute() {
           </div>
         </motion.div>
       </div>
+
+      {/* Image Cropper Modals */}
+      {showLogoCropper && logoCropFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 max-w-2xl w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Crop Logo</h3>
+              <Button variant="ghost" onClick={handleCloseLogoCropper}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <ImageCropper
+              file={logoCropFile}
+              onCropComplete={handleLogoCropComplete}
+              aspectRatio={1}
+              onCancel={handleCloseLogoCropper}
+            />
+          </div>
+        </div>
+      )}
+
+      {showBannerCropper && bannerCropFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 max-w-4xl w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Crop Banner</h3>
+              <Button variant="ghost" onClick={handleCloseBannerCropper}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <ImageCropper
+              file={bannerCropFile}
+              onCropComplete={handleBannerCropComplete}
+              aspectRatio={16/9}
+              onCancel={handleCloseBannerCropper}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

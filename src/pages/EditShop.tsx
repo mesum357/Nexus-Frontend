@@ -10,25 +10,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { SimpleTextEditor } from '@/components/ui/simple-text-editor';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import Navbar from '@/components/Navbar';
 import { API_BASE_URL } from '@/lib/config';
+import { useCategories } from '@/hooks/use-categories';
 
 const cities = [
   "Karachi", "Lahore", "Islamabad", "Faisalabad", "Multan",
   "Peshawar", "Quetta", "Rawalpindi", "Gujranwala", "Sialkot"
 ];
 
-const categories = [
-  "Food & Beverages", "Fashion & Clothing", "Electronics", "Home & Garden",
-  "Beauty & Personal Care", "Sports & Outdoors", "Books & Media", "Automotive",
-  "Health & Wellness", "Education & Training", "Professional Services", "Entertainment"
-];
-
 export default function EditShop() {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { categories, loading: categoriesLoading } = useCategories();
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -273,18 +269,44 @@ export default function EditShop() {
 
                     <div>
                       <Label>Categories</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mt-2 max-h-48 overflow-y-auto p-2 border rounded-md">
                         {categories.map((category) => (
-                          <Badge
-                            key={category}
-                            variant={formData.categories.includes(category) ? "default" : "outline"}
-                            className="cursor-pointer"
-                            onClick={() => handleCategoryToggle(category)}
+                          <div
+                            key={category.value}
+                            className={`flex items-center gap-2 p-2 rounded-md cursor-pointer border transition-colors ${
+                              formData.categories.includes(category.value)
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background hover:bg-muted border-border'
+                            }`}
+                            onClick={() => handleCategoryToggle(category.value)}
                           >
-                            {category}
-                          </Badge>
+                            <span className="text-sm">{category.icon}</span>
+                            <span className="text-xs font-medium truncate">{category.label}</span>
+                          </div>
                         ))}
                       </div>
+                      {formData.categories && formData.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {formData.categories.map((category) => (
+                            <div
+                              key={category}
+                              className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
+                            >
+                                                             <span>{categories.find(c => c.value === category)?.icon}</span>
+                              <span>{category}</span>
+                              <button
+                                onClick={() => {
+                                  const newCategories = formData.categories?.filter(c => c !== category) || [];
+                                  setFormData(prev => ({ ...prev, categories: newCategories }));
+                                }}
+                                className="ml-1 hover:bg-primary/20 rounded-full w-4 h-4 flex items-center justify-center"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -357,13 +379,13 @@ export default function EditShop() {
                   <CardTitle>Shop Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                                     <SimpleTextEditor
-                     value={formData.shopDescription}
-                     onChange={(value) => setFormData(prev => ({ ...prev, shopDescription: value }))}
-                     placeholder="Describe your shop, what you sell/offer, and what makes you unique..."
-                     rows={6}
-                     maxLength={1000}
-                   />
+                  <RichTextEditor
+                    value={formData.shopDescription}
+                    onChange={(value) => setFormData(prev => ({ ...prev, shopDescription: value }))}
+                    placeholder="Describe your shop, what you sell/offer, and what makes you unique..."
+                    rows={6}
+                    maxLength={1000}
+                  />
                 </CardContent>
               </Card>
             </motion.div>
