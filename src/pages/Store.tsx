@@ -88,7 +88,7 @@ export default function Store() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="relative pt-24 pb-16 overflow-hidden"
+        className="relative pt-20 sm:pt-24 pb-12 sm:pb-16 overflow-hidden"
       >
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
@@ -114,7 +114,7 @@ export default function Store() {
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 1, delay: 0.2 }}
-              className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight px-2"
             >
               Discover Local Shops & Services
             </motion.h1>
@@ -122,7 +122,7 @@ export default function Store() {
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 1, delay: 0.4 }}
-              className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed"
+              className="text-lg sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-4"
             >
               Connect with local businesses across MY Online . Shop products or find services from trusted vendors in your city.
             </motion.p>
@@ -130,15 +130,16 @@ export default function Store() {
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 1, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4"
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                className="w-full sm:w-auto"
               >
-                <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg shadow-primary/25 text-lg font-semibold px-8 py-4 h-14">
+                <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg shadow-primary/25 text-base sm:text-lg font-semibold px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 w-full sm:w-auto">
                   <Link to="/create-shop">
-                    <Plus className="h-5 w-5 mr-2" />
+                    <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Create Your Shop
                   </Link>
                 </Button>
@@ -146,8 +147,9 @@ export default function Store() {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                className="w-full sm:w-auto"
               >
-                <Button variant="outline" size="lg" className="rounded-full border-2 border-primary/20 hover:border-primary/40 backdrop-blur-sm text-lg font-semibold px-8 py-4 h-14">
+                <Button variant="outline" size="lg" className="rounded-full border-2 border-primary/20 hover:border-primary/40 backdrop-blur-sm text-base sm:text-lg font-semibold px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 w-full sm:w-auto">
                   Browse Shops
                 </Button>
               </motion.div>
@@ -160,12 +162,12 @@ export default function Store() {
       <StoreFilters onFilter={handleFilter} />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl p-6 animate-pulse">
-                <div className="h-40 bg-muted rounded-lg mb-4"></div>
+              <div key={i} className="bg-card rounded-2xl p-4 sm:p-6 animate-pulse">
+                <div className="h-32 sm:h-40 bg-muted rounded-lg mb-3 sm:mb-4"></div>
                 <div className="h-4 bg-muted rounded mb-2"></div>
                 <div className="h-3 bg-muted rounded w-3/4"></div>
               </div>

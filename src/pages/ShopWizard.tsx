@@ -192,25 +192,26 @@ const ShopWizard: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="pt-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="pt-16 sm:pt-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Header */}
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="flex items-center gap-4 mb-8"
+            className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8"
           >
             <Button
               variant="ghost"
               onClick={() => navigate('/store')}
+              className="w-full sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Create Your Shop</h1>
-              <p className="text-muted-foreground">Set up your digital marketplace presence</p>
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Create Your Shop</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">Set up your digital marketplace presence</p>
             </div>
           </motion.div>
 
@@ -219,13 +220,13 @@ const ShopWizard: React.FC = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
               {STEPS.map((step, index) => (
-                <div key={index} className="flex items-center flex-1">
+                <div key={index} className="flex items-center flex-1 w-full sm:w-auto">
                   <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
+                    w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium
                     ${index <= currentStep 
                       ? 'bg-primary text-white' 
                       : 'bg-muted text-muted-foreground'
@@ -233,15 +234,15 @@ const ShopWizard: React.FC = () => {
                   `}>
                     {index + 1}
                   </div>
-                  <div className="ml-3 flex-1">
-                    <p className={`text-sm font-medium ${
+                  <div className="ml-2 sm:ml-3 flex-1">
+                    <p className={`text-xs sm:text-sm font-medium ${
                       index <= currentStep ? 'text-foreground' : 'text-muted-foreground'
                     }`}>
                       {step}
                     </p>
                   </div>
                   {index < STEPS.length - 1 && (
-                    <div className={`h-0.5 flex-1 mx-4 ${
+                    <div className={`h-0.5 flex-1 mx-2 sm:mx-4 hidden sm:block ${
                       index < currentStep ? 'bg-primary' : 'bg-muted'
                     }`} />
                   )}
@@ -258,10 +259,10 @@ const ShopWizard: React.FC = () => {
             transition={{ duration: 0.4 }}
           >
             <Card>
-              <CardHeader>
-                <CardTitle>{STEPS[currentStep]}</CardTitle>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg sm:text-xl">{STEPS[currentStep]}</CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 {renderStepContent()}
               </CardContent>
             </Card>
@@ -272,12 +273,13 @@ const ShopWizard: React.FC = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="flex justify-between mt-8"
+            className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8"
           >
             <Button
               variant="outline"
               onClick={handleBack}
               disabled={currentStep === 0}
+              className="w-full sm:w-auto order-2 sm:order-1"
             >
               Previous
             </Button>
@@ -285,13 +287,13 @@ const ShopWizard: React.FC = () => {
             {currentStep === STEPS.length - 1 ? (
               <Button 
                 onClick={handleSubmit}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Creating Shop...' : 'Create Shop'}
               </Button>
             ) : (
-              <Button onClick={handleNext}>
+              <Button onClick={handleNext} className="w-full sm:w-auto order-1 sm:order-2">
                 Next
               </Button>
             )}

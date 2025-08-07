@@ -90,7 +90,7 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1"
             onClick={() => navigate(`/education/institute/${id}`)}>
         {/* Banner with Logo Overlay */}
-        <div className="relative h-48">
+        <div className="relative h-40 sm:h-48">
           <img
             src={getImageUrl(institute.banner) && !bannerError ? getImageUrl(institute.banner) : defaultBanner}
             alt={institute.name}
@@ -100,43 +100,43 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           
           {/* Logo */}
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
             <img
               src={getImageUrl(institute.logo) && !logoError ? getImageUrl(institute.logo) : defaultLogo}
               alt={`${institute.name} logo`}
-              className="w-12 h-12 rounded-full border-2 border-white shadow-lg object-cover"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white shadow-lg object-cover"
               onError={() => setLogoError(true)}
             />
           </div>
 
           {/* Institute Type Badge */}
-          <div className="absolute top-4 left-4">
-            <Badge className="bg-primary text-white">
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
+            <Badge className="bg-primary text-white text-xs">
               {institute.type || (institute.name.includes('University') ? 'University' :
                institute.name.includes('College') ? 'College' : 'School')}
             </Badge>
           </div>
 
           {/* Name and Location Overlay */}
-          <div className="absolute bottom-4 left-4 text-white">
-            <h3 className="text-lg font-bold mb-1">{institute.name}</h3>
-            <div className="flex items-center gap-1 text-sm">
+          <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 text-white">
+            <h3 className="text-base sm:text-lg font-bold mb-1 line-clamp-2">{institute.name}</h3>
+            <div className="flex items-center gap-1 text-xs sm:text-sm">
               <MapPin className="h-3 w-3" />
-              <span>{institute.city || institute.location || 'Location not specified'}</span>
+              <span className="line-clamp-1">{institute.city || institute.location || 'Location not specified'}</span>
             </div>
           </div>
         </div>
 
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           {/* Rating and Verification */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium text-sm">{institute.rating || 'N/A'}</span>
-              <span className="text-xs text-muted-foreground">(1.2k reviews)</span>
+              <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium text-xs sm:text-sm">{institute.rating || 'N/A'}</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">(1.2k reviews)</span>
             </div>
             {institute.verified && (
-              <Badge variant="secondary" className="bg-green-100 text-green-700">
+              <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
                 <Check className="h-3 w-3 mr-1" />
                 Verified
               </Badge>
@@ -144,7 +144,7 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
           </div>
 
           {/* Courses Offered */}
-          <div className="mb-4">
+          <div className="mb-3 sm:mb-4">
             <p className="text-xs text-muted-foreground mb-2">Courses Offered (3 shown):</p>
             <div className="flex flex-wrap gap-1">
               {institute.specialization ?
@@ -163,15 +163,15 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
           </div>
 
           {/* Students Count */}
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">{institute.totalStudents || institute.students || 'N/A'}</span>
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+            <span className="text-xs sm:text-sm font-medium">{institute.totalStudents || institute.students || 'N/A'}</span>
             <span className="text-xs text-muted-foreground">Total Students</span>
           </div>
 
           {/* Apply Button */}
           <Button 
-            className="w-full bg-primary hover:bg-primary/90"
+            className="w-full bg-primary hover:bg-primary/90 text-sm sm:text-base h-9 sm:h-10"
             onClick={(e) => {
               e.stopPropagation()
               navigate(`/education/institute/${id}`)
@@ -182,10 +182,10 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
 
           {/* Owner Actions */}
           {currentUser && institute.owner && String(currentUser._id) === String(institute.owner) && (
-            <div className="space-y-2">
+            <div className="space-y-2 mt-3">
             <Button
               variant="outline"
-                className="w-full"
+                className="w-full text-sm h-9 sm:h-10"
               onClick={e => {
                 e.stopPropagation();
                 navigate(`/education/edit/${id}`);
@@ -196,14 +196,14 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
               <Button
                 variant="destructive"
                 size="sm"
-                className="w-full"
+                className="w-full text-sm h-8 sm:h-9"
                 onClick={e => {
                   e.stopPropagation();
                   setShowDeleteConfirm(true);
                 }}
                 disabled={isDeleting}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                 {isDeleting ? 'Deleting...' : 'Delete Institute'}
               </Button>
             </div>
@@ -213,10 +213,10 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background p-6 rounded-lg max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background p-4 sm:p-6 rounded-lg max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Delete Institute</h3>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-6 text-sm sm:text-base">
               Are you sure you want to delete "{institute.name}"? This action cannot be undone and will permanently remove the institute and all associated reviews.
             </p>
             <div className="flex gap-3">
@@ -224,7 +224,7 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
                 variant="destructive"
                 onClick={handleDeleteInstitute}
                 disabled={isDeleting}
-                className="flex-1"
+                className="flex-1 text-sm"
               >
                 {isDeleting ? 'Deleting...' : 'Delete'}
               </Button>
@@ -232,7 +232,7 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
                 variant="outline"
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
-                className="flex-1"
+                className="flex-1 text-sm"
               >
                 Cancel
               </Button>

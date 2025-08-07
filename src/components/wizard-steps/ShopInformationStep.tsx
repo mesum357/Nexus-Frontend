@@ -20,8 +20,8 @@ const PAKISTAN_CITIES = [
 
 const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateData }) => {
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {/* Shop Name */}
         <div className="space-y-2">
           <Label htmlFor="shopName" className="text-sm font-medium">
@@ -32,7 +32,7 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
             placeholder="Enter your shop name"
             value={data.shopName}
             onChange={(e) => updateData({ shopName: e.target.value })}
-            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20 h-10 sm:h-10"
           />
         </div>
 
@@ -42,7 +42,7 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
             City <span className="text-destructive">*</span>
           </Label>
           <Select value={data.city} onValueChange={(value) => updateData({ city: value })}>
-            <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+            <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/20 h-10 sm:h-10">
               <SelectValue placeholder="Select your city" />
             </SelectTrigger>
             <SelectContent>
@@ -64,17 +64,17 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
         <RadioGroup
           value={data.shopType}
           onValueChange={(value) => updateData({ shopType: value as 'Product Seller' | 'Service Provider' })}
-          className="flex flex-col sm:flex-row gap-6"
+          className="flex flex-col sm:flex-row gap-4 sm:gap-6"
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="Product Seller" id="product-seller" />
-            <Label htmlFor="product-seller" className="cursor-pointer">
+            <Label htmlFor="product-seller" className="cursor-pointer text-sm sm:text-base">
               Product Seller
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="Service Provider" id="service-provider" />
-            <Label htmlFor="service-provider" className="cursor-pointer">
+            <Label htmlFor="service-provider" className="cursor-pointer text-sm sm:text-base">
               Service Provider
             </Label>
           </div>

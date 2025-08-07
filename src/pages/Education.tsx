@@ -95,7 +95,7 @@ export default function Education() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="relative pt-20 pb-16"
+        className="relative pt-16 sm:pt-20 pb-12 sm:pb-16"
         style={{
           backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)), url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1920&h=800&fit=crop')`,
           backgroundSize: 'cover',
@@ -103,53 +103,56 @@ export default function Education() {
         }}
       >
         <div className="absolute inset-0 bg-background/80" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="text-center">
             <motion.div
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
-              <div className="flex items-center justify-center mb-6">
+              <div className="flex flex-col sm:flex-row items-center justify-center mb-6">
                 <img 
                   src="https://images.unsplash.com/photo-1564981797816-1043664bf78d?w=80&h=80&fit=crop&crop=face" 
                   alt="Pakistan Online Logo"
-                  className="w-20 h-20 rounded-full border-4 border-primary shadow-lg mr-4"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
                 />
-                <div className="text-left">
-                  <h1 className="text-4xl md:text-6xl font-bold text-foreground">
+                <div className="text-center sm:text-left">
+                  <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground">
                     Pakistan <span className="text-primary">Online</span>
                   </h1>
-                  <div className="flex items-center gap-2 mt-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Pakistan</span>
-                    <div className="flex items-center gap-1 ml-4">
+                  <div className="flex flex-col sm:flex-row items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground text-sm sm:text-base">Pakistan</span>
+                    </div>
+                    <div className="flex items-center gap-1 sm:ml-4">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
                       ))}
-                      <span className="text-sm text-muted-foreground ml-1">(4.8)</span>
+                      <span className="text-xs sm:text-sm text-muted-foreground ml-1">(4.8)</span>
                     </div>
                   </div>
                 </div>
               </div>
-              <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
                 Explore top institutes across Pakistan. Building trust through education.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
                 <Button 
                   onClick={() => navigate('/education/create')}
-                  className="bg-primary hover:bg-primary/90"
+                  className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
                   size="lg"
                 >
-                  <Plus className="h-5 w-5 mr-2" />
+                  <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Create Institute
                 </Button>
                 <Button 
                   variant="outline"
                   onClick={() => navigate('/education/dashboard')}
                   size="lg"
+                  className="w-full sm:w-auto"
                 >
-                  <GraduationCap className="h-5 w-5 mr-2" />
+                  <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Student Dashboard
                 </Button>
               </div>
@@ -159,7 +162,7 @@ export default function Education() {
       </motion.section>
 
       {/* Search & Filters */}
-      <section className="py-8 bg-muted/30">
+      <section className="py-6 sm:py-8 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -167,42 +170,47 @@ export default function Education() {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <Card>
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="relative flex-1">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col gap-4">
+                  {/* Search Input - Full width */}
+                  <div className="relative w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search institutes, courses, or specializations..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 h-11 sm:h-10"
                     />
                   </div>
-                  <Select value={selectedCity} onValueChange={setSelectedCity}>
-                    <SelectTrigger className="w-full md:w-48">
-                      <SelectValue placeholder="Select City" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Cities</SelectItem>
-                      {cities.map(city => (
-                        <SelectItem key={city} value={city}>{city}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger className="w-full md:w-48">
-                      <SelectValue placeholder="Institute Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      {instituteTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="icon">
-                    <Filter className="h-4 w-4" />
-                  </Button>
+                  
+                  {/* Filters Row - Stack on mobile */}
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <Select value={selectedCity} onValueChange={setSelectedCity}>
+                      <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
+                        <SelectValue placeholder="Select City" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Cities</SelectItem>
+                        {cities.map(city => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedType} onValueChange={setSelectedType}>
+                      <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
+                        <SelectValue placeholder="Institute Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {instituteTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="icon" className="h-11 sm:h-10 w-full sm:w-auto">
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -211,25 +219,25 @@ export default function Education() {
       </section>
 
       {/* Institutes Grid */}
-      <section className="py-16">
+      <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
               {isLoading ? (
-                <div>Loading...</div>
+                <div className="col-span-full text-center py-8">Loading...</div>
               ) : filteredInstitutes.map((institute, index) => (
                 <InstituteCard key={institute._id} institute={institute} index={index} currentUser={currentUser} />
               ))}
             </div>
             {filteredInstitutes.length === 0 && (
-              <div className="text-center py-16">
-                <GraduationCap className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">No institutes found</h3>
-                <p className="text-muted-foreground">Try adjusting your search criteria</p>
+              <div className="text-center py-12 sm:py-16">
+                <GraduationCap className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">No institutes found</h3>
+                <p className="text-muted-foreground text-sm sm:text-base">Try adjusting your search criteria</p>
               </div>
             )}
           </motion.div>

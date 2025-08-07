@@ -31,7 +31,7 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
     >
       <Card className="overflow-hidden border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
         {/* Shop Image */}
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-40 sm:h-48 overflow-hidden">
           <motion.img
             src={shop.shopImage}
             alt={shop.name}
@@ -40,12 +40,12 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
           />
           
           {/* Business Type Badge */}
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.3 + index * 0.1 }}
-              className={`px-3 py-1 rounded-full text-xs font-medium ${
+              className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium ${
                 shop.businessType === 'Product Seller'
                   ? 'bg-blue-500/90 text-white'
                   : 'bg-green-500/90 text-white'
@@ -56,7 +56,7 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
           </div>
 
           {/* Rating */}
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -69,45 +69,45 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
           </div>
         </div>
 
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {/* Owner Info */}
           <div className="flex items-center mb-3">
-            <Avatar className="h-10 w-10 mr-3">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3">
               <AvatarImage src={shop.ownerDp} alt={shop.ownerName} />
               <AvatarFallback>
-                <User className="h-5 w-5" />
+                <User className="h-4 w-4 sm:h-5 sm:w-5" />
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium text-foreground">{shop.ownerName}</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{shop.ownerName}</p>
               <p className="text-xs text-muted-foreground">Shop Owner</p>
             </div>
           </div>
 
           {/* Shop Name */}
-          <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+          <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
             {shop.name}
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+          <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
             {shop.description}
           </p>
 
           {/* Location & Category */}
-          <div className="flex items-center gap-4 mb-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 text-xs text-muted-foreground">
             <div className="flex items-center">
               <MapPin className="h-3 w-3 mr-1" />
-              {shop.city}
+              <span className="line-clamp-1">{shop.city}</span>
             </div>
             <div className="flex items-center">
               <Badge className="h-3 w-3 mr-1" />
-              {shop.category}
+              <span className="line-clamp-1">{shop.category}</span>
             </div>
           </div>
 
           {/* Visit Shop Button */}
-          <Button asChild className="w-full rounded-full group/btn">
+          <Button asChild className="w-full rounded-full group/btn h-9 sm:h-10 text-sm sm:text-base">
             <Link to={`/shop/${shop.id}`}>
               <span className="group-hover/btn:scale-105 transition-transform">
                 Visit Shop

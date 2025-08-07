@@ -282,8 +282,8 @@ export default function CreateProduct() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-20">
-        <div className="max-w-4xl mx-auto p-4">
+      <div className="pt-16 sm:pt-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Header */}
           <motion.div
             initial={{ y: -20, opacity: 0 }}
@@ -293,30 +293,32 @@ export default function CreateProduct() {
             <Button
               variant="ghost"
               onClick={() => navigate('/marketplace')}
-              className="mb-4"
+              className="mb-4 w-full sm:w-auto"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Marketplace
             </Button>
-            <h1 className="text-3xl font-bold text-foreground">List Your Product</h1>
-            <p className="text-muted-foreground mt-2">
-              Create a new listing to sell your item across Pakistan
-            </p>
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">List Your Product</h1>
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+                Create a new listing to sell your item across Pakistan
+              </p>
+            </div>
           </motion.div>
 
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Left Column */}
               <motion.div
                 initial={{ x: -30, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.1 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-6"
               >
                 {/* Basic Information */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Basic Information</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg sm:text-xl">Basic Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
@@ -327,6 +329,7 @@ export default function CreateProduct() {
                         onChange={handleInputChange}
                         placeholder="Enter product title"
                         maxLength={100}
+                        className="h-10 sm:h-10"
                       />
                     </div>
 
@@ -341,7 +344,7 @@ export default function CreateProduct() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium">Price (PKR) *</label>
                         <Input
@@ -351,12 +354,13 @@ export default function CreateProduct() {
                           onChange={handleInputChange}
                           placeholder="0"
                           min="0"
+                          className="h-10 sm:h-10"
                         />
                       </div>
                       <div>
                         <label className="text-sm font-medium">Price Type</label>
                         <Select value={formData.priceType} onValueChange={(value) => handleSelectChange('priceType', value)}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-10 sm:h-10">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -372,14 +376,14 @@ export default function CreateProduct() {
 
                 {/* Category & Condition */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Category & Condition</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg sm:text-xl">Category & Condition</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <label className="text-sm font-medium">Category *</label>
                       <Select value={formData.category} onValueChange={(value) => handleSelectChange('category', value)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10 sm:h-10">
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
@@ -393,7 +397,7 @@ export default function CreateProduct() {
                     <div>
                       <label className="text-sm font-medium">Condition</label>
                       <Select value={formData.condition} onValueChange={(value) => handleSelectChange('condition', value)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10 sm:h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -408,8 +412,8 @@ export default function CreateProduct() {
 
                 {/* Location */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Location</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg sm:text-xl">Location</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
@@ -419,13 +423,14 @@ export default function CreateProduct() {
                         value={formData.location}
                         onChange={handleInputChange}
                         placeholder="e.g., DHA Phase 5, Lahore"
+                        className="h-10 sm:h-10"
                       />
                     </div>
 
                     <div>
                       <label className="text-sm font-medium">City *</label>
                       <Select value={formData.city} onValueChange={(value) => handleSelectChange('city', value)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10 sm:h-10">
                           <SelectValue placeholder="Select city" />
                         </SelectTrigger>
                         <SelectContent>
@@ -444,17 +449,17 @@ export default function CreateProduct() {
                 initial={{ x: 30, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-6"
               >
                 {/* Images */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Product Images *</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg sm:text-xl">Product Images *</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground mb-2">
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-6 text-center">
+                      <Upload className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                         Upload up to 10 images (Max 10MB each)
                       </p>
                       <input
@@ -466,20 +471,20 @@ export default function CreateProduct() {
                         id="image-upload"
                       />
                       <label htmlFor="image-upload">
-                        <Button variant="outline" asChild>
+                        <Button variant="outline" asChild className="h-9 sm:h-10">
                           <span>Choose Images</span>
                         </Button>
                       </label>
                     </div>
 
                     {imagePreviews.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {imagePreviews.map((preview, index) => (
                           <div key={index} className="relative group">
                             <img
                               src={preview}
                               alt={`Preview ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-lg"
+                              className="w-full h-20 sm:h-24 object-cover rounded-lg"
                             />
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1 rounded-lg">
                               <Button
@@ -510,8 +515,8 @@ export default function CreateProduct() {
 
                 {/* Tags */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Tags (Optional)</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg sm:text-xl">Tags (Optional)</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex gap-2">
@@ -520,8 +525,9 @@ export default function CreateProduct() {
                         onChange={(e) => setNewTag(e.target.value)}
                         placeholder="Add a tag"
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                        className="h-9 sm:h-10"
                       />
-                      <Button type="button" variant="outline" onClick={addTag}>
+                      <Button type="button" variant="outline" onClick={addTag} className="h-9 sm:h-10">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -546,14 +552,14 @@ export default function CreateProduct() {
 
                 {/* Contact Information */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg sm:text-xl">Contact Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <label className="text-sm font-medium">Contact Preference</label>
                       <Select value={formData.contactPreference} onValueChange={(value) => handleSelectChange('contactPreference', value)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10 sm:h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -571,6 +577,7 @@ export default function CreateProduct() {
                         value={formData.ownerPhone}
                         onChange={handleInputChange}
                         placeholder="Enter phone number"
+                        className="h-10 sm:h-10"
                       />
                     </div>
 
@@ -582,6 +589,7 @@ export default function CreateProduct() {
                         value={formData.ownerEmail}
                         onChange={handleInputChange}
                         placeholder="Enter email address"
+                        className="h-10 sm:h-10"
                       />
                     </div>
                   </CardContent>
@@ -594,13 +602,13 @@ export default function CreateProduct() {
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="mt-8 flex justify-end"
+              className="mt-6 sm:mt-8 flex justify-end"
             >
               <Button
                 type="submit"
                 size="lg"
                 disabled={loading}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto h-11 sm:h-12"
               >
                 {loading ? 'Creating...' : 'Create Listing'}
               </Button>

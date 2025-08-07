@@ -254,20 +254,20 @@ export default function Marketplace() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="pt-20">
+      <div className="pt-16 sm:pt-20">
         {/* Hero Section with Search */}
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="bg-gradient-to-br from-orange-500/10 via-background to-primary/5 py-12"
+          className="bg-gradient-to-br from-orange-500/10 via-background to-primary/5 py-8 sm:py-12"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+            <div className="text-center mb-6 sm:mb-8">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3 sm:mb-4">
                 Pakistan <span className="text-orange-500">Marketplace</span>
               </h1>
-              <p className="text-xl text-muted-foreground">
+              <p className="text-lg sm:text-xl text-muted-foreground">
                 Buy, sell, and find everything you need across Pakistan
               </p>
             </div>
@@ -280,8 +280,9 @@ export default function Marketplace() {
               className="max-w-4xl mx-auto"
             >
               <Card>
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row gap-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col gap-4">
+                    {/* Search Input - Full width */}
                     <div className="flex-1 relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
@@ -292,44 +293,47 @@ export default function Marketplace() {
                       />
                     </div>
                     
-                    <Select value={selectedCity} onValueChange={setSelectedCity}>
-                      <SelectTrigger className="w-full md:w-48 h-12">
-                        <SelectValue placeholder="Select City" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cities.map((city) => (
-                          <SelectItem key={city} value={city}>
-                            {city}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {/* Filters Row - Stack on mobile */}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <Select value={selectedCity} onValueChange={setSelectedCity}>
+                        <SelectTrigger className="w-full sm:w-48 h-12">
+                          <SelectValue placeholder="Select City" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cities.map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                    <Select value={priceRange} onValueChange={setPriceRange}>
-                      <SelectTrigger className="w-full md:w-48 h-12">
-                        <SelectValue placeholder="Price Range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-prices">All Prices</SelectItem>
-                        <SelectItem value="0-10000">Under PKR 10,000</SelectItem>
-                        <SelectItem value="10000-50000">PKR 10,000 - 50,000</SelectItem>
-                        <SelectItem value="50000-100000">PKR 50,000 - 100,000</SelectItem>
-                        <SelectItem value="100000-500000">PKR 100,000 - 500,000</SelectItem>
-                        <SelectItem value="500000-999999999">Above PKR 500,000</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Select value={priceRange} onValueChange={setPriceRange}>
+                        <SelectTrigger className="w-full sm:w-48 h-12">
+                          <SelectValue placeholder="Price Range" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all-prices">All Prices</SelectItem>
+                          <SelectItem value="0-10000">Under PKR 10,000</SelectItem>
+                          <SelectItem value="10000-50000">PKR 10,000 - 50,000</SelectItem>
+                          <SelectItem value="50000-100000">PKR 50,000 - 100,000</SelectItem>
+                          <SelectItem value="100000-500000">PKR 100,000 - 500,000</SelectItem>
+                          <SelectItem value="500000-999999999">Above PKR 500,000</SelectItem>
+                        </SelectContent>
+                      </Select>
 
-                    <div className="flex gap-2">
-                      <Button className="h-12 px-8 bg-orange-500 hover:bg-orange-600">
-                        <Search className="h-5 w-5 mr-2" />
-                        Search
-                      </Button>
-                      <Button 
-                        className="h-12 px-4 bg-primary hover:bg-primary-hover"
-                        onClick={() => navigate('/marketplace/create')}
-                      >
-                        <Plus className="h-5 w-5" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button className="h-12 px-6 sm:px-8 bg-orange-500 hover:bg-orange-600 flex-1 sm:flex-none">
+                          <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                          <span className="hidden sm:inline">Search</span>
+                        </Button>
+                        <Button 
+                          className="h-12 px-4 bg-primary hover:bg-primary-hover"
+                          onClick={() => navigate('/marketplace/create')}
+                        >
+                          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -338,16 +342,16 @@ export default function Marketplace() {
           </div>
         </motion.section>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Categories */}
           <motion.section
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           >
-            <h2 className="text-2xl font-bold text-foreground mb-6">Browse Categories</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">Browse Categories</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
               {categories.map((category, index) => {
                 const IconComponent = categoryIcons[category] || Home
                 return (
@@ -363,10 +367,10 @@ export default function Marketplace() {
                       className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-orange-500/50"
                       onClick={() => setSelectedCategory(category)}
                     >
-                      <CardContent className="p-6 text-center">
-                        <IconComponent className="h-12 w-12 text-orange-500 mx-auto mb-3" />
-                        <h3 className="font-semibold text-foreground">{category}</h3>
-                        <p className="text-sm text-muted-foreground">{getCategoryCount(category)}</p>
+                      <CardContent className="p-4 sm:p-6 text-center">
+                        <IconComponent className="h-8 w-8 sm:h-12 sm:w-12 text-orange-500 mx-auto mb-2 sm:mb-3" />
+                        <h3 className="font-semibold text-foreground text-sm sm:text-base">{category}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{getCategoryCount(category)}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -376,24 +380,24 @@ export default function Marketplace() {
           </motion.section>
 
           {/* Filters and Products */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Filters Sidebar */}
             <motion.div
               initial={{ x: -30, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="lg:col-span-1"
+              className="lg:col-span-1 order-2 lg:order-1"
             >
               <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                     <Filter className="h-4 w-4" />
                     Filters
                   </h3>
                   
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <h4 className="font-medium text-foreground mb-2">Condition</h4>
+                      <h4 className="font-medium text-foreground mb-2 text-sm sm:text-base">Condition</h4>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2">
                           <input 
@@ -403,7 +407,7 @@ export default function Marketplace() {
                             onChange={() => setCondition('new')}
                             className="rounded" 
                           />
-                          <span className="text-sm text-muted-foreground">New</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">New</span>
                         </label>
                         <label className="flex items-center gap-2">
                           <input 
@@ -413,7 +417,7 @@ export default function Marketplace() {
                             onChange={() => setCondition('used')}
                             className="rounded" 
                           />
-                          <span className="text-sm text-muted-foreground">Used</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">Used</span>
                         </label>
                         <label className="flex items-center gap-2">
                           <input 
@@ -423,7 +427,7 @@ export default function Marketplace() {
                             onChange={() => setCondition('refurbished')}
                             className="rounded" 
                           />
-                          <span className="text-sm text-muted-foreground">Refurbished</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">Refurbished</span>
                         </label>
                         <label className="flex items-center gap-2">
                           <input 
@@ -433,15 +437,15 @@ export default function Marketplace() {
                             onChange={() => setCondition('')}
                             className="rounded" 
                           />
-                          <span className="text-sm text-muted-foreground">All</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">All</span>
                         </label>
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="font-medium text-foreground mb-2">Sort By</h4>
+                      <h4 className="font-medium text-foreground mb-2 text-sm sm:text-base">Sort By</h4>
                       <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-9 sm:h-10">
                           <SelectValue placeholder="Most Recent" />
                         </SelectTrigger>
                         <SelectContent>
@@ -462,11 +466,11 @@ export default function Marketplace() {
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.8, duration: 0.6 }}
-              className="lg:col-span-3"
+              className="lg:col-span-3 order-1 lg:order-2"
             >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-foreground">Latest Listings</h2>
-                <p className="text-muted-foreground">{products.length} results</p>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground">Latest Listings</h2>
+                <p className="text-muted-foreground text-sm sm:text-base">{products.length} results</p>
               </div>
 
               {loading ? (
@@ -474,7 +478,7 @@ export default function Marketplace() {
                   <p className="text-muted-foreground">Loading products...</p>
                 </div>
               ) : products.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {products.map((product, index) => (
                   <motion.div
                     key={product._id || index}
@@ -489,10 +493,10 @@ export default function Marketplace() {
                         <img
                           src={product.images && product.images.length > 0 ? `${API_BASE_URL}${product.images[0]}` : 'https://via.placeholder.com/300x200?text=No+Image'}
                           alt={product.title}
-                          className="w-full h-48 object-cover"
+                          className="w-full h-40 sm:h-48 object-cover"
                         />
                         {product.featured && (
-                          <Badge className="absolute top-2 left-2 bg-orange-500 hover:bg-orange-600">
+                          <Badge className="absolute top-2 left-2 bg-orange-500 hover:bg-orange-600 text-xs">
                             Featured
                           </Badge>
                         )}
@@ -500,9 +504,9 @@ export default function Marketplace() {
                         <Button
                           variant="ghost"
                           size="sm"
-                            className="h-8 w-8 bg-white/80 hover:bg-white"
+                            className="h-7 w-7 sm:h-8 sm:w-8 bg-white/80 hover:bg-white"
                         >
-                          <Heart className="h-4 w-4" />
+                          <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                           {isProductOwner(product) && (
                             <DropdownMenu>
@@ -510,10 +514,10 @@ export default function Marketplace() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 bg-white/80 hover:bg-white"
+                                  className="h-7 w-7 sm:h-8 sm:w-8 bg-white/80 hover:bg-white"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <MoreHorizontal className="h-4 w-4" />
+                                  <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
@@ -543,20 +547,20 @@ export default function Marketplace() {
                         </div>
                       </div>
 
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                      <CardContent className="p-3 sm:p-4">
+                        <h3 className="font-semibold text-foreground mb-2 line-clamp-2 text-sm sm:text-base">
                           {product.title}
                         </h3>
                         
                         <div className="flex items-center justify-between mb-3">
-                          <p className="text-lg font-bold text-orange-500">{formatPrice(product.price)}</p>
-                          <Badge variant="outline">{product.category}</Badge>
+                          <p className="text-base sm:text-lg font-bold text-orange-500">{formatPrice(product.price)}</p>
+                          <Badge variant="outline" className="text-xs">{product.category}</Badge>
                         </div>
 
-                        <div className="space-y-2 text-sm text-muted-foreground">
+                        <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            <span>{product.location}</span>
+                            <span className="line-clamp-1">{product.location}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1">
@@ -571,11 +575,11 @@ export default function Marketplace() {
                         </div>
 
                         <Button 
-                          className="w-full mt-4 bg-orange-500 hover:bg-orange-600"
+                          className="w-full mt-3 sm:mt-4 bg-orange-500 hover:bg-orange-600 text-sm sm:text-base h-9 sm:h-10"
                           onClick={() => navigate(`/marketplace/product/${product._id}`)}
                         >
                           View Details
-                          <ChevronRight className="h-4 w-4 ml-1" />
+                          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
                         </Button>
                       </CardContent>
                     </Card>
@@ -589,8 +593,8 @@ export default function Marketplace() {
               )}
 
               {/* Load More */}
-              <div className="text-center mt-8">
-                <Button variant="outline" size="lg">
+              <div className="text-center mt-6 sm:mt-8">
+                <Button variant="outline" size="lg" className="h-10 sm:h-11">
                   Load More Listings
                 </Button>
               </div>

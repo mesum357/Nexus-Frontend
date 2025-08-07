@@ -13,12 +13,12 @@ export default function ShopGrid({ shops }: ShopGridProps) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-center py-16"
+        className="text-center py-12 sm:py-16"
       >
-        <div className="max-w-md mx-auto">
-          <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-full flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 bg-muted rounded-full flex items-center justify-center">
             <svg
-              className="w-12 h-12 text-muted-foreground"
+              className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -31,10 +31,10 @@ export default function ShopGrid({ shops }: ShopGridProps) {
               />
             </svg>
           </div>
-          <h3 className="text-xl font-semibold text-foreground mb-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
             No shops found
           </h3>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Try adjusting your filters or search terms to find more shops.
           </p>
         </div>
@@ -47,7 +47,7 @@ export default function ShopGrid({ shops }: ShopGridProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
     >
       {shops.map((shop, index) => (
         <ShopCard key={shop.id} shop={shop} index={index} />
