@@ -577,7 +577,10 @@ export default function Shop() {
                   <div className="flex-1">
                     <h1 className="text-4xl font-bold mb-2">{shop.shopName}</h1>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                      <UIBadge variant={shop.shopType === 'Product Seller' ? 'default' : 'secondary'}>
+                      <UIBadge 
+                        variant={shop.shopType === 'Product Seller' ? 'default' : 'secondary'}
+                        className="text-xs sm:text-sm px-1 py-0.5 sm:px-3 sm:py-1"
+                      >
                         {shop.shopType}
                       </UIBadge>
                       <div className="flex items-center">
@@ -591,24 +594,46 @@ export default function Shop() {
                   {/* Shop Owner Actions */}
                   {currentUser && String(shop.owner) === String(currentUser._id) && (
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto min-w-0">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/shop/${shopId}/edit`)}
-                        className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex-1 sm:flex-none min-w-0"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit Shop
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="bg-red-600/80 border-red-600/20 text-white hover:bg-red-600 flex-1 sm:flex-none min-w-0"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Shop
-                      </Button>
+                      {/* Mobile: Small icon buttons */}
+                      <div className="flex gap-2 sm:hidden">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => navigate(`/shop/${shopId}/edit`)}
+                          className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-8 w-8"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="bg-red-600/80 border-red-600/20 text-white hover:bg-red-600 h-8 w-8"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {/* Desktop: Full buttons */}
+                      <div className="hidden sm:flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/shop/${shopId}/edit`)}
+                          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Shop
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="bg-red-600/80 border-red-600/20 text-white hover:bg-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Shop
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -831,6 +856,32 @@ export default function Shop() {
                                   -{product.discountPercentage}%
                                 </span>
                               )}
+                              {/* Mobile: Product action buttons in top right */}
+                              {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
+                                <div className="absolute top-2 left-2 flex gap-1 sm:hidden">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleEditProduct(idx)}
+                                    className="bg-white/80 hover:bg-white h-7 w-7"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={() => setDeleteProductIndex(idx)}
+                                    disabled={isDeletingProduct}
+                                    className="bg-red-500/80 hover:bg-red-500 h-7 w-7"
+                                  >
+                                    {isDeletingProduct && deleteProductIndex === idx ? (
+                                      <Loader2 className="animate-spin h-3 w-3" />
+                                    ) : (
+                                      <Trash2 className="h-3 w-3" />
+                                    )}
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                             <div className="p-4 flex-1 flex flex-col">
                               <h4 className="font-semibold text-lg mb-1 line-clamp-1">{product.name}</h4>
@@ -846,8 +897,9 @@ export default function Shop() {
                               </div>
                               {/* Removed additional images preview since only one image is supported */}
                             </div>
+                            {/* Desktop: Product action buttons */}
                             {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
-                              <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full min-w-0">
+                              <div className="hidden sm:flex flex-col sm:flex-row gap-2 mt-2 w-full min-w-0">
                                 <Button 
                                   size="sm" 
                                   variant="outline" 

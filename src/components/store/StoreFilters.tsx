@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { BUSINESS_CATEGORIES } from '@/lib/categories'
 
 const cities = [
   'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad',
@@ -38,10 +39,8 @@ const cities = [
   'Kohat', 'Hangu', 'Karak', 'Lakki Marwat', 'Dera Ismail Khan'
 ]
 
-const categories = [
-  "Garments", "Electronics", "Food", "Plumbing", "Carpentry", 
-  "Services", "Beauty", "Health", "Education", "Automotive"
-]
+// Use the same categories as the create shop section
+const categories = BUSINESS_CATEGORIES.map(cat => cat.value)
 
 interface StoreFiltersProps {
   onFilter: (filters: { city: string; category: string; search: string }) => void
@@ -51,6 +50,8 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
   const [city, setCity] = useState('')
   const [category, setCategory] = useState('')
   const [search, setSearch] = useState('')
+  const [citySearch, setCitySearch] = useState('')
+  const [categorySearch, setCategorySearch] = useState('')
 
   const handleFilterChange = () => {
     onFilter({ city, category, search })
@@ -60,8 +61,20 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
     setCity('')
     setCategory('')
     setSearch('')
+    setCitySearch('')
+    setCategorySearch('')
     onFilter({ city: '', category: '', search: '' })
   }
+
+  // Filter cities based on search
+  const filteredCities = cities.filter(cityName =>
+    cityName.toLowerCase().includes(citySearch.toLowerCase())
+  )
+
+  // Filter categories based on search
+  const filteredCategories = categories.filter(cat =>
+    cat.toLowerCase().includes(categorySearch.toLowerCase())
+  )
 
   return (
     <motion.div
@@ -108,11 +121,26 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
                   <SelectValue placeholder="Select City" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cities.map((cityName) => (
+                  {/* City Search Input */}
+                  <div className="p-2">
+                    <Input
+                      placeholder="Search cities..."
+                      value={citySearch}
+                      onChange={(e) => setCitySearch(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  {/* Filtered Cities */}
+                  {filteredCities.map((cityName) => (
                     <SelectItem key={cityName} value={cityName}>
                       {cityName}
                     </SelectItem>
                   ))}
+                  {filteredCities.length === 0 && (
+                    <div className="px-2 py-1 text-sm text-muted-foreground">
+                      No cities found
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </motion.div>
@@ -134,11 +162,26 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
+                  {/* Category Search Input */}
+                  <div className="p-2">
+                    <Input
+                      placeholder="Search categories..."
+                      value={categorySearch}
+                      onChange={(e) => setCategorySearch(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  {/* Filtered Categories */}
+                  {filteredCategories.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
                     </SelectItem>
                   ))}
+                  {filteredCategories.length === 0 && (
+                    <div className="px-2 py-1 text-sm text-muted-foreground">
+                      No categories found
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </motion.div>
