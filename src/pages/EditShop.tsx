@@ -83,13 +83,13 @@ export default function EditShop() {
 
         // Set preview images
         if (data.shop.shopLogo) {
-          setLogoPreview(`${API_BASE_URL}${data.shop.shopLogo}`);
+          setLogoPreview(data.shop.shopLogo);
         }
         if (data.shop.shopBanner) {
-          setBannerPreview(`${API_BASE_URL}${data.shop.shopBanner}`);
+          setBannerPreview(data.shop.shopBanner);
         }
         if (data.shop.ownerProfilePhoto) {
-          setProfilePreview(`${API_BASE_URL}${data.shop.ownerProfilePhoto}`);
+          setProfilePreview(data.shop.ownerProfilePhoto);
         }
         
       } catch (error) {

@@ -49,8 +49,7 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
   // Helper function to get full image URL
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return null
-    if (imagePath.startsWith('http')) return imagePath
-    return `${API_BASE_URL}${imagePath}`
+    return imagePath
   }
 
   // Handle institute deletion

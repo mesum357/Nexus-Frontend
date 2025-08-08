@@ -178,24 +178,12 @@ export default function Store() {
             ...shop,
             id: shop._id,
             name: shop.shopName,
-            shopImage: shop.shopBanner
-              ? shop.shopBanner.startsWith('/uploads/')
-                ? `${API_BASE_URL}${shop.shopBanner}`
-                : `${API_BASE_URL}/uploads/${shop.shopBanner}`
-              : shop.shopLogo
-                ? shop.shopLogo.startsWith('/uploads/')
-                  ? `${API_BASE_URL}${shop.shopLogo}`
-                  : `${API_BASE_URL}/uploads/${shop.shopLogo}`
-                : heroStoreImage,
+            shopImage: shop.shopBanner || shop.shopLogo || heroStoreImage,
             category: (shop.categories && shop.categories[0]) || '',
             description: shop.shopDescription || '',
             businessType: shop.shopType,
             ownerName: shop.ownerName || 'Shop Owner',
-            ownerDp: shop.ownerDp 
-              ? (shop.ownerDp.startsWith('/uploads/')
-                  ? `${API_BASE_URL}${shop.ownerDp}`
-                  : `${API_BASE_URL}/uploads/${shop.ownerDp}`)
-              : '',
+            ownerDp: shop.ownerDp || '',
             products: shop.products || [],
           }))} />
         )}

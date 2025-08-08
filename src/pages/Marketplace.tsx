@@ -491,7 +491,7 @@ export default function Marketplace() {
                       {/* Product Image */}
                       <div className="relative">
                         <img
-                          src={product.images && product.images.length > 0 ? `${API_BASE_URL}${product.images[0]}` : 'https://via.placeholder.com/300x200?text=No+Image'}
+                          src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/300x200?text=No+Image'}
                           alt={product.title}
                           className="w-full h-40 sm:h-48 object-cover"
                         />

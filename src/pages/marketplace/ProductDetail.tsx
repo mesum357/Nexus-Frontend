@@ -170,7 +170,7 @@ export default function ProductDetail() {
                   {/* Main Image */}
                   <div className="relative mb-4">
                     <img
-                      src={product.images && product.images.length > 0 ? `${API_BASE_URL}${product.images[selectedImage]}` : 'https://via.placeholder.com/600x400?text=No+Image'}
+                      src={product.images && product.images.length > 0 ? product.images[selectedImage] : 'https://via.placeholder.com/600x400?text=No+Image'}
                       alt={product.title}
                       className="w-full h-96 object-cover rounded-lg"
                     />
@@ -203,7 +203,7 @@ export default function ProductDetail() {
                         }`}
                       >
                         <img
-                            src={`${API_BASE_URL}${image}`}
+                            src={image}
                           alt={`View ${index + 1}`}
                           className="w-full h-full object-cover"
                         />

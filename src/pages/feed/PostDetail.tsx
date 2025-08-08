@@ -639,7 +639,7 @@ export default function PostDetail() {
                   {post.image && (
                     <div className="rounded-lg overflow-hidden">
                       <img
-                        src={post.image.startsWith('/uploads/') ? `${API_BASE_URL}${post.image}` : post.image}
+                        src={post.image}
                         alt="Post image"
                         className="w-full object-cover"
                       />

@@ -102,24 +102,12 @@ export default function Shop() {
             ...data.shop,
             id: data.shop._id,
             name: data.shop.shopName,
-            shopImage: data.shop.shopBanner
-              ? data.shop.shopBanner.startsWith('/uploads/')
-                ? `${API_BASE_URL}${data.shop.shopBanner}`
-                : `${API_BASE_URL}/uploads/${data.shop.shopBanner}`
-              : data.shop.shopLogo
-                ? data.shop.shopLogo.startsWith('/uploads/')
-                  ? `${API_BASE_URL}${data.shop.shopLogo}`
-                  : `${API_BASE_URL}/uploads/${data.shop.shopLogo}`
-                : heroStoreImage,
+            shopImage: data.shop.shopBanner || data.shop.shopLogo || heroStoreImage,
             categories: data.shop.categories || [],
             rating: data.shop.rating || 4.5,
             totalReviews: data.shop.totalReviews || 0,
             ownerName: data.shop.ownerName || 'Shop Owner',
-            ownerDp: data.shop.ownerDp 
-              ? (data.shop.ownerDp.startsWith('/uploads/')
-                  ? `${API_BASE_URL}${data.shop.ownerDp}`
-                  : `${API_BASE_URL}/uploads/${data.shop.ownerDp}`)
-              : '',
+            ownerDp: data.shop.ownerDp || '',
             shopDescription: data.shop.shopDescription || data.shop.description,
             businessType: data.shop.shopType || data.shop.businessType,
             city: data.shop.city,
@@ -132,11 +120,7 @@ export default function Shop() {
             },
             websiteUrl: data.shop.websiteUrl || '',
             products: data.shop.products || [],
-            gallery: (data.shop.gallery || []).map((img: string) =>
-              img.startsWith('/uploads/')
-                ? `${API_BASE_URL}${img}`
-                : `${API_BASE_URL}/uploads/${img}`
-            ),
+            gallery: data.shop.gallery || [],
             owner: data.shop.owner // Ensure owner is set
           });
         } else {
@@ -288,7 +272,7 @@ export default function Shop() {
       discountPercentage: String(product.discountPercentage || ''),
       category: product.category || '',
       images: [],
-      imagePreviews: product.image ? [product.image.startsWith('/uploads/') ? `${API_BASE_URL}${product.image}` : `${API_BASE_URL}/uploads/${product.image}`] : [],
+                    imagePreviews: product.image ? [product.image] : [],
     });
     setEditProductIndex(idx);
     setShowAddProduct(false);
@@ -559,15 +543,7 @@ export default function Shop() {
             className="relative h-64 rounded-2xl overflow-hidden mb-8"
           >
             <img
-              src={shop.shopBanner
-                ? shop.shopBanner.startsWith('/uploads/')
-                  ? `${API_BASE_URL}${shop.shopBanner}`
-                  : `${API_BASE_URL}/uploads/${shop.shopBanner}`
-                : shop.shopLogo
-                  ? shop.shopLogo.startsWith('/uploads/')
-                    ? `${API_BASE_URL}${shop.shopLogo}`
-                    : `${API_BASE_URL}/uploads/${shop.shopLogo}`
-                  : heroStoreImage}
+              src={shop.shopBanner || shop.shopLogo || heroStoreImage}
               alt={shop.shopName}
               className="w-full h-full object-cover"
             />
@@ -853,11 +829,7 @@ export default function Shop() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {(shop.products as ProductType[]).map((product, idx) => {
                         // Use the product.image if available, otherwise use a fallback image
-                        const imageUrl = product.image
-                          ? (product.image.startsWith('/uploads/')
-                              ? `${API_BASE_URL}${product.image}`
-                              : `${API_BASE_URL}/uploads/${product.image}`)
-                          : heroStoreImage;
+                        const imageUrl = product.image || heroStoreImage;
                         return (
                           <div key={idx} className="rounded-xl border bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
                             <div className="relative w-full h-48 bg-muted flex items-center justify-center">

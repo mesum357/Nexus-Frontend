@@ -296,7 +296,7 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
             {post.image && (
               <div className="mt-4 rounded-xl overflow-hidden">
                 <img
-                  src={post.image.startsWith('/uploads/') ? `${API_BASE_URL}${post.image}` : post.image}
+                  src={post.image}
                   alt="Post content"
                   className="w-full max-h-96 object-cover hover:scale-105 transition-transform duration-300"
                 />
