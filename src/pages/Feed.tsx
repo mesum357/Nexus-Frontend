@@ -509,6 +509,7 @@ export default function Feed() {
                           console.log('Mobile No currentUser or username, navigating to /feed/profile');
                           navigate('/feed/profile');
                         }
+                        // 
                       }
                       if (item.label === 'Create Post') navigate('/feed/create')
                     }}
@@ -540,6 +541,7 @@ export default function Feed() {
               transition={{ duration: 0.6 }}
               className="hidden lg:block lg:col-span-1 space-y-6"
             >
+              {/* HELLLO */}
               {/* Navigation Menu */}
               <Card>
                 <CardContent className="p-4">
