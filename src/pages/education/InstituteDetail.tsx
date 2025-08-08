@@ -338,6 +338,16 @@ export default function InstituteDetail() {
             Back to Institutes
           </Button>
 
+          {/* Institute Dashboard Button - Visible to all users */}
+          <Button
+            variant="default"
+            className="absolute top-4 right-4 bg-primary text-white hover:bg-primary/90 shadow-lg"
+            onClick={() => navigate(`/education/institute/${institute._id}/dashboard`)}
+          >
+            <Building2 className="h-4 w-4 mr-2" />
+            Institute Dashboard
+          </Button>
+
           {/* Institute Info Overlay */}
           <div className="absolute bottom-8 left-8 text-white">
             <div className="flex items-center gap-4 mb-4">
@@ -634,11 +644,11 @@ export default function InstituteDetail() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
-                      <DropdownMenuItem onClick={() => navigate(`/education/courses/${id}`)}>
+                      <DropdownMenuItem onClick={() => navigate(`/education/institute/${id}/courses`)}>
                         All Courses
                       </DropdownMenuItem>
                       {institute.specialization && institute.specialization.split(', ').map((course, index) => (
-                        <DropdownMenuItem key={index} onClick={() => navigate(`/education/courses/${id}?specialization=${course}`)}>
+                        <DropdownMenuItem key={index} onClick={() => navigate(`/education/institute/${id}/courses?specialization=${course}`)}>
                           {course}
                         </DropdownMenuItem>
                       ))}
