@@ -16,7 +16,6 @@ import CreatePost from '@/components/feed/CreatePost'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { API_BASE_URL } from '@/lib/config'
-import { Textarea } from '@/components/ui/textarea'
 import { getProfileImageUrl } from '@/lib/utils'
 
 interface PostType {
@@ -115,11 +114,6 @@ export default function Feed() {
   const [citySearch, setCitySearch] = useState('')
   const [posts, setPosts] = useState<PostType[]>([])
   const [loading, setLoading] = useState(true)
-  const [quickPostContent, setQuickPostContent] = useState('')
-  const [quickPostImage, setQuickPostImage] = useState<string | null>(null)
-  const [quickPostFile, setQuickPostFile] = useState<File | null>(null)
-  const [quickPostLoading, setQuickPostLoading] = useState(false)
-  const [quickPostError, setQuickPostError] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const [showComingSoon, setShowComingSoon] = useState(false)
@@ -401,59 +395,6 @@ export default function Feed() {
     const interval = setInterval(updateTimeDisplay, 60000); // Update every minute
     return () => clearInterval(interval);
   }, [getTimeUntilRefresh])
-
-  const handleQuickImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setQuickPostFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setQuickPostImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeQuickImage = () => {
-    setQuickPostImage(null);
-    setQuickPostFile(null);
-  };
-
-  const handleQuickPost = async () => {
-    if (!currentUser) {
-      navigate('/login')
-      return
-    }
-    
-    setQuickPostLoading(true)
-    setQuickPostError(null)
-    try {
-      const formData = new FormData()
-      formData.append('content', quickPostContent)
-      if (quickPostFile) {
-        formData.append('image', quickPostFile)
-      }
-      const res = await fetch(`${API_BASE_URL}/api/feed/post`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to create post')
-      setQuickPostContent('')
-      setQuickPostImage(null)
-      setQuickPostFile(null)
-      fetchPosts()
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setQuickPostError(err.message)
-      } else {
-        setQuickPostError('Failed to create post')
-      }
-    } finally {
-      setQuickPostLoading(false)
-    }
-  }
 
   // Filter cities based on search
   const filteredCities = cities.filter(cityName =>
@@ -806,71 +747,8 @@ export default function Feed() {
                   </div>
                 </CardContent>
               </Card>
-              {/* Quick Post Input */}
-              <Card className="mt-4 mb-6">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar>
-                      <AvatarImage src={getProfileImageUrl(currentUser?.profileImage)} />
-                      <AvatarFallback>{currentUser?.username?.[0] || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <Textarea
-                        placeholder={currentUser ? "What's on your mind?" : "Login to share your thoughts..."}
-                        value={quickPostContent}
-                        onChange={e => setQuickPostContent(e.target.value)}
-                        onClick={() => {
-                          if (!currentUser) {
-                            navigate('/login')
-                          }
-                        }}
-                        className="min-h-12 resize-none border-none text-base placeholder:text-base cursor-pointer"
-                        readOnly={!currentUser}
-                      />
-                      {quickPostImage && (
-                        <div className="relative mt-2">
-                          <img src={quickPostImage} alt="Selected" className="w-full max-h-60 object-cover rounded-lg" />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70"
-                            onClick={removeQuickImage}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 mt-2">
-                        <label htmlFor="quick-image-upload">
-                          <Button variant="ghost" size="sm" className="text-green-600 hover:bg-green-50" asChild>
-                            <div>
-                              <span role="img" aria-label="Add image">🖼️</span>
-                            </div>
-                          </Button>
-                          <input
-                            id="quick-image-upload"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleQuickImageUpload}
-                          />
-                        </label>
-                        <Button
-                          size="sm"
-                          className="ml-auto"
-                          onClick={handleQuickPost}
-                          disabled={quickPostLoading || (!quickPostContent.trim() && !quickPostImage)}
-                        >
-                          {quickPostLoading ? 'Posting...' : 'Post'}
-                        </Button>
-                      </div>
-                      {quickPostError && <div className="text-red-500 text-sm mt-1">{quickPostError}</div>}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
               {/* CreatePost Quick Access */}
-              <CreatePost onPostCreated={fetchPosts} currentUser={currentUser} />
+              <CreatePost currentUser={currentUser} />
               {/* Posts Feed */}
               <div className="space-y-6">
                 {loading ? (
