@@ -62,6 +62,10 @@ const Profile = () => {
           console.log('Profile - Final user data:', userData);
           
           setCurrentUser(userData);
+          // Redirect to canonical username route when user is available
+          if (userData && userData.username) {
+            navigate(`/feed/profile/${userData.username}`, { replace: true })
+          }
           return;
         } else {
           console.log('Profile - New endpoint failed, trying old endpoint');
@@ -78,7 +82,11 @@ const Profile = () => {
         if (response.ok) {
           const data = await response.json();
           console.log('Profile - Old endpoint user data:', data);
-          setCurrentUser(data.user || data || null);
+          const userData = data.user || data || null;
+          setCurrentUser(userData);
+          if (userData && userData.username) {
+            navigate(`/feed/profile/${userData.username}`, { replace: true })
+          }
         } else {
           console.log('Profile - Both endpoints failed');
           const errorText = await response.text();
@@ -128,119 +136,8 @@ const Profile = () => {
       </div>
     );
   }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-20">
-        <div className="max-w-4xl mx-auto p-4">
-          {/* Back Button */}
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/feed')}
-            className="gap-2 mb-4 w-full sm:w-auto"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Feed
-          </Button>
-
-          {/* Profile Header */}
-          <Card className="p-4 sm:p-6 mb-6 shadow-soft">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 sm:gap-6">
-              <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-blue-light">
-                <AvatarImage src={getProfileImageUrl(currentUser.profileImage)} alt="Profile" />
-                <AvatarFallback>{currentUser.username?.[0] || 'U'}</AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
-                  <h1 className="text-xl sm:text-2xl font-bold">{currentUser.username || 'User'}</h1>
-                  <div className="flex gap-2 justify-center sm:justify-start">
-                    <Button variant="outline" size="sm">
-                      <Settings className="w-4 h-4" />
-                      Edit Profile
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="flex justify-center md:justify-start gap-4 sm:gap-8 mb-4">
-                  {stats.map((stat) => (
-                    <div key={stat.label} className="text-center">
-                      <div className="font-bold text-base sm:text-lg">{stat.value}</div>
-                      <div className="text-muted-foreground text-xs sm:text-sm">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mb-4">
-                  <p className="text-foreground mb-2 text-sm sm:text-base">
-                    {currentUser.email || 'No email provided'}
-                  </p>
-                  <p className="text-muted-foreground text-xs sm:text-sm">
-                    {currentUser.city ? `📍 ${currentUser.city}` : '📍 Location not set'}
-                  </p>
-                </div>
-                
-                <div className="flex gap-2 justify-center md:justify-start flex-wrap">
-                  <Badge variant="secondary" className="text-xs">Member</Badge>
-                  {currentUser.city && <Badge variant="secondary" className="text-xs">{currentUser.city}</Badge>}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Tabs */}
-          <div className="border-b border-border mb-6">
-            <div className="flex justify-center gap-2 sm:gap-8 overflow-x-auto">
-              {[
-                { id: "posts", label: "Posts", icon: Grid },
-                { id: "liked", label: "Liked", icon: Heart },
-                { id: "saved", label: "Saved", icon: Bookmark },
-              ].map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={cn(
-                    "flex items-center gap-1 sm:gap-2 py-3 px-2 sm:px-1 border-b-2 transition-colors whitespace-nowrap",
-                    activeTab === id
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-xs sm:text-sm font-medium">{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Posts Grid */}
-          <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-4">
-            {posts.map((post) => (
-              <Card 
-                key={post.id} 
-                className="aspect-square p-0 overflow-hidden cursor-pointer group hover:shadow-soft transition-all duration-200 hover:scale-105"
-              >
-                <div className="relative w-full h-full">
-                  <img
-                    src={`https://images.unsplash.com/photo-${1500000000000 + post.id * 100000}?w=400&h=400&fit=crop`}
-                    alt={`Post ${post.id}`}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-2 text-white">
-                      <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span className="font-medium text-sm sm:text-base">{post.likes}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  // If we got here with a currentUser, we likely already navigated above.
+  return null;
 };
 
 export default Profile;

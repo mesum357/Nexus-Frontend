@@ -22,7 +22,9 @@ import {
   Facebook,
   Instagram,
   Twitter,
-  Linkedin
+  Linkedin,
+  Bell as BellIcon,
+  MessageSquare
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -37,6 +39,7 @@ import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import { RichTextDisplay } from '@/components/ui/rich-text-display'
+import { Textarea } from '@/components/ui/textarea'
 
 // Interface for Institute data
 interface Institute {
@@ -117,6 +120,13 @@ export default function InstituteDashboard() {
     image: null as File | null
   })
   const [facultyImagePreview, setFacultyImagePreview] = useState<string | null>(null)
+  // Notifications state
+  const [notifications, setNotifications] = useState<{ _id?: string; title?: string; message: string; createdAt?: string }[]>([])
+  const [newNotification, setNewNotification] = useState({ title: '', message: '' })
+
+  // Messages state
+  const [messages, setMessages] = useState<{ _id?: string; senderName: string; message: string; createdAt?: string }[]>([])
+  const [newMessage, setNewMessage] = useState({ senderName: '', message: '' })
 
   // Helper function to get full image URL
   const getImageUrl = (imagePath: string | undefined) => {
@@ -165,6 +175,18 @@ export default function InstituteDashboard() {
         setError(err.message)
         setIsLoading(false)
       })
+
+    // Load notifications
+    fetch(`${API_BASE_URL}/api/institute/${id}/notifications`)
+      .then(res => res.json())
+      .then(data => setNotifications(data.notifications || []))
+      .catch(() => setNotifications([]))
+
+    // Load messages
+    fetch(`${API_BASE_URL}/api/institute/${id}/messages`)
+      .then(res => res.json())
+      .then(data => setMessages(data.messages || []))
+      .catch(() => setMessages([]))
   }, [id])
 
   // Check ownership when both institute and currentUser are available
@@ -257,6 +279,70 @@ export default function InstituteDashboard() {
     if (file) {
       setNewFaculty(prev => ({ ...prev, image: file }))
       setFacultyImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+  // Create Notification
+  const handleCreateNotification = async () => {
+    if (!newNotification.message.trim()) {
+      toast({ title: 'Validation', description: 'Notification message is required', variant: 'destructive' })
+      return
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(newNotification)
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to create notification')
+      setNotifications(prev => [data.notification, ...prev])
+      setNewNotification({ title: '', message: '' })
+      toast({ title: 'Sent', description: 'Notification sent to students.' })
+    } catch (error: any) {
+      toast({ title: 'Error', description: error?.message || 'Failed to send notification', variant: 'destructive' })
+    }
+  }
+
+  // Create Message
+  const handleCreateMessage = async () => {
+    if (!newMessage.senderName.trim() || !newMessage.message.trim()) {
+      toast({ title: 'Validation', description: 'Sender name and message are required', variant: 'destructive' })
+      return
+    }
+    
+    console.log('Sending message:', newMessage); // DEBUG
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(newMessage)
+      })
+      
+      console.log('Message response status:', res.status); // DEBUG
+      
+      const data = await res.json()
+      console.log('Message response data:', data); // DEBUG
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create message')
+      }
+      
+      // Check if data.message exists and has the expected structure
+      if (data.message && data.message._id) {
+        setMessages(prev => [data.message, ...prev])
+        setNewMessage({ senderName: '', message: '' })
+        toast({ title: 'Sent', description: 'Message sent to student inbox.' })
+      } else {
+        console.error('Invalid message response structure:', data);
+        throw new Error('Invalid response structure from server')
+      }
+    } catch (error: any) {
+      console.error('Error creating message:', error); // DEBUG
+      toast({ title: 'Error', description: error?.message || 'Failed to send message', variant: 'destructive' })
     }
   }
 
@@ -805,6 +891,71 @@ export default function InstituteDashboard() {
 
             {/* Sidebar */}
             <div className="space-y-4 sm:space-y-6">
+              {/* Notifications Section */}
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+                className="relative"
+              >
+                <Card>
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BellIcon className="h-4 w-4" /> Notifications</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 space-y-3">
+                    {isOwner && (
+                      <div className="space-y-2">
+                        <Input placeholder="Title (optional)" value={newNotification.title} onChange={(e) => setNewNotification(prev => ({ ...prev, title: e.target.value }))} />
+                        <Textarea placeholder="Write a notification..." value={newNotification.message} onChange={(e) => setNewNotification(prev => ({ ...prev, message: e.target.value }))} />
+                        <Button onClick={handleCreateNotification} size="sm">Send Notification</Button>
+                      </div>
+                    )}
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {notifications.map((n) => (
+                        <div key={n._id} className="p-3 border rounded-lg">
+                          {n.title && <p className="font-semibold">{n.title}</p>}
+                          <p className="text-sm text-muted-foreground">{n.message}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</p>
+                        </div>
+                      ))}
+                      {notifications.length === 0 && <p className="text-sm text-muted-foreground">No notifications yet.</p>}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Messages Section */}
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.6 }}
+                className="relative"
+              >
+                <Card>
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><MessageSquare className="h-4 w-4" /> Messages</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 space-y-3">
+                    {isOwner && (
+                      <div className="space-y-2">
+                        <Input placeholder="Sender name" value={newMessage.senderName} onChange={(e) => setNewMessage(prev => ({ ...prev, senderName: e.target.value }))} />
+                        <Textarea placeholder="Write a message to students..." value={newMessage.message} onChange={(e) => setNewMessage(prev => ({ ...prev, message: e.target.value }))} />
+                        <Button onClick={handleCreateMessage} size="sm">Send Message</Button>
+                      </div>
+                    )}
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {messages.map((m) => (
+                        <div key={m._id} className="p-3 border rounded-lg">
+                          <p className="text-sm font-semibold">{m.senderName}</p>
+                          <p className="text-sm text-muted-foreground">{m.message}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</p>
+                        </div>
+                      ))}
+                      {messages.length === 0 && <p className="text-sm text-muted-foreground">No messages yet.</p>}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
               {/* Quick Stats */}
               <motion.div
                 initial={{ y: 30, opacity: 0 }}

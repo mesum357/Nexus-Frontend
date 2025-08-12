@@ -25,12 +25,18 @@ const steps = [
   "Review & Submit"
 ]
 
+interface CourseInput {
+  name: string;
+  duration?: string;
+}
+
 export default function CreateInstitute() {
   const navigate = useNavigate()
   const { id } = useParams<{ id?: string }>()
   const [currentStep, setCurrentStep] = useState(0)
-  const [courses, setCourses] = useState<string[]>([])
-  const [newCourse, setNewCourse] = useState("")
+  const [courses, setCourses] = useState<CourseInput[]>([])
+  const [newCourseName, setNewCourseName] = useState("")
+  const [newCourseDuration, setNewCourseDuration] = useState("")
   const [form, setForm] = useState<any>({})
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [bannerFile, setBannerFile] = useState<File | null>(null)
@@ -52,17 +58,20 @@ export default function CreateInstitute() {
     fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
       .then(res => res.ok ? res.json() : Promise.reject())
       .catch(() => navigate('/login'));
-    if (id) {
+      if (id) {
       fetch(`${API_BASE_URL}/api/institute/${id}`)
         .then(res => res.json())
         .then(data => {
           if (data.institute) {
             setForm(data.institute)
-            // Convert course objects back to strings for display
-            const courseNames = (data.institute.courses || []).map((course: any) => 
-              typeof course === 'string' ? course : course.name || course
-            );
-            setCourses(courseNames)
+              // Map existing courses into { name, duration }
+              const courseInputs: CourseInput[] = (data.institute.courses || []).map((course: any) => {
+                if (typeof course === 'string') {
+                  return { name: course };
+                }
+                return { name: course.name || '', duration: course.duration || '' };
+              });
+              setCourses(courseInputs)
           }
         })
     } else {
@@ -77,9 +86,10 @@ export default function CreateInstitute() {
   }, [id, navigate])
 
   const addCourse = () => {
-    if (newCourse.trim()) {
-      setCourses([...courses, newCourse.trim()]);
-      setNewCourse("");
+    if (newCourseName.trim()) {
+      setCourses([...courses, { name: newCourseName.trim(), duration: newCourseDuration.trim() }]);
+      setNewCourseName("");
+      setNewCourseDuration("");
       setCourseError(null);
     } else {
       setCourseError('Course name cannot be empty');
@@ -91,8 +101,8 @@ export default function CreateInstitute() {
   }
 
   const nextStep = () => {
-    // If on the courses step and newCourse is not empty, add it
-    if (currentStep === 3 && newCourse.trim()) {
+    // If on the courses step and pending course name is not empty, add it
+    if (currentStep === 3 && newCourseName.trim()) {
       addCourse();
       return; // Wait for the next click to actually go to the next step
     }
@@ -220,21 +230,21 @@ export default function CreateInstitute() {
     try {
       const formData = new FormData()
       
-      // Add all form fields to FormData
+    // Add all form fields to FormData
       Object.entries(form).forEach(([key, value]) => {
         if (key !== 'logo' && key !== 'banner' && value) {
           formData.append(key, value as string)
         }
       })
       
-      // Convert course strings to course objects matching the backend schema
-      const courseObjects = courses.map(courseName => ({
-        name: courseName,
-        description: '',
-        duration: '',
-        fee: 0,
-        category: ''
-      }));
+    // Convert course inputs to course objects matching the backend schema
+    const courseObjects = courses.map(c => ({
+      name: c.name,
+      description: '',
+      duration: c.duration || '',
+      fee: 0,
+      category: ''
+    }));
       
       // Add courses as JSON string
       formData.append('courses', JSON.stringify(courseObjects))
@@ -520,16 +530,28 @@ export default function CreateInstitute() {
 
       case 3:
         return (
-          <div className="space-y-6">
+      <div className="space-y-6">
             <div>
               <Label>Courses & Programs *</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  value={newCourse}
-                  onChange={(e) => setNewCourse(e.target.value)}
-                  placeholder="Enter course name"
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-2">
+                <div className="sm:col-span-3">
+                  <Input
+                    value={newCourseName}
+                    onChange={(e) => setNewCourseName(e.target.value)}
+                    placeholder="Enter course name"
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Input
+                    value={newCourseDuration}
+                    onChange={(e) => setNewCourseDuration(e.target.value)}
+                    placeholder="Duration (e.g. 6 months)"
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
+                  />
+                </div>
+              </div>
+              <div className="mt-2">
                 <Button onClick={addCourse} type="button">
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -539,7 +561,7 @@ export default function CreateInstitute() {
                 <div className="flex flex-wrap gap-2 mt-4">
                   {courses.map((course, index) => (
                     <Badge key={index} variant="secondary" className="gap-2">
-                      {course}
+                      {course.name}{course.duration ? ` • ${course.duration}` : ''}
                       <X 
                         className="h-3 w-3 cursor-pointer" 
                         onClick={() => removeCourse(index)}

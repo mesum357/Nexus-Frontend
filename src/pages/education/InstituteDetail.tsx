@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Star, MapPin, Users, BookOpen, GraduationCap, Phone, Mail, Check, ArrowLeft, Calendar, Building2, ChevronDown } from 'lucide-react'
+import { Star, MapPin, Users, BookOpen, GraduationCap, Phone, Mail, Check, ArrowLeft, Calendar, Building2, ChevronDown, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -76,6 +76,8 @@ export default function InstituteDetail() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { toast } = useToast()
+  const [galleryImages, setGalleryImages] = useState<string[]>([])
+  const [faculty, setFaculty] = useState<{ _id?: string; name: string; position: string; qualification: string; experience: string; image?: string }[]>([])
 
   // Helper function to get full image URL
   const getImageUrl = (imagePath: string | undefined) => {
@@ -136,6 +138,18 @@ export default function InstituteDetail() {
       .catch(err => {
         console.error('Error fetching reviews:', err)
       })
+
+    // Fetch gallery
+    fetch(`${API_BASE_URL}/api/institute/${id}/gallery`)
+      .then(res => res.json())
+      .then(data => setGalleryImages(data.gallery || []))
+      .catch(() => setGalleryImages([]))
+
+    // Fetch faculty
+    fetch(`${API_BASE_URL}/api/institute/${id}/faculty`)
+      .then(res => res.json())
+      .then(data => setFaculty(data.faculty || []))
+      .catch(() => setFaculty([]))
   }, [id])
 
   // Handle review submission
@@ -482,6 +496,64 @@ export default function InstituteDetail() {
                 </Card>
               </motion.div>
 
+              {/* Gallery Section */}
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.45, duration: 0.6 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><ImageIcon className="h-4 w-4" />Gallery</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {galleryImages.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {galleryImages.map((img, idx) => (
+                          <img key={idx} src={img} alt={`Gallery ${idx+1}`} className="w-full h-32 object-cover rounded-lg" />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No gallery images yet.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Faculty Section */}
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><GraduationCap className="h-4 w-4" />Faculty</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {faculty.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {faculty.map((member, index) => (
+                          <div key={member._id || index} className="flex items-center gap-3 border rounded-lg p-3">
+                            <Avatar className="h-14 w-14">
+                              <AvatarImage src={member.image} />
+                              <AvatarFallback>{member.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold">{member.name}</p>
+                              <p className="text-sm text-muted-foreground">{member.position}</p>
+                              <p className="text-xs text-muted-foreground">{member.qualification}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No faculty members added yet.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
               {/* Student Reviews */}
               <motion.div
                 initial={{ y: 30, opacity: 0 }}
@@ -633,7 +705,7 @@ export default function InstituteDetail() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full bg-primary hover:bg-primary/90">
+                  <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate(`/education/institute/${id}/apply`)}>
                     Apply Now
                   </Button>
                   <DropdownMenu>

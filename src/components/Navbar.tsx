@@ -351,7 +351,7 @@ export default function Navbar() {
                 {/* Profile Actions */}
                 <div className="px-4 py-2 space-y-1">
                   <Link
-                    to="/feed/profile"
+                    to={user?.username ? `/feed/profile/${user.username}` : '/feed/profile'}
                     className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-150"
                     onClick={() => setShowProfileMenu(false)}
                   >
