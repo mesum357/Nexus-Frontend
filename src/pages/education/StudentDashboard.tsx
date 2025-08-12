@@ -83,7 +83,7 @@ export default function StudentDashboard() {
     fetchApplications();
   }, []);
 
-  // Fetch notifications and messages if institute data is available
+  // Fetch notifications and messages
   useEffect(() => {
     console.log('StudentDashboard: institute data =', institute); // DEBUG
     console.log('StudentDashboard: institute?.id =', institute?.id); // DEBUG
@@ -125,7 +125,28 @@ export default function StudentDashboard() {
           console.error('StudentDashboard: Error fetching messages:', error); // DEBUG
         })
     } else {
-      console.log('StudentDashboard: No institute ID available, skipping message fetch'); // DEBUG
+      console.log('StudentDashboard: No institute ID available, fetching my messages'); // DEBUG
+
+      // Fetch messages across all institutes the current user applied to
+      fetch(`${API_BASE_URL}/api/institute/messages/my`, { credentials: 'include' })
+        .then(res => {
+          console.log('StudentDashboard: My messages response status:', res.status); // DEBUG
+          return res.json();
+        })
+        .then(data => {
+          console.log('StudentDashboard: Raw my messages response:', data); // DEBUG
+          const mappedMessages = (data.messages || []).map((m: any) => ({
+            id: String(m._id || ''),
+            from: m.senderName,
+            subject: m.message,
+            time: new Date(m.createdAt).toLocaleString(),
+            unread: true
+          }));
+          setMessages(mappedMessages);
+        })
+        .catch((error) => {
+          console.error('StudentDashboard: Error fetching my messages:', error); // DEBUG
+        })
     }
   }, [institute?.id])
 
