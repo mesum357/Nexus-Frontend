@@ -40,6 +40,7 @@ import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import { RichTextDisplay } from '@/components/ui/rich-text-display'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // Interface for Institute data
 interface Institute {
@@ -128,6 +129,12 @@ export default function InstituteDashboard() {
   const [messages, setMessages] = useState<{ _id?: string; senderName: string; message: string; createdAt?: string }[]>([])
   const [newMessage, setNewMessage] = useState({ senderName: '', message: '' })
 
+  // Tasks state
+  const [tasks, setTasks] = useState<{ _id?: string; title: string; description: string; type: 'theory'|'practical'|'listing'|'reading'; createdAt?: string }[]>([])
+  const [newTask, setNewTask] = useState<{ title: string; description: string; type: 'theory'|'practical'|'listing'|'reading' }>({ title: '', description: '', type: 'theory' })
+  const [editingTask, setEditingTask] = useState<{ _id: string; title: string; description: string; type: 'theory'|'practical'|'listing'|'reading' } | null>(null)
+  const [showEditTaskDialog, setShowEditTaskDialog] = useState(false)
+
   // Helper function to get full image URL
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return null
@@ -187,6 +194,12 @@ export default function InstituteDashboard() {
       .then(res => res.json())
       .then(data => setMessages(data.messages || []))
       .catch(() => setMessages([]))
+
+    // Load today's tasks
+    fetch(`${API_BASE_URL}/api/institute/${id}/tasks`)
+      .then(res => res.json())
+      .then(data => setTasks(data.tasks || []))
+      .catch(() => setTasks([]))
   }, [id])
 
   // Check ownership when both institute and currentUser are available
@@ -343,6 +356,75 @@ export default function InstituteDashboard() {
     } catch (error: any) {
       console.error('Error creating message:', error); // DEBUG
       toast({ title: 'Error', description: error?.message || 'Failed to send message', variant: 'destructive' })
+    }
+  }
+
+  // Create Task
+  const handleCreateTask = async () => {
+    if (!newTask.title.trim() || !newTask.description.trim() || !newTask.type) {
+      toast({ title: 'Validation', description: 'Title, description and type are required', variant: 'destructive' })
+      return
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(newTask)
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to create task')
+      setTasks(prev => [data.task, ...prev])
+      setNewTask({ title: '', description: '', type: 'theory' })
+      toast({ title: 'Saved', description: "Today's class task added." })
+    } catch (error: any) {
+      toast({ title: 'Error', description: error?.message || 'Failed to add task', variant: 'destructive' })
+    }
+  }
+
+  const openEditTask = (task: { _id?: string; title: string; description: string; type: 'theory'|'practical'|'listing'|'reading' }) => {
+    if (!task._id) return
+    setEditingTask({ _id: task._id, title: task.title, description: task.description, type: task.type })
+    setShowEditTaskDialog(true)
+  }
+
+  const handleUpdateTask = async () => {
+    if (!editingTask || !editingTask._id) return
+    if (!editingTask.title.trim() || !editingTask.description.trim()) {
+      toast({ title: 'Validation', description: 'Title and description are required', variant: 'destructive' })
+      return
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/tasks/${editingTask._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ title: editingTask.title, description: editingTask.description, type: editingTask.type })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update task')
+      setTasks(prev => prev.map(t => t._id === editingTask._id ? data.task : t))
+      setShowEditTaskDialog(false)
+      setEditingTask(null)
+      toast({ title: 'Updated', description: 'Task updated successfully.' })
+    } catch (error: any) {
+      toast({ title: 'Error', description: error?.message || 'Failed to update task', variant: 'destructive' })
+    }
+  }
+
+  const handleDeleteTask = async (taskId?: string) => {
+    if (!taskId) return
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/tasks/${taskId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Failed to delete task')
+      setTasks(prev => prev.filter(t => t._id !== taskId))
+      toast({ title: 'Deleted', description: 'Task removed.' })
+    } catch (error: any) {
+      toast({ title: 'Error', description: error?.message || 'Failed to delete task', variant: 'destructive' })
     }
   }
 
@@ -923,6 +1005,107 @@ export default function InstituteDashboard() {
                   </CardContent>
                 </Card>
               </motion.div>
+
+              {/* Today's Tasks Section */}
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.65, duration: 0.6 }}
+                className="relative"
+              >
+                <Card>
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><Calendar className="h-4 w-4" /> Today's Class Tasks</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 space-y-3">
+                    {isOwner && (
+                      <div className="space-y-2">
+                        <Input placeholder="Title" value={newTask.title} onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))} />
+                        <Textarea placeholder="Task details" value={newTask.description} onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))} />
+                        <div className="flex items-center gap-2">
+                          <Select value={newTask.type} onValueChange={(val) => setNewTask(prev => ({ ...prev, type: val as any }))}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="theory">Theory</SelectItem>
+                              <SelectItem value="practical">Practical</SelectItem>
+                              <SelectItem value="listing">Listing</SelectItem>
+                              <SelectItem value="reading">Reading</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button onClick={handleCreateTask} size="sm">Add Task</Button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {tasks.map((t) => (
+                        <div key={t._id} className="p-3 border rounded-lg">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-sm">{t.title}</p>
+                              <Badge variant="outline" className="text-xs capitalize">{t.type}</Badge>
+                            </div>
+                            {isOwner && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">•••</Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => openEditTask(t)}>Edit</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleDeleteTask(t._id)}>Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{t.description}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{t.createdAt ? new Date(t.createdAt).toLocaleString() : ''}</p>
+                        </div>
+                      ))}
+                      {tasks.length === 0 && <p className="text-sm text-muted-foreground">No tasks added for today.</p>}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Edit Task Dialog */}
+              <Dialog open={showEditTaskDialog} onOpenChange={setShowEditTaskDialog}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Edit Task</DialogTitle>
+                    <DialogDescription>Update the details for this task.</DialogDescription>
+                  </DialogHeader>
+                  {editingTask && (
+                    <div className="space-y-3">
+                      <Input
+                        placeholder="Title"
+                        value={editingTask.title}
+                        onChange={(e) => setEditingTask(prev => prev ? { ...prev, title: e.target.value } : prev)}
+                      />
+                      <Textarea
+                        placeholder="Task details"
+                        value={editingTask.description}
+                        onChange={(e) => setEditingTask(prev => prev ? { ...prev, description: e.target.value } : prev)}
+                      />
+                      <Select value={editingTask.type} onValueChange={(val) => setEditingTask(prev => prev ? { ...prev, type: val as any } : prev)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="theory">Theory</SelectItem>
+                          <SelectItem value="practical">Practical</SelectItem>
+                          <SelectItem value="listing">Listing</SelectItem>
+                          <SelectItem value="reading">Reading</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="flex gap-2 pt-2">
+                        <Button onClick={handleUpdateTask} className="flex-1">Save</Button>
+                        <Button variant="outline" onClick={() => setShowEditTaskDialog(false)}>Cancel</Button>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
 
               {/* Messages Section */}
               <motion.div

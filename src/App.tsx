@@ -29,6 +29,7 @@ import StudentDashboard from "./pages/education/StudentDashboard";
 import InstituteDashboard from "./pages/education/InstituteDashboard";
 import Courses from "./pages/education/Courses";
 import ApplyNow from "./pages/education/ApplyNow";
+import MyApplications from "./pages/education/MyApplications";
 
 // Feed Module Pages
 import PostDetail from "./pages/feed/PostDetail";
@@ -76,6 +77,7 @@ const App = () => (
           <Route path="/education/edit/:id" element={<EditInstitute />} />
           <Route path="/education/dashboard" element={<StudentDashboard />} />
           <Route path="/education/institute-dashboard" element={<InstituteDashboard />} />
+          <Route path="/education/applications" element={<MyApplications />} />
           
           <Route path="/feed" element={<Feed />} />
           <Route path="/feed/post/:id" element={<PostDetail />} />

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BookOpen, Clock, MessageSquare, Bell, User, BarChart3, Calendar, Play } from 'lucide-react'
+import { BookOpen, Clock, MessageSquare, Bell, User, BarChart3, Calendar, Play, Book } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -7,9 +7,13 @@ import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Navbar from '@/components/Navbar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { useToast } from '@/hooks/use-toast'
 
 // Interface for student application
 interface StudentApplication {
@@ -47,6 +51,7 @@ interface Message {
 
 export default function StudentDashboard() {
   const location = useLocation() as any
+  const navigate = useNavigate()
   const appliedData = location.state || null
   const student = appliedData?.student
   const selectedCourse = appliedData?.course
@@ -58,6 +63,24 @@ export default function StudentDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [showMessagesDialog, setShowMessagesDialog] = useState(false)
   const [showNotificationsDialog, setShowNotificationsDialog] = useState(false)
+  const [todayTasks, setTodayTasks] = useState<{ id: string; title: string; description: string; type: 'theory'|'practical'|'listing'|'reading'; instituteName?: string; time: string }[]>([])
+  const [showProfileDialog, setShowProfileDialog] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null)
+  const [newProfileImage, setNewProfileImage] = useState<File | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const { toast } = useToast()
+  const [editForm, setEditForm] = useState({
+    fullName: '',
+    email: '',
+    mobile: '',
+    city: '',
+    bio: '',
+    website: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
   
   // Fetch user's applications
   useEffect(() => {
@@ -82,6 +105,16 @@ export default function StudentDashboard() {
 
     fetchApplications();
   }, []);
+
+  // Fetch current user for profile edit
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        setCurrentUser(data.user || null)
+      })
+      .catch(() => setCurrentUser(null))
+  }, [])
 
   // Fetch notifications and messages
   useEffect(() => {
@@ -167,6 +200,43 @@ export default function StudentDashboard() {
       }))))
       .catch(() => {})
   }, [applications])
+
+  // Fetch today's tasks
+  useEffect(() => {
+    // If a specific institute id is available (navigated from institute page), fetch for that one
+    if (institute?.id) {
+      fetch(`${API_BASE_URL}/api/institute/${institute.id}/tasks`)
+        .then(res => res.json())
+        .then(data => {
+          const items = (data.tasks || []).map((t: any) => ({
+            id: String(t._id || ''),
+            title: t.title,
+            description: t.description,
+            type: t.type,
+            instituteName: institute?.name,
+            time: new Date(t.createdAt).toLocaleTimeString()
+          }));
+          setTodayTasks(items);
+        })
+        .catch(() => setTodayTasks([]));
+      return;
+    }
+    // Otherwise, fetch for all institutes the student applied to
+    fetch(`${API_BASE_URL}/api/institute/tasks/my/today`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        const items = (data.tasks || []).map((t: any) => ({
+          id: String(t._id || ''),
+          title: t.title,
+          description: t.description,
+          type: t.type,
+          instituteName: t.institute?.name,
+          time: new Date(t.createdAt).toLocaleTimeString()
+        }));
+        setTodayTasks(items);
+      })
+      .catch(() => setTodayTasks([]));
+  }, [institute?.id]);
 
   // Calculate stats from real data
   const totalApplications = applications.length;
@@ -389,6 +459,49 @@ export default function StudentDashboard() {
                   </Card>
                 </motion.div>
               )}
+
+              {/* Today's Tasks */}
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.35, duration: 0.6 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Book className="h-5 w-5" />
+                      Today's Tasks
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {todayTasks.length === 0 ? (
+                      <div className="text-center py-6 text-muted-foreground text-sm">No tasks for today</div>
+                    ) : (
+                      todayTasks.map((t, index) => (
+                        <motion.div
+                          key={t.id}
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.05 * index, duration: 0.4 }}
+                          className="p-4 border border-border rounded-lg"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="capitalize">{t.type}</Badge>
+                              <h4 className="font-medium text-foreground">{t.title}</h4>
+                            </div>
+                            <span className="text-xs text-muted-foreground">{t.time}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{t.description}</p>
+                          {t.instituteName && (
+                            <p className="text-[11px] text-muted-foreground mt-1">{t.instituteName}</p>
+                          )}
+                        </motion.div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
             </div>
 
             {/* Sidebar */}
@@ -449,13 +562,29 @@ export default function StudentDashboard() {
                     <CardTitle>Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <Button className="w-full" size="sm">
+                    <Button className="w-full" size="sm" onClick={() => navigate('/education')}>
                       Browse Institutes
                     </Button>
-                    <Button variant="outline" className="w-full" size="sm">
+                    <Button variant="outline" className="w-full" size="sm" onClick={() => navigate('/education/applications')}>
                       View All Applications
                     </Button>
-                    <Button variant="outline" className="w-full" size="sm">
+                    <Button variant="outline" className="w-full" size="sm" onClick={() => {
+                      if (currentUser) {
+                        setEditForm({
+                          fullName: currentUser.fullName || '',
+                          email: currentUser.email || '',
+                          mobile: currentUser.mobile || '',
+                          city: currentUser.city || '',
+                          bio: currentUser.bio || '',
+                          website: currentUser.website || '',
+                          currentPassword: '',
+                          newPassword: '',
+                          confirmPassword: ''
+                        })
+                        setProfileImagePreview(currentUser.profileImage || null)
+                      }
+                      setShowProfileDialog(true)
+                    }}>
                       Update Profile
                     </Button>
                   </CardContent>
@@ -518,6 +647,117 @@ export default function StudentDashboard() {
                 </div>
               ))
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Profile Dialog */}
+      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Update Profile</DialogTitle>
+            <DialogDescription>Update your personal information.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={profileImagePreview || currentUser?.profileImage} />
+                <AvatarFallback>{currentUser?.fullName?.charAt(0) || 'S'}</AvatarFallback>
+              </Avatar>
+              <div>
+                <Label htmlFor="profile-image">Profile Image</Label>
+                <Input id="profile-image" type="file" accept="image/*" onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    setNewProfileImage(file)
+                    const reader = new FileReader()
+                    reader.onload = () => setProfileImagePreview(reader.result as string)
+                    reader.readAsDataURL(file)
+                  }
+                }} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label>Full Name</Label>
+                <Input value={editForm.fullName} onChange={(e) => setEditForm(prev => ({ ...prev, fullName: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input type="email" value={editForm.email} onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Mobile</Label>
+                <Input value={editForm.mobile} onChange={(e) => setEditForm(prev => ({ ...prev, mobile: e.target.value }))} />
+              </div>
+              <div>
+                <Label>City</Label>
+                <Input value={editForm.city} onChange={(e) => setEditForm(prev => ({ ...prev, city: e.target.value }))} />
+              </div>
+            </div>
+
+            <div>
+              <Label>Website</Label>
+              <Input value={editForm.website} onChange={(e) => setEditForm(prev => ({ ...prev, website: e.target.value }))} />
+            </div>
+
+            <div>
+              <Label>Bio</Label>
+              <Textarea value={editForm.bio} onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <Label>Current Password</Label>
+                <Input type="password" value={editForm.currentPassword} onChange={(e) => setEditForm(prev => ({ ...prev, currentPassword: e.target.value }))} />
+              </div>
+              <div>
+                <Label>New Password</Label>
+                <Input type="password" value={editForm.newPassword} onChange={(e) => setEditForm(prev => ({ ...prev, newPassword: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Confirm Password</Label>
+                <Input type="password" value={editForm.confirmPassword} onChange={(e) => setEditForm(prev => ({ ...prev, confirmPassword: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button disabled={isUpdating} onClick={async () => {
+                if (editForm.newPassword && editForm.newPassword !== editForm.confirmPassword) {
+                  toast({ title: 'Validation', description: 'New password and confirm password do not match', variant: 'destructive' })
+                  return
+                }
+                setIsUpdating(true)
+                try {
+                  const formData = new FormData()
+                  formData.append('fullName', editForm.fullName)
+                  formData.append('email', editForm.email)
+                  formData.append('mobile', editForm.mobile)
+                  formData.append('city', editForm.city)
+                  formData.append('bio', editForm.bio)
+                  formData.append('website', editForm.website)
+                  if (editForm.currentPassword) formData.append('currentPassword', editForm.currentPassword)
+                  if (editForm.newPassword) formData.append('newPassword', editForm.newPassword)
+                  if (newProfileImage) formData.append('profileImage', newProfileImage)
+
+                  const response = await fetch(`${API_BASE_URL}/api/feed/profile/update`, {
+                    method: 'PUT',
+                    body: formData,
+                    credentials: 'include',
+                  })
+                  const data = await response.json()
+                  if (!response.ok) throw new Error(data.error || 'Failed to update profile')
+                  toast({ title: 'Profile Updated', description: 'Your profile has been updated successfully!' })
+                  setShowProfileDialog(false)
+                } catch (error: any) {
+                  toast({ title: 'Error', description: error?.message || 'Failed to update profile', variant: 'destructive' })
+                } finally {
+                  setIsUpdating(false)
+                }
+              }} className="flex-1">{isUpdating ? 'Saving...' : 'Save Changes'}</Button>
+              <Button variant="outline" onClick={() => setShowProfileDialog(false)}>Cancel</Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
