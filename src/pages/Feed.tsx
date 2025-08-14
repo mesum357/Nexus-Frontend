@@ -12,7 +12,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import Navbar from '@/components/Navbar'
 import PostCard from '@/components/feed/PostCard'
-import CreatePost from '@/components/feed/CreatePost'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { API_BASE_URL } from '@/lib/config'
@@ -747,8 +746,6 @@ export default function Feed() {
                   </div>
                 </CardContent>
               </Card>
-              {/* CreatePost Quick Access */}
-              <CreatePost currentUser={currentUser} />
               {/* Posts Feed */}
               <div className="space-y-6">
                 {loading ? (

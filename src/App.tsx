@@ -14,6 +14,7 @@ import CreateShop from "./pages/ShopWizard";
 import Shop from "./pages/Shop";
 import EditShop from "./pages/EditShop";
 import Education from "./pages/Education";
+import Hospital from "./pages/Hospital";
 import Feed from "./pages/Feed";
 import Marketplace from "./pages/Marketplace";
 import NotFound from "./pages/NotFound";
@@ -47,6 +48,13 @@ import EditProduct from "./pages/marketplace/EditProduct";
 import UserDashboard from "./pages/marketplace/UserDashboard";
 
 // Store Module Pages
+// Hospital Module Pages
+import HospitalDetail from "./pages/hospital/HospitalDetail";
+import HospitalDashboard from "./pages/hospital/HospitalDashboard";
+import Technicalities from "./pages/hospital/Technicalities";
+import CreateHospital from "./pages/hospital/CreateHospital";
+import EditHospital from "./pages/hospital/EditHospital";
+import PatientDashboard from "./pages/hospital/PatientDashboard";
 import ShopDetail from "./pages/store/ShopDetail";
 
 const queryClient = new QueryClient();
@@ -78,6 +86,15 @@ const App = () => (
           <Route path="/education/dashboard" element={<StudentDashboard />} />
           <Route path="/education/institute-dashboard" element={<InstituteDashboard />} />
           <Route path="/education/applications" element={<MyApplications />} />
+          
+          {/* Hospital Module */}
+          <Route path="/hospital" element={<Hospital />} />
+          <Route path="/hospital/hospital/:id" element={<HospitalDetail />} />
+          <Route path="/hospital/hospital/:id/dashboard" element={<HospitalDashboard />} />
+          <Route path="/hospital/hospital/:id/technicalities" element={<Technicalities />} />
+          <Route path="/hospital/create" element={<CreateHospital />} />
+          <Route path="/hospital/edit/:id" element={<EditHospital />} />
+          <Route path="/hospital/dashboard" element={<PatientDashboard />} />
           
           <Route path="/feed" element={<Feed />} />
           <Route path="/feed/post/:id" element={<PostDetail />} />

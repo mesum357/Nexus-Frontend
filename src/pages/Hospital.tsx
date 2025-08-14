@@ -1,17 +1,16 @@
 import { motion } from 'framer-motion'
-import { GraduationCap, Plus, MapPin, Star, Search, Filter } from 'lucide-react'
+import { Hospital as HospitalIcon, Plus, MapPin, Star, Search, Filter, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import Navbar from '@/components/Navbar'
-import InstituteCard from '@/components/education/InstituteCard'
+import HospitalCard from '@/components/hospital/HospitalCard'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 
-// Define Institute type
-interface Institute {
+interface HospitalType {
   _id: string;
   name: string;
   city?: string;
@@ -20,87 +19,80 @@ interface Institute {
   banner?: string;
   rating?: number;
   verified?: boolean;
-  students?: string;
-  totalStudents?: string;
-  courses?: string;
+  patients?: string;
+  totalPatients?: string;
+  technicalities?: string;
   specialization?: string;
-  admissionStatus?: string;
+  status?: string;
   phone?: string;
   email?: string;
   owner?: string;
 }
 
-// Add CurrentUser type
 interface CurrentUser {
   _id: string;
   email?: string;
   username?: string;
 }
 
-export default function Education() {
+export default function Hospital() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCity, setSelectedCity] = useState('all')
   const [selectedType, setSelectedType] = useState('all')
-  const [institutes, setInstitutes] = useState<Institute[]>([]);
+  const [hospitals, setHospitals] = useState<HospitalType[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [hospitalNames, setHospitalNames] = useState<Set<string>>(new Set());
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
 
-  const fetchInstitutes = () => {
+  const fetchHospitals = () => {
     setIsLoading(true)
-    fetch(`${API_BASE_URL}/api/institute/all?domain=education`)
+    // Reuse institute/all with domain=healthcare so only hospitals show
+    fetch(`${API_BASE_URL}/api/institute/all?domain=healthcare`)
       .then(res => res.json())
       .then(data => {
-        setInstitutes(data.institutes || [])
+        setHospitals((data.institutes || []) as any)
         setIsLoading(false)
-        setHospitalNames(new Set())
       })
-      .catch(() => setIsLoading(false))
+      .catch(() => { setIsLoading(false) })
   }
 
   useEffect(() => {
-    fetchInstitutes()
+    fetchHospitals()
     fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => setCurrentUser(data.user || null))
       .catch(() => setCurrentUser(null))
   }, [])
 
-  // Listen for focus events to refresh institutes when user returns
   useEffect(() => {
     const handleFocus = () => {
-      fetchInstitutes()
+      fetchHospitals()
     }
-    
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
   const cities = ['Lahore', 'Karachi', 'Islamabad', 'Faisalabad', 'Rawalpindi', 'Multan']
-  const instituteTypes = ['University', 'College', 'School', 'Academy']
+  const hospitalTypes = ['General', 'Specialized', 'Clinic', 'Medical Center']
 
-  const filteredInstitutes = institutes.filter(institute => {
-    const matchesSearch = (institute.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (institute.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCity = selectedCity === 'all' || (institute.city || '').includes(selectedCity)
-    const matchesType = selectedType === 'all' || (institute.type || '').toLowerCase().includes(selectedType.toLowerCase())
-    const isHospitalByName = hospitalNames.has(String(institute.name || '').trim())
-    return matchesSearch && matchesCity && matchesType && !isHospitalByName
+  const filteredHospitals = hospitals.filter(hospital => {
+    const matchesSearch = (hospital.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (hospital.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCity = selectedCity === 'all' || (hospital.city || '').includes(selectedCity)
+    const matchesType = selectedType === 'all' || (hospital.type || '').toLowerCase().includes(selectedType.toLowerCase())
+    return matchesSearch && matchesCity && matchesType
   })
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      {/* Hero Section */}
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
         className="relative pt-16 sm:pt-20 pb-12 sm:pb-16"
         style={{
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)), url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1920&h=800&fit=crop')`,
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)), url('https://images.unsplash.com/photo-1580281657527-47a1e4a6d3b9?w=1920&h=800&fit=crop')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -108,14 +100,10 @@ export default function Education() {
         <div className="absolute inset-0 bg-background/80" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="text-center">
-            <motion.div
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-            >
+            <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}>
               <div className="flex flex-col sm:flex-row items-center justify-center mb-6">
                 <img 
-                  src="https://images.unsplash.com/photo-1564981797816-1043664bf78d?w=80&h=80&fit=crop&crop=face" 
+                  src="https://images.unsplash.com/photo-1580281657527-47a1e4a6d3b9?w=80&h=80&fit=crop&crop=faces" 
                   alt="Pakistan Online Logo"
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
                 />
@@ -138,25 +126,16 @@ export default function Education() {
                 </div>
               </div>
               <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-                Explore top institutes across Pakistan. Building trust through education.
+                Discover trusted hospitals across Pakistan. Building trust through healthcare.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-                <Button 
-                  onClick={() => navigate('/education/create')}
-                  className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
-                  size="lg"
-                >
+                <Button onClick={() => navigate('/hospital/create')} className="bg-primary hover:bg-primary/90 w-full sm:w-auto" size="lg">
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Create Institute
+                  Create Hospital
                 </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => navigate('/education/dashboard')}
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Student Dashboard
+                <Button variant="outline" onClick={() => navigate('/hospital/dashboard')} size="lg" className="w-full sm:w-auto">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Patient Dashboard
                 </Button>
               </div>
             </motion.div>
@@ -164,29 +143,21 @@ export default function Education() {
         </div>
       </motion.section>
 
-      {/* Search & Filters */}
       <section className="py-6 sm:py-8 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-          >
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.6 }}>
             <Card>
               <CardContent className="p-4 sm:p-6">
                 <div className="flex flex-col gap-4">
-                  {/* Search Input - Full width */}
                   <div className="relative w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search institutes, courses, or specializations..."
+                      placeholder="Search hospitals, departments, or specialties..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 h-11 sm:h-10"
                     />
                   </div>
-                  
-                  {/* Filters Row - Stack on mobile */}
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <Select value={selectedCity} onValueChange={setSelectedCity}>
                       <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
@@ -201,11 +172,11 @@ export default function Education() {
                     </Select>
                     <Select value={selectedType} onValueChange={setSelectedType}>
                       <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
-                        <SelectValue placeholder="Institute Type" />
+                        <SelectValue placeholder="Hospital Type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Types</SelectItem>
-                        {instituteTypes.map(type => (
+                        {hospitalTypes.map(type => (
                           <SelectItem key={type} value={type}>{type}</SelectItem>
                         ))}
                       </SelectContent>
@@ -221,25 +192,20 @@ export default function Education() {
         </div>
       </section>
 
-      {/* Institutes Grid */}
       <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-          >
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6 }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
               {isLoading ? (
                 <div className="col-span-full text-center py-8">Loading...</div>
-              ) : filteredInstitutes.map((institute, index) => (
-                <InstituteCard key={institute._id} institute={institute} index={index} currentUser={currentUser} />
+              ) : filteredHospitals.map((hospital, index) => (
+                <HospitalCard key={hospital._id} hospital={hospital} index={index} currentUser={currentUser} />
               ))}
             </div>
-            {filteredInstitutes.length === 0 && (
+            {filteredHospitals.length === 0 && !isLoading && (
               <div className="text-center py-12 sm:py-16">
-                <GraduationCap className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">No institutes found</h3>
+                <HospitalIcon className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">No hospitals found</h3>
                 <p className="text-muted-foreground text-sm sm:text-base">Try adjusting your search criteria</p>
               </div>
             )}
@@ -249,3 +215,5 @@ export default function Education() {
     </div>
   )
 }
+
+
