@@ -55,6 +55,8 @@ import Technicalities from "./pages/hospital/Technicalities";
 import CreateHospital from "./pages/hospital/CreateHospital";
 import EditHospital from "./pages/hospital/EditHospital";
 import PatientDashboard from "./pages/hospital/PatientDashboard";
+import HospitalApplyNow from "./pages/hospital/ApplyNow";
+import HospitalPatientDashboard from "./pages/hospital/HospitalPatientDashboard";
 import ShopDetail from "./pages/store/ShopDetail";
 
 const queryClient = new QueryClient();
@@ -95,6 +97,8 @@ const App = () => (
           <Route path="/hospital/create" element={<CreateHospital />} />
           <Route path="/hospital/edit/:id" element={<EditHospital />} />
           <Route path="/hospital/dashboard" element={<PatientDashboard />} />
+          <Route path="/hospital/:id/apply" element={<HospitalApplyNow />} />
+          <Route path="/hospital/:id/patient-dashboard" element={<HospitalPatientDashboard />} />
           
           <Route path="/feed" element={<Feed />} />
           <Route path="/feed/post/:id" element={<PostDetail />} />

@@ -131,15 +131,27 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
             <span className="text-xs sm:text-sm font-medium">{hospital.totalPatients || hospital.patients || 'N/A'}</span>
             <span className="text-xs text-muted-foreground">Total Patients</span>
           </div>
-          <Button 
-            className="w-full bg-primary hover:bg-primary/90 text-sm sm:text-base h-9 sm:h-10"
-            onClick={(e) => {
-              e.stopPropagation()
-              navigate(`/hospital/hospital/${id}`)
-            }}
-          >
-            View Details
-          </Button>
+          <div className="space-y-2">
+            <Button 
+              className="w-full bg-primary hover:bg-primary/90 text-sm sm:text-base h-9 sm:h-10"
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate(`/hospital/hospital/${id}`)
+              }}
+            >
+              View Details
+            </Button>
+            <Button 
+              variant="outline"
+              className="w-full text-sm h-9 sm:h-10"
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate(`/hospital/${id}/patient-dashboard`)
+              }}
+            >
+              Patient Dashboard
+            </Button>
+          </div>
           {currentUser && hospital.owner && String(currentUser._id) === String(hospital.owner) && (
             <div className="space-y-2 mt-3">
               <Button

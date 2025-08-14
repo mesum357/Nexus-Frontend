@@ -91,9 +91,9 @@ export default function PatientDashboard() {
           const mapped = (data.applications || []).map((a: any) => ({
             _id: a._id,
             hospital: { _id: a.institute?._id, name: a.institute?.name, logo: a.institute?.logo, city: a.institute?.city, type: a.institute?.type },
-            patientName: a.studentName,
-            department: a.courseName,
-            visitType: a.courseDuration,
+            patientName: a.patientName || a.studentName,
+            department: a.departmentName || a.courseName,
+            visitType: a.visitType || a.courseDuration,
             status: a.status,
             createdAt: a.createdAt,
           }))

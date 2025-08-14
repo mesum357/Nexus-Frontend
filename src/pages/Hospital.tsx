@@ -133,10 +133,6 @@ export default function Hospital() {
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Create Hospital
                 </Button>
-                <Button variant="outline" onClick={() => navigate('/hospital/dashboard')} size="lg" className="w-full sm:w-auto">
-                  <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Patient Dashboard
-                </Button>
               </div>
             </motion.div>
           </div>

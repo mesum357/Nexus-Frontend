@@ -486,7 +486,7 @@ export default function HospitalDetail() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate(`/education/institute/${id}/apply`)}>
+                  <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate(`/hospital/${id}/apply`)}>
                     Register Now
                   </Button>
                   <DropdownMenu>

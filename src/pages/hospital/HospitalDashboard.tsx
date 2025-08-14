@@ -60,7 +60,7 @@ interface Hospital {
   website?: string;
   description?: string;
   gallery?: string[];
-  doctors?: Doctor[];
+  faculty?: Doctor[];
   facebook?: string;
   instagram?: string;
   twitter?: string;
@@ -70,7 +70,7 @@ interface Hospital {
 interface Doctor {
   _id?: string;
   name: string;
-  specialty: string;
+  position: string;
   qualification: string;
   experience: string;
   image?: string;
@@ -80,7 +80,7 @@ interface Task {
   _id?: string;
   title: string;
   description: string;
-  type: 'theory' | 'practical' | 'listing' | 'reading';
+  type: 'appointment' | 'medication' | 'test' | 'followup';
   createdAt?: string;
 }
 
@@ -106,7 +106,7 @@ export default function HospitalDashboard() {
   const [showAddDoctor, setShowAddDoctor] = useState(false)
   const [newDoctor, setNewDoctor] = useState({
     name: '',
-    specialty: '',
+    position: '',
     qualification: '',
     experience: '',
     image: null as File | null
@@ -120,7 +120,7 @@ export default function HospitalDashboard() {
   const [newMessage, setNewMessage] = useState({ senderName: '', message: '' })
 
   const [tasks, setTasks] = useState<Task[]>([])
-  const [newTask, setNewTask] = useState<Task>({ title: '', description: '', type: 'theory' })
+  const [newTask, setNewTask] = useState<Task>({ title: '', description: '', type: 'appointment' })
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showEditTaskDialog, setShowEditTaskDialog] = useState(false)
 
@@ -206,27 +206,72 @@ export default function HospitalDashboard() {
   }
 
   const handleAddDoctor = async () => {
-    if (!newDoctor.name || !newDoctor.specialty || !newDoctor.qualification || !newDoctor.experience) {
+    if (!newDoctor.name || !newDoctor.position || !newDoctor.qualification || !newDoctor.experience) {
       toast({ title: 'Validation Error', description: 'Please fill in all required fields.', variant: 'destructive' })
       return
     }
-    const formData = new FormData()
-    formData.append('name', newDoctor.name)
-    formData.append('specialty', newDoctor.specialty)
-    formData.append('qualification', newDoctor.qualification)
-    formData.append('experience', newDoctor.experience)
-    if (newDoctor.image) formData.append('image', newDoctor.image)
+    
+    if (!hospital) {
+      toast({ title: 'Error', description: 'Hospital data not loaded', variant: 'destructive' })
+      return
+    }
+    
     try {
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/faculty`, { method: 'POST', credentials: 'include', body: formData })
+      const formData = new FormData()
+      formData.append('name', newDoctor.name)
+      formData.append('position', newDoctor.position)
+      formData.append('qualification', newDoctor.qualification)
+      formData.append('experience', newDoctor.experience)
+      if (newDoctor.image) formData.append('image', newDoctor.image)
+      
+      console.log('Adding doctor with data:', {
+        name: newDoctor.name,
+        position: newDoctor.position,
+        qualification: newDoctor.qualification,
+        experience: newDoctor.experience,
+        hasImage: !!newDoctor.image
+      })
+      
+      console.log('Current hospital state:', hospital)
+      console.log('Current faculty count:', hospital.faculty?.length || 0)
+      
+      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/faculty`, { 
+        method: 'POST', 
+        credentials: 'include', 
+        body: formData 
+      })
+      
+      console.log('Doctor creation response status:', response.status)
+      
       const data = await response.json()
-      if (response.ok) {
-        setHospital(prev => prev ? { ...prev, doctors: [...(prev.doctors || []), data.doctor] } : null)
-        setNewDoctor({ name: '', specialty: '', qualification: '', experience: '', image: null })
+      console.log('Doctor creation response data:', data)
+      
+      if (response.ok && data.faculty) {
+        // Add the new doctor to the hospital's faculty list
+        setHospital(prev => {
+          if (prev) {
+            const updatedHospital = {
+              ...prev,
+              faculty: [...(prev.faculty || []), data.faculty]
+            }
+            console.log('Updated hospital state:', updatedHospital)
+            console.log('New faculty count:', updatedHospital.faculty?.length || 0)
+            return updatedHospital
+          }
+          return prev
+        })
+        
+        // Reset the form
+        setNewDoctor({ name: '', position: '', qualification: '', experience: '', image: null })
         setDoctorImagePreview(null)
         setShowAddDoctor(false)
+        
         toast({ title: 'Success', description: 'Doctor added successfully!' })
-      } else { throw new Error(data.error || 'Failed to add doctor') }
+      } else {
+        throw new Error(data.error || data.message || 'Failed to add doctor')
+      }
     } catch (error: any) {
+      console.error('Doctor creation error:', error)
       toast({ title: 'Error', description: error?.message || 'Failed to add doctor.', variant: 'destructive' })
     }
   }
@@ -236,7 +281,7 @@ export default function HospitalDashboard() {
       const response = await fetch(`${API_BASE_URL}/api/institute/${id}/faculty/${doctorId}`, { method: 'DELETE', credentials: 'include' })
       const data = await response.json()
       if (response.ok) {
-        setHospital(prev => prev ? { ...prev, doctors: prev.doctors?.filter(d => d._id !== doctorId) || [] } : null)
+        setHospital(prev => prev ? { ...prev, faculty: prev.faculty?.filter(d => d._id !== doctorId) || [] } : null)
         toast({ title: 'Success', description: 'Doctor removed successfully!' })
       } else { throw new Error(data.error || 'Failed to remove doctor') }
     } catch (error: any) {
@@ -277,15 +322,47 @@ export default function HospitalDashboard() {
   const openEditTask = (task: Task) => { if (!task._id) return; setEditingTask(task); setShowEditTaskDialog(true) }
 
   const handleCreateTask = async () => {
-    if (!newTask.title.trim() || !newTask.description.trim() || !newTask.type) { toast({ title: 'Validation', description: 'Title, description and type are required', variant: 'destructive' }); return }
+    if (!newTask.title.trim() || !newTask.description.trim() || !newTask.type) { 
+      toast({ title: 'Validation', description: 'Title, description and type are required', variant: 'destructive' }); 
+      return 
+    }
+    
+    // Validate task type
+    const allowedTypes = ['appointment', 'medication', 'test', 'followup'];
+    if (!allowedTypes.includes(newTask.type)) {
+      toast({ title: 'Validation Error', description: 'Invalid task type selected', variant: 'destructive' });
+      return;
+    }
+    
+    console.log('Creating task with data:', newTask);
+    
     try {
-      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(newTask) })
+      const taskData = {
+        ...newTask,
+        date: new Date().toISOString().split('T')[0] // Add current date in YYYY-MM-DD format
+      };
+      
+      console.log('Task data being sent:', taskData);
+      
+      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/tasks`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        credentials: 'include', 
+        body: JSON.stringify(taskData) 
+      })
+      
+      console.log('Task creation response status:', res.status);
+      
       const data = await res.json()
+      console.log('Task creation response data:', data);
+      
       if (!res.ok) throw new Error(data.error || 'Failed to create task')
+      
       setTasks(prev => [data.task, ...prev])
-      setNewTask({ title: '', description: '', type: 'theory' })
+      setNewTask({ title: '', description: '', type: 'appointment' })
       toast({ title: 'Saved', description: "Today's tasks updated." })
     } catch (error: any) {
+      console.error('Task creation error:', error);
       toast({ title: 'Error', description: error?.message || 'Failed to add task', variant: 'destructive' })
     }
   }
@@ -490,8 +567,8 @@ export default function HospitalDashboard() {
                                 <Input id="doctor-name" value={newDoctor.name} onChange={(e) => setNewDoctor(prev => ({ ...prev, name: e.target.value }))} placeholder="Full Name" className="text-sm sm:text-base" />
                               </div>
                               <div>
-                                <Label htmlFor="doctor-specialty" className="text-sm sm:text-base">Specialty *</Label>
-                                <Input id="doctor-specialty" value={newDoctor.specialty} onChange={(e) => setNewDoctor(prev => ({ ...prev, specialty: e.target.value }))} placeholder="e.g., Cardiology" className="text-sm sm:text-base" />
+                                <Label htmlFor="doctor-position" className="text-sm sm:text-base">Position/Specialty *</Label>
+                                <Input id="doctor-position" value={newDoctor.position} onChange={(e) => setNewDoctor(prev => ({ ...prev, position: e.target.value }))} placeholder="e.g., Cardiologist" className="text-sm sm:text-base" />
                               </div>
                               <div>
                                 <Label htmlFor="doctor-qualification" className="text-sm sm:text-base">Qualification *</Label>
@@ -519,9 +596,9 @@ export default function HospitalDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    {hospital.doctors && hospital.doctors.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                        {hospital.doctors.map((member, index) => (
+                                         {hospital.faculty && hospital.faculty.length > 0 ? (
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                         {hospital.faculty.map((member, index) => (
                           <div key={index} className="border rounded-lg p-4 sm:p-5 transform transition-transform hover:scale-105">
                             <div className="flex items-center gap-4 sm:gap-5">
                               <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
@@ -530,7 +607,7 @@ export default function HospitalDashboard() {
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-bold text-foreground text-base sm:text-lg truncate">{member.name}</h4>
-                                <p className="text-sm sm:text-base text-primary font-medium truncate">{member.specialty}</p>
+                                <p className="text-sm sm:text-base text-primary font-medium truncate">{member.position}</p>
                                 <p className="text-sm text-muted-foreground truncate">{member.qualification}</p>
                                 <p className="text-sm text-muted-foreground truncate">{member.experience} experience</p>
                               </div>
@@ -594,10 +671,10 @@ export default function HospitalDashboard() {
                           <Select value={newTask.type} onValueChange={(val) => setNewTask(prev => ({ ...prev, type: val as any }))}>
                             <SelectTrigger className="w-full"><SelectValue placeholder="Select type" /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="theory">Theory</SelectItem>
-                              <SelectItem value="practical">Practical</SelectItem>
-                              <SelectItem value="listing">Listing</SelectItem>
-                              <SelectItem value="reading">Reading</SelectItem>
+                              <SelectItem value="appointment">Appointment</SelectItem>
+                              <SelectItem value="medication">Medication</SelectItem>
+                              <SelectItem value="test">Medical Test</SelectItem>
+                              <SelectItem value="followup">Follow-up</SelectItem>
                             </SelectContent>
                           </Select>
                           <Button onClick={handleCreateTask} size="sm">Add Task</Button>
@@ -645,10 +722,10 @@ export default function HospitalDashboard() {
                       <Select value={editingTask.type} onValueChange={(val) => setEditingTask(prev => prev ? { ...prev, type: val as any } : prev)}>
                         <SelectTrigger className="w-full"><SelectValue placeholder="Select type" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="theory">Theory</SelectItem>
-                          <SelectItem value="practical">Practical</SelectItem>
-                          <SelectItem value="listing">Listing</SelectItem>
-                          <SelectItem value="reading">Reading</SelectItem>
+                          <SelectItem value="appointment">Appointment</SelectItem>
+                          <SelectItem value="medication">Medication</SelectItem>
+                          <SelectItem value="test">Medical Test</SelectItem>
+                          <SelectItem value="followup">Follow-up</SelectItem>
                         </SelectContent>
                       </Select>
                       <div className="flex gap-2 pt-2">
@@ -691,7 +768,7 @@ export default function HospitalDashboard() {
                   <CardContent className="pt-0 space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Total Patients</span><span className="font-semibold text-sm sm:text-base">{hospital.totalPatients || hospital.patients || 'N/A'}</span></div>
                     <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Technicalities</span><span className="font-semibold text-sm sm:text-base">{hospital.specialization ? hospital.specialization.split(', ').length : 0}</span></div>
-                    <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Doctors</span><span className="font-semibold text-sm sm:text-base">{hospital.doctors?.length || 0}</span></div>
+                                         <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Doctors</span><span className="font-semibold text-sm sm:text-base">{hospital.faculty?.length || 0}</span></div>
                   </CardContent>
                 </Card>
               </motion.div>
