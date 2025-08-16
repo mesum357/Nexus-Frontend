@@ -708,6 +708,15 @@ export default function InstituteDetail() {
                   <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate(`/education/institute/${id}/apply`)}>
                     Apply Now
                   </Button>
+                  {isAuthenticated && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={() => navigate(`/education/institute/${id}/student-dashboard`)}
+                    >
+                      Student Dashboard
+                    </Button>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" className="w-full">

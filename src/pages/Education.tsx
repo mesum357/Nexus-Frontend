@@ -149,15 +149,6 @@ export default function Education() {
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Create Institute
                 </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => navigate('/education/dashboard')}
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Student Dashboard
-                </Button>
               </div>
             </motion.div>
           </div>

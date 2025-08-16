@@ -24,7 +24,8 @@ import {
   Twitter,
   Linkedin,
   Bell as BellIcon,
-  MessageSquare
+  MessageSquare,
+  RefreshCw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -135,6 +136,10 @@ export default function InstituteDashboard() {
   const [editingTask, setEditingTask] = useState<{ _id: string; title: string; description: string; type: 'theory'|'practical'|'listing'|'reading' } | null>(null)
   const [showEditTaskDialog, setShowEditTaskDialog] = useState(false)
 
+  // Applications state
+  const [applications, setApplications] = useState<any[]>([])
+  const [loadingApplications, setLoadingApplications] = useState(false)
+
   // Helper function to get full image URL
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return null
@@ -208,6 +213,71 @@ export default function InstituteDashboard() {
       setIsOwner(String(institute.owner) === String(currentUser._id))
     }
   }, [institute, currentUser])
+
+  // Fetch applications if user is owner
+  useEffect(() => {
+    if (isOwner && id) {
+      fetchApplications()
+    }
+  }, [isOwner, id])
+
+  // Fetch applications for the institute
+  const fetchApplications = async () => {
+    if (!isOwner) return
+    
+    setLoadingApplications(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/applications`, {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setApplications(data.applications || [])
+      } else {
+        console.error('Failed to fetch applications')
+      }
+    } catch (error) {
+      console.error('Error fetching applications:', error)
+    } finally {
+      setLoadingApplications(false)
+    }
+  }
+
+  // Update application status
+  const handleUpdateApplicationStatus = async (applicationId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/applications/${applicationId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Update the application in the local state
+        setApplications(prev => prev.map(app => 
+          app._id === applicationId ? { ...app, status: newStatus } : app
+        ))
+        toast({
+          title: 'Success',
+          description: data.message || `Application ${newStatus} successfully`,
+        })
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update application status')
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to update application status',
+        variant: 'destructive',
+      })
+    }
+  }
 
   // Handle gallery image upload
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -969,6 +1039,169 @@ export default function InstituteDashboard() {
                   </CardContent>
                 </Card>
               </motion.div>
+
+              {/* Registration Requests Section */}
+              {isOwner && (
+                <motion.div
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.55, duration: 0.6 }}
+                  className="relative"
+                >
+                  <Card>
+                    <CardHeader className="pb-4 sm:pb-6">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl lg:text-2xl">
+                          <Users className="h-5 w-5 sm:h-6 sm:w-6" />
+                          Registration Requests
+                          {applications.length > 0 && (
+                            <Badge variant="secondary" className="ml-2">
+                              {applications.length}
+                            </Badge>
+                          )}
+                        </CardTitle>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={fetchApplications}
+                          disabled={loadingApplications}
+                          className="w-full sm:w-auto text-xs sm:text-sm"
+                        >
+                          <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${loadingApplications ? 'animate-spin' : ''}`} />
+                          Refresh
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      {loadingApplications ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                          <p className="text-sm text-muted-foreground mt-2">Loading applications...</p>
+                        </div>
+                      ) : applications.length > 0 ? (
+                        <div className="space-y-4">
+                          {applications.map((application) => (
+                            <div key={application._id} className="border rounded-lg p-4 sm:p-5">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
+                                <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
+                                  <AvatarImage src={getImageUrl(application.user?.profileImage)} />
+                                  <AvatarFallback className="text-lg sm:text-xl">
+                                    {application.studentName?.[0] || 'S'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
+                                    <h4 className="font-bold text-foreground text-base sm:text-lg">
+                                      {application.studentName}
+                                    </h4>
+                                    <Badge 
+                                      variant={
+                                        application.status === 'accepted' ? 'default' : 
+                                        application.status === 'rejected' ? 'destructive' : 
+                                        'secondary'
+                                      }
+                                      className="text-xs capitalize"
+                                    >
+                                      {application.status}
+                                    </Badge>
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-sm text-muted-foreground">
+                                    <div>
+                                      <span className="font-medium">Father's Name:</span> {application.fatherName}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">CNIC:</span> {application.cnic}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">City:</span> {application.city}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Course:</span> {application.courseName}
+                                    </div>
+                                    {application.courseDuration && (
+                                      <div>
+                                        <span className="font-medium">Duration:</span> {application.courseDuration}
+                                      </div>
+                                    )}
+                                    {application.user?.email && (
+                                      <div>
+                                        <span className="font-medium">Email:</span> {application.user.email}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="mt-2 text-xs text-muted-foreground">
+                                    Applied on: {new Date(application.createdAt).toLocaleDateString()}
+                                  </div>
+                                </div>
+                                {application.status === 'submitted' && (
+                                  <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleUpdateApplicationStatus(application._id, 'accepted')}
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                      <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleUpdateApplicationStatus(application._id, 'rejected')}
+                                    >
+                                      <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                )}
+                                {application.status === 'review' && (
+                                  <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleUpdateApplicationStatus(application._id, 'accepted')}
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                      <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleUpdateApplicationStatus(application._id, 'rejected')}
+                                    >
+                                      <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                )}
+                                {(application.status === 'accepted' || application.status === 'rejected') && (
+                                  <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleUpdateApplicationStatus(application._id, 'review')}
+                                    >
+                                      <Edit3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                      Review
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 sm:py-10">
+                          <Users className="h-16 w-16 sm:h-20 sm:w-20 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-base sm:text-lg text-muted-foreground mb-2">No registration requests yet</p>
+                          <p className="text-sm text-muted-foreground">
+                            When students apply to your institute, their applications will appear here for review.
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
             </div>
 
             {/* Sidebar */}

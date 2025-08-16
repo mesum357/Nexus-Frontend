@@ -33,6 +33,7 @@ export default function ApplyNow() {
   const [institute, setInstitute] = useState<Institute | null>(null)
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   const [studentName, setStudentName] = useState('')
   const [fatherName, setFatherName] = useState('')
@@ -40,9 +41,28 @@ export default function ApplyNow() {
   const [city, setCity] = useState('')
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
   const [courseDuration, setCourseDuration] = useState('')
-  const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
-  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null)
   const { toast } = useToast()
+
+  // Fetch current user and auto-fill student name
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        console.log('User data received:', data.user) // Debug log
+        setCurrentUser(data.user)
+        // Auto-fill student name from user profile
+        if (data.user?.name) {
+          setStudentName(data.user.name)
+        } else if (data.user?.fullName) {
+          setStudentName(data.user.fullName)
+        } else if (data.user?.username) {
+          setStudentName(data.user.username)
+        }
+      })
+      .catch(() => {
+        setCurrentUser(null)
+      })
+  }, [])
 
   useEffect(() => {
     if (!id) return
@@ -66,15 +86,7 @@ export default function ApplyNow() {
     setCourseDuration(course?.duration || '')
   }, [selectedCourseId, courses])
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setProfileImageFile(file)
-      const reader = new FileReader()
-      reader.onload = (ev) => setProfileImagePreview(ev.target?.result as string)
-      reader.readAsDataURL(file)
-    }
-  }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,7 +104,6 @@ export default function ApplyNow() {
     formData.append('city', city)
     formData.append('courseName', selectedCourse.name)
     formData.append('courseDuration', selectedCourse.duration || '')
-    if (profileImageFile) formData.append('profileImage', profileImageFile)
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/institute/${id}/apply`, {
@@ -111,12 +122,11 @@ export default function ApplyNow() {
           fatherName,
           cnic,
           city,
-          profileImage: data.application?.profileImage || profileImagePreview || '',
         },
         course: { name: selectedCourse.name, duration: selectedCourse.duration || '' },
         institute: { id: institute._id, name: institute.name, city: institute.city },
       }
-      navigate('/education/dashboard', { state: payload, replace: true })
+      navigate(`/education/institute/${id}/student-dashboard`, { state: payload, replace: true })
     } catch (error: any) {
       toast({ title: 'Error', description: error?.message || 'Failed to submit application', variant: 'destructive' })
     }
@@ -149,7 +159,18 @@ export default function ApplyNow() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="studentName">Student's Name</Label>
-                      <Input id="studentName" value={studentName} onChange={(e) => setStudentName(e.target.value)} required />
+                      <Input 
+                        id="studentName" 
+                        value={studentName} 
+                        onChange={(e) => setStudentName(e.target.value)} 
+                        required 
+                        placeholder="Auto-filled from your profile"
+                      />
+                      {studentName && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ✓ Auto-filled from your profile
+                        </p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="fatherName">Father's Name</Label>
@@ -193,13 +214,7 @@ export default function ApplyNow() {
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="profilePic">Profile Picture</Label>
-                    <Input id="profilePic" type="file" accept="image/*" onChange={handleImageChange} />
-                    {profileImagePreview && (
-                      <img src={profileImagePreview} alt="Preview" className="mt-3 w-24 h-24 object-cover rounded-full" />
-                    )}
-                  </div>
+
 
                   <div className="pt-2">
                     <Button type="submit" className="w-full sm:w-auto">Submit Application</Button>
