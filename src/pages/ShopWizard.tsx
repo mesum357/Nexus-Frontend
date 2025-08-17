@@ -18,12 +18,14 @@ import ProductListingStep from '@/components/wizard-steps/ProductListingStep'
 import ReviewSubmitStep from '@/components/wizard-steps/ReviewSubmitStep'
 
 import { API_BASE_URL } from '@/lib/config'
+import PaymentSection from '@/components/PaymentSection'
 const STEPS = [
   'Shop Information',
   'Business Categories',
   'Shop Media',
   'Social & Contact',
   'Product Listing',
+  'Payment Section',
   'Review & Submit'
 ];
 
@@ -50,12 +52,22 @@ const ShopWizard: React.FC = () => {
     acceptTerms: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
 
   const { toast } = useToast();
 
   const updateShopData = (updates: Partial<ShopData>) => {
     setShopData(prev => ({ ...prev, ...updates }));
   };
+
+  const handlePaymentComplete = (paymentData: any) => {
+    setPaymentCompleted(true);
+    console.log('Payment completed:', paymentData);
+    toast({ 
+      title: 'Payment Submitted', 
+      description: 'Payment request submitted successfully. You can now proceed to review and submit.' 
+    });
+  }
 
   const validateStep = (step: number): boolean => {
     switch (step) {
@@ -70,6 +82,8 @@ const ShopWizard: React.FC = () => {
       case 4:
         return shopData.products.length > 0;
       case 5:
+        return paymentCompleted; // Payment must be completed
+      case 6:
         return shopData.acceptTerms;
       default:
         return true;
@@ -157,7 +171,7 @@ const ShopWizard: React.FC = () => {
       if (response.ok) {
         toast({
           title: "Shop Created Successfully!",
-          description: "Your marketplace shop has been created and is now live.",
+          description: "Your shop has been created and is pending admin approval.",
         });
         navigate('/store');
       } else {
@@ -198,6 +212,15 @@ const ShopWizard: React.FC = () => {
         console.log('Rendering ProductListingStep');
         return <ProductListingStep data={shopData} updateData={updateShopData} />;
       case 5:
+        console.log('Rendering PaymentSection');
+        return (
+          <PaymentSection 
+            entityType="shop"
+            onPaymentComplete={handlePaymentComplete}
+            isRequired={true}
+          />
+        );
+      case 6:
         console.log('Rendering ReviewSubmitStep');
         return <ReviewSubmitStep data={shopData} updateData={updateShopData} />;
       default:

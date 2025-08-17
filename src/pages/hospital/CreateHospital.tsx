@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Upload, Plus, X, Crop, Stethoscope } from 'lucide-react'
+import { ArrowLeft, Upload, Plus, X, Crop, Stethoscope, ExternalLink, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -13,12 +13,15 @@ import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import PaymentSection from '@/components/PaymentSection'
+import TermsAndPolicies from '@/components/ui/TermsAndPolicies'
 
 const steps = [
   'Basic Information',
   'Contact Details',
   'Media & Branding',
   'Technicalities',
+  'Payment Section',
   'Review & Submit'
 ]
 
@@ -38,6 +41,9 @@ export default function CreateHospital() {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null)
   const { toast } = useToast()
   const [techError, setTechError] = useState<string | null>(null)
+  const [paymentCompleted, setPaymentCompleted] = useState(false)
+  const [acceptTerms, setAcceptTerms] = useState(false)
+  const [showTerms, setShowTerms] = useState(false)
 
   const [showLogoCropper, setShowLogoCropper] = useState(false)
   const [showBannerCropper, setShowBannerCropper] = useState(false)
@@ -71,11 +77,35 @@ export default function CreateHospital() {
 
   const removeTech = (index: number) => setTechs(techs.filter((_, i) => i !== index))
 
+  const handlePaymentComplete = (paymentData: any) => {
+    setPaymentCompleted(true);
+    console.log('Payment completed:', paymentData);
+    toast({ 
+      title: 'Payment Submitted', 
+      description: 'Payment request submitted successfully. You can now proceed to review and submit.' 
+    });
+  }
+
+  const handleAcceptTerms = () => {
+    setAcceptTerms(true);
+  };
+
   const nextStep = () => {
     if (currentStep === 3 && newTech.trim()) {
       addTech()
       return
     }
+    
+    // If trying to go to review step (step 5) without completing payment
+    if (currentStep === 4 && !paymentCompleted) {
+      toast({ 
+        title: 'Payment Required', 
+        description: 'Please complete the payment section before proceeding to review.', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
     if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1)
   }
 
@@ -171,7 +201,7 @@ export default function CreateHospital() {
       if (res.ok) {
         const responseData = await res.json().catch(() => ({}))
         console.log('CreateHospital: success response', responseData)
-        toast({ title: 'Success!', description: id ? 'Hospital updated successfully!' : 'Hospital created successfully!' })
+        toast({ title: 'Success!', description: id ? 'Hospital updated successfully!' : 'Hospital created successfully and is pending admin approval!' })
         navigate('/hospital')
       } else {
         let serverMessage = ''
@@ -492,6 +522,15 @@ export default function CreateHospital() {
         )
       case 4:
         return (
+          <PaymentSection 
+            entityType="hospital"
+            onPaymentComplete={handlePaymentComplete}
+            isRequired={true}
+          />
+        )
+
+      case 5:
+        return (
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-bold text-foreground mb-2">Review Your Information</h3>
@@ -504,9 +543,57 @@ export default function CreateHospital() {
                   <div><h4 className="font-semibold text-foreground">Contact Details</h4><p className="text-muted-foreground">Phone, email, and address information</p></div>
                   <div><h4 className="font-semibold text-foreground">Media & Branding</h4><p className="text-muted-foreground">Logo, banner, and brand elements</p></div>
                   <div><h4 className="font-semibold text-foreground">Technicalities</h4><p className="text-muted-foreground">{techs.length} item(s) added</p></div>
+                  <div><h4 className="font-semibold text-foreground">Payment Status</h4><p className={`${paymentCompleted ? 'text-green-600' : 'text-red-600'} font-medium`}>{paymentCompleted ? '✓ Payment Completed' : '✗ Payment Required'}</p></div>
                 </div>
               </CardContent>
             </Card>
+            {/* Terms and Conditions */}
+            <Card className={`transition-all duration-200 ${acceptTerms ? 'border-marketplace-success/30 bg-marketplace-success/5' : ''}`}>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="terms" className="text-sm font-medium cursor-pointer">
+                        I accept the Terms and Conditions <span className="text-destructive">*</span>
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        By creating this hospital profile, you agree to our terms of service, 
+                        privacy policy, and healthcare institution guidelines. You confirm that all information 
+                        provided is accurate and that you have the right to represent this hospital.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTerms(true)}
+                      className="flex items-center gap-2 text-xs"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Read Full Terms & Policies
+                    </Button>
+                    
+                    {acceptTerms && (
+                      <div className="flex items-center gap-2 text-marketplace-success text-sm">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>Terms Accepted</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="bg-muted/50 p-4 rounded-lg">
               <p className="text-sm text-muted-foreground">By submitting this form, you agree to our terms and conditions. Your hospital will be reviewed before being published.</p>
             </div>
@@ -564,7 +651,11 @@ export default function CreateHospital() {
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.6 }} className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8">
             <Button variant="outline" onClick={prevStep} disabled={currentStep === 0} className="w-full sm:w-auto order-2 sm:order-1">Previous</Button>
             {currentStep === steps.length - 1 ? (
-              <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2" onClick={handleSubmit} disabled={isSubmitting}>
+              <Button 
+                className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2" 
+                onClick={handleSubmit} 
+                disabled={isSubmitting || !paymentCompleted || !acceptTerms}
+              >
                 {isSubmitting ? 'Submitting...' : 'Submit Hospital'}
               </Button>
             ) : (
@@ -576,6 +667,14 @@ export default function CreateHospital() {
 
       <ImageCropper isOpen={showLogoCropper} onClose={handleCloseLogoCropper} imageFile={tempLogoFile} imageSrc={tempLogoFile ? undefined : logoPreview || undefined} onCropComplete={handleLogoCropComplete} aspectRatio={1} title="Crop Logo" />
       <ImageCropper isOpen={showBannerCropper} onClose={handleCloseBannerCropper} imageFile={tempBannerFile} imageSrc={tempBannerFile ? undefined : bannerPreview || undefined} onCropComplete={handleBannerCropComplete} aspectRatio={2} title="Crop Banner" />
+
+      {/* Terms and Policies Popup */}
+      <TermsAndPolicies
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={handleAcceptTerms}
+        title="Hospital Creation Terms"
+      />
     </div>
   )
 }

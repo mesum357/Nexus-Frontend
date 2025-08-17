@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { 
   Store, 
   MapPin, 
@@ -13,9 +14,11 @@ import {
   Phone, 
   Package,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import { ShopData } from '@/types/shop';
+import TermsAndPolicies from '@/components/ui/TermsAndPolicies';
 
 interface ReviewSubmitStepProps {
   data: ShopData;
@@ -23,8 +26,14 @@ interface ReviewSubmitStepProps {
 }
 
 const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ data, updateData }) => {
+  const [showTerms, setShowTerms] = useState(false);
+
   const calculateDiscountedPrice = (price: number, discount: number) => {
     return price - (price * discount / 100);
+  };
+
+  const handleAcceptTerms = () => {
+    updateData({ acceptTerms: true });
   };
 
   const totalProducts = data.products.length;
@@ -286,26 +295,56 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ data, updateData })
       {/* Terms and Conditions */}
       <Card className={`transition-all duration-200 ${data.acceptTerms ? 'border-marketplace-success/30 bg-marketplace-success/5' : ''}`}>
         <CardContent className="p-6">
-          <div className="flex items-start space-x-3">
-            <Checkbox
-              id="terms"
-              checked={data.acceptTerms}
-              onCheckedChange={(checked) => updateData({ acceptTerms: !!checked })}
-              className="mt-0.5"
-            />
-            <div className="space-y-2">
-              <Label htmlFor="terms" className="text-sm font-medium cursor-pointer">
-                I accept the Terms and Conditions <span className="text-destructive">*</span>
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                By creating this shop, you agree to our marketplace terms of service, 
-                privacy policy, and seller guidelines. You confirm that all information 
-                provided is accurate and that you have the right to sell the listed products.
-              </p>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="terms"
+                checked={data.acceptTerms}
+                onCheckedChange={(checked) => updateData({ acceptTerms: !!checked })}
+                className="mt-0.5"
+              />
+              <div className="space-y-2">
+                <Label htmlFor="terms" className="text-sm font-medium cursor-pointer">
+                  I accept the Terms and Conditions <span className="text-destructive">*</span>
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  By creating this shop, you agree to our marketplace terms of service, 
+                  privacy policy, and seller guidelines. You confirm that all information 
+                  provided is accurate and that you have the right to sell the listed products.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTerms(true)}
+                className="flex items-center gap-2 text-xs"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Read Full Terms & Policies
+              </Button>
+              
+              {data.acceptTerms && (
+                <div className="flex items-center gap-2 text-marketplace-success text-sm">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Terms Accepted</span>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Terms and Policies Popup */}
+      <TermsAndPolicies
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={handleAcceptTerms}
+        title="Shop Creation Terms"
+      />
     </div>
   );
 };

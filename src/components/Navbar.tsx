@@ -3,6 +3,7 @@ import { User, Menu, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../lib/config'
+import Logo from '../assets/Logo.png'
 
 const navigationLinks = [
   { name: 'Store', href: '/store' },
@@ -153,8 +154,12 @@ export default function Navbar() {
             whileHover={{ scale: 1.05 }}
             className="flex-shrink-0"
           >
-            <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-600 to-primary bg-clip-text text-transparent">
-              MY Online 
+            <Link to="/" className="flex items-center">
+              <img 
+                src={Logo} 
+                alt="Pakistan Online Logo" 
+                className="h-12 w-auto"
+              />
             </Link>
           </motion.div>
 
@@ -361,6 +366,9 @@ export default function Navbar() {
                     </svg>
                     My Profile
                   </Link>
+                  
+
+                  
                   <button
                     onClick={handleLogout}
                     className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"

@@ -9,6 +9,7 @@ import HospitalCard from '@/components/hospital/HospitalCard'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
+import Logo from '@/assets/Logo.png'
 
 interface HospitalType {
   _id: string;
@@ -92,7 +93,7 @@ export default function Hospital() {
         transition={{ duration: 0.6 }}
         className="relative pt-16 sm:pt-20 pb-12 sm:pb-16"
         style={{
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)), url('https://images.unsplash.com/photo-1580281657527-47a1e4a6d3b9?w=1920&h=800&fit=crop')`,
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -103,9 +104,9 @@ export default function Hospital() {
             <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}>
               <div className="flex flex-col sm:flex-row items-center justify-center mb-6">
                 <img 
-                  src="https://images.unsplash.com/photo-1580281657527-47a1e4a6d3b9?w=80&h=80&fit=crop&crop=faces" 
+                  src={Logo} 
                   alt="Pakistan Online Logo"
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
                 />
                 <div className="text-center sm:text-left">
                   <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground">

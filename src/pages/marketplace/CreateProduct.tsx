@@ -13,6 +13,7 @@ import Navbar from '@/components/Navbar';
 import { API_BASE_URL } from '@/lib/config';
 import { ImageCropper } from '@/components/ui/image-cropper';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import PaymentSection from '@/components/PaymentSection';
 
 const categories = [
   'Electronics',
@@ -53,6 +54,7 @@ export default function CreateProduct() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [tags, setTags] = useState([]);
   const [newTag, setNewTag] = useState('');
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
 
   // Image cropper states
   const [showCropper, setShowCropper] = useState(false);
@@ -98,6 +100,15 @@ export default function CreateProduct() {
   const handleSelectChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  const handlePaymentComplete = (paymentData: any) => {
+    setPaymentCompleted(true);
+    console.log('Payment completed:', paymentData);
+    toast({ 
+      title: 'Payment Submitted', 
+      description: 'Payment request submitted successfully. You can now create your listing.' 
+    });
+  }
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -250,7 +261,7 @@ export default function CreateProduct() {
 
       toast({
         title: "Success",
-        description: "Product created successfully!"
+        description: "Product created successfully and is pending admin approval!"
       });
 
       navigate('/marketplace');
@@ -597,6 +608,20 @@ export default function CreateProduct() {
               </motion.div>
             </div>
 
+            {/* Payment Section */}
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mt-6 sm:mt-8"
+            >
+              <PaymentSection 
+                entityType="marketplace"
+                onPaymentComplete={handlePaymentComplete}
+                isRequired={true}
+              />
+            </motion.div>
+
             {/* Submit Button */}
             <motion.div
               initial={{ y: 30, opacity: 0 }}
@@ -607,7 +632,7 @@ export default function CreateProduct() {
               <Button
                 type="submit"
                 size="lg"
-                disabled={loading}
+                disabled={loading || !paymentCompleted}
                 className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto h-11 sm:h-12"
               >
                 {loading ? 'Creating...' : 'Create Listing'}

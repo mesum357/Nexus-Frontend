@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, Plus, X, Crop } from 'lucide-react'
+import { ArrowLeft, Upload, Plus, X, Crop, ExternalLink, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -16,12 +16,15 @@ import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import PaymentSection from '@/components/PaymentSection'
+import TermsAndPolicies from '@/components/ui/TermsAndPolicies'
 
 const steps = [
   "Basic Information",
   "Contact Details", 
   "Media & Branding",
   "Courses & Programs",
+  "Payment Section",
   "Review & Submit"
 ]
 
@@ -45,6 +48,9 @@ export default function CreateInstitute() {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null)
   const { toast } = useToast();
   const [courseError, setCourseError] = useState<string | null>(null);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   
   // Image cropper states
   const [showLogoCropper, setShowLogoCropper] = useState(false)
@@ -100,12 +106,36 @@ export default function CreateInstitute() {
     setCourses(courses.filter((_, i) => i !== index))
   }
 
+  const handlePaymentComplete = (paymentData: any) => {
+    setPaymentCompleted(true);
+    console.log('Payment completed:', paymentData);
+    toast({ 
+      title: 'Payment Submitted', 
+      description: 'Payment request submitted successfully. You can now proceed to review and submit.' 
+    });
+  }
+
+  const handleAcceptTerms = () => {
+    setAcceptTerms(true);
+  };
+
   const nextStep = () => {
     // If on the courses step and pending course name is not empty, add it
     if (currentStep === 3 && newCourseName.trim()) {
       addCourse();
       return; // Wait for the next click to actually go to the next step
     }
+    
+    // If trying to go to review step (step 5) without completing payment
+    if (currentStep === 4 && !paymentCompleted) {
+      toast({ 
+        title: 'Payment Required', 
+        description: 'Please complete the payment section before proceeding to review.', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     }
@@ -273,7 +303,7 @@ export default function CreateInstitute() {
         console.log('Success response:', responseData);
         toast({ 
           title: 'Success!', 
-          description: id ? 'Institute updated successfully!' : 'Institute created successfully!', 
+          description: id ? 'Institute updated successfully!' : 'Institute created successfully and is pending admin approval!', 
           variant: 'default' 
         });
         navigate('/education');
@@ -882,6 +912,15 @@ export default function CreateInstitute() {
 
       case 4:
         return (
+          <PaymentSection 
+            entityType="institute"
+            onPaymentComplete={handlePaymentComplete}
+            isRequired={true}
+          />
+        )
+
+      case 5:
+        return (
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-bold text-foreground mb-2">Review Your Information</h3>
@@ -908,6 +947,59 @@ export default function CreateInstitute() {
                   <div>
                     <h4 className="font-semibold text-foreground">Courses & Programs</h4>
                     <p className="text-muted-foreground">{courses.length} courses added</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground">Payment Status</h4>
+                    <p className={`${paymentCompleted ? 'text-green-600' : 'text-red-600'} font-medium`}>
+                      {paymentCompleted ? '✓ Payment Completed' : '✗ Payment Required'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Terms and Conditions */}
+            <Card className={`transition-all duration-200 ${acceptTerms ? 'border-marketplace-success/30 bg-marketplace-success/5' : ''}`}>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="terms" className="text-sm font-medium cursor-pointer">
+                        I accept the Terms and Conditions <span className="text-destructive">*</span>
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        By creating this institute profile, you agree to our terms of service, 
+                        privacy policy, and educational institution guidelines. You confirm that all information 
+                        provided is accurate and that you have the right to represent this institute.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTerms(true)}
+                      className="flex items-center gap-2 text-xs"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Read Full Terms & Policies
+                    </Button>
+                    
+                    {acceptTerms && (
+                      <div className="flex items-center gap-2 text-marketplace-success text-sm">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>Terms Accepted</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -1024,7 +1116,11 @@ export default function CreateInstitute() {
             </Button>
             
             {currentStep === steps.length - 1 ? (
-              <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2" onClick={handleSubmit} disabled={isSubmitting}>
+              <Button 
+                className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2" 
+                onClick={handleSubmit} 
+                disabled={isSubmitting || !paymentCompleted || !acceptTerms}
+              >
                 {isSubmitting ? 'Submitting...' : 'Submit Institute'}
               </Button>
             ) : (
@@ -1055,6 +1151,14 @@ export default function CreateInstitute() {
         onCropComplete={handleBannerCropComplete}
         aspectRatio={2}
         title="Crop Banner"
+      />
+
+      {/* Terms and Policies Popup */}
+      <TermsAndPolicies
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={handleAcceptTerms}
+        title="Institute Creation Terms"
       />
     </div>
   )

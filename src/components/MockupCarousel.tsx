@@ -6,12 +6,12 @@ import laptopImage from "@/assets/mockup-laptop.jpg";
 const mockups = [
   {
     image: mobileImage,
-    alt: "MY Online  Mobile App",
+          alt: "Pakistan Online Mobile App",
     type: "mobile"
   },
   {
     image: laptopImage,
-    alt: "MY Online  Web Platform",
+          alt: "Pakistan Online Web Platform",
     type: "laptop"
   }
 ];
@@ -38,7 +38,7 @@ export function MockupCarousel() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-semibold text-text-blue-dark mb-4">
-            Experience MY Online 
+            Experience Pakistan Online 
           </h2>
           <p className="text-xl text-text-blue-gray max-w-2xl mx-auto">
             Available on all your devices with a seamless experience

@@ -18,11 +18,11 @@ export default function Login() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username: email, password }),
       })
       const data = await response.json()
       if (response.ok) {

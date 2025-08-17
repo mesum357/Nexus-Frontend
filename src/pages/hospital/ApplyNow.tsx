@@ -98,20 +98,18 @@ export default function HospitalApplyNow() {
 
     setSubmitting(true)
     try {
-      const formData = new FormData()
-      formData.append('studentName', patientName)
-      formData.append('fatherName', fatherName)
-      formData.append('cnic', cnic)
-      formData.append('city', city)
-      formData.append('courseName', selectedDepartment)
-      formData.append('courseDuration', '') // Empty since we removed duration
-
-
-             const response = await fetch(`${API_BASE_URL}/api/institute/${id}/apply`, {
-         method: 'POST',
-         body: formData,
-         credentials: 'include'
-       })
+      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/patient-apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          patientName,
+          fatherName,
+          cnic,
+          city,
+          department: selectedDepartment
+        })
+      })
 
       if (response.ok) {
         const data = await response.json()

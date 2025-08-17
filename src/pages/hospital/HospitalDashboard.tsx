@@ -23,7 +23,8 @@ import {
   Linkedin,
   Bell as BellIcon,
   MessageSquare,
-  Stethoscope
+  Stethoscope,
+  RefreshCw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -124,6 +125,12 @@ export default function HospitalDashboard() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showEditTaskDialog, setShowEditTaskDialog] = useState(false)
 
+  // Patient Applications
+  const [patientApplications, setPatientApplications] = useState<any[]>([])
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false)
+  const [selectedApplication, setSelectedApplication] = useState<any>(null)
+  const [applicationNotes, setApplicationNotes] = useState('')
+
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return null
     return imagePath
@@ -158,9 +165,38 @@ export default function HospitalDashboard() {
     fetch(`${API_BASE_URL}/api/institute/${id}/tasks`).then(res => res.json()).then(data => setTasks(data.tasks || [])).catch(() => setTasks([]))
   }, [id])
 
+  // Separate useEffect for patient applications to ensure it runs when currentUser is available
   useEffect(() => {
+    console.log('Patient applications useEffect triggered:', { id, currentUser: currentUser?._id })
+    if (id && currentUser) {
+      console.log('Fetching patient applications from:', `${API_BASE_URL}/api/institute/${id}/patient-applications`)
+      fetch(`${API_BASE_URL}/api/institute/${id}/patient-applications`, { credentials: 'include' })
+        .then(res => {
+          console.log('Patient applications response status:', res.status)
+          return res.json()
+        })
+        .then(data => {
+          console.log('Patient applications fetched:', data)
+          setPatientApplications(data.applications || [])
+        })
+        .catch((error) => {
+          console.error('Error fetching patient applications:', error)
+          setPatientApplications([])
+        })
+    }
+  }, [id, currentUser])
+
+  useEffect(() => {
+    console.log('Owner check useEffect:', { 
+      hospitalOwner: hospital?.owner, 
+      currentUserId: currentUser?._id,
+      hospital: hospital?._id,
+      currentUser: currentUser?._id 
+    })
     if (hospital && currentUser) {
-      setIsOwner(String(hospital.owner) === String(currentUser._id))
+      const isOwnerCheck = String(hospital.owner) === String(currentUser._id)
+      console.log('Setting isOwner to:', isOwnerCheck)
+      setIsOwner(isOwnerCheck)
     }
   }, [hospital, currentUser])
 
@@ -393,6 +429,63 @@ export default function HospitalDashboard() {
       toast({ title: 'Deleted', description: 'Task removed.' })
     } catch (error: any) {
       toast({ title: 'Error', description: error?.message || 'Failed to delete task', variant: 'destructive' })
+    }
+  }
+
+  // Handle patient application status update
+  const handleApplicationStatusUpdate = async (applicationId: string, status: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/patient-applications/${applicationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status, notes: applicationNotes })
+      })
+      
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update application')
+      
+      // Update local state
+      setPatientApplications(prev => prev.map(app => 
+        app._id === applicationId ? { ...app, status, notes: applicationNotes } : app
+      ))
+      
+      setShowApplicationDialog(false)
+      setSelectedApplication(null)
+      setApplicationNotes('')
+      
+      const statusText = status === 'accepted' ? 'approved' : status === 'rejected' ? 'rejected' : status
+      toast({ 
+        title: 'Success', 
+        description: `Patient application ${statusText} successfully!` 
+      })
+    } catch (error: any) {
+      toast({ 
+        title: 'Error', 
+        description: error?.message || 'Failed to update application', 
+        variant: 'destructive' 
+      })
+    }
+  }
+
+  const openApplicationDialog = (application: any) => {
+    setSelectedApplication(application)
+    setApplicationNotes(application.notes || '')
+    setShowApplicationDialog(true)
+  }
+
+  const refreshPatientApplications = async () => {
+    if (id && currentUser) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/institute/${id}/patient-applications`, { credentials: 'include' })
+        const data = await res.json()
+        if (res.ok) {
+          setPatientApplications(data.applications || [])
+          toast({ title: 'Refreshed', description: 'Patient applications list updated.' })
+        }
+      } catch (error) {
+        console.error('Error refreshing patient applications:', error)
+      }
     }
   }
 
@@ -631,6 +724,161 @@ export default function HospitalDashboard() {
                   </CardContent>
                 </Card>
               </motion.div>
+
+              {/* Patient Applications Section - Center Column */}
+              {isOwner && (
+                <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6, duration: 0.6 }} className="relative">
+                  <Card>
+                    <CardHeader className="pb-4 sm:pb-6">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl lg:text-2xl">
+                          <Users className="h-5 w-5 sm:h-6 sm:w-6" /> Patient Applications ({patientApplications.length})
+                        </CardTitle>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={refreshPatientApplications}
+                          className="flex items-center gap-2 w-full sm:w-auto"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Refresh
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      {/* Debug info */}
+                      {process.env.NODE_ENV === 'development' && (
+                        <div className="text-xs text-muted-foreground p-2 bg-muted rounded mb-4">
+                          Debug: isOwner={String(isOwner)}, currentUser={currentUser?._id}, hospital.owner={hospital?.owner}
+                        </div>
+                      )}
+                      
+                      {patientApplications.length > 0 ? (
+                        <div className="space-y-4">
+                          {patientApplications.map((app) => (
+                            <div key={app._id} className="border rounded-lg p-4 sm:p-5 transform transition-transform hover:scale-105 bg-card">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+                                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                                  <Avatar className="h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0">
+                                    <AvatarImage src={app.user?.profileImage} />
+                                    <AvatarFallback className="text-lg sm:text-xl">{app.patientName.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-foreground text-base sm:text-lg truncate">{app.patientName}</h4>
+                                    <p className="text-sm sm:text-base text-primary font-medium truncate">{app.department}</p>
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-2">
+                                      <Badge 
+                                        variant={
+                                          app.status === 'accepted' ? 'default' : 
+                                          app.status === 'rejected' ? 'destructive' : 
+                                          app.status === 'review' ? 'secondary' : 'outline'
+                                        }
+                                        className="text-xs capitalize w-fit"
+                                      >
+                                        {app.status}
+                                      </Badge>
+                                      <span className="text-xs text-muted-foreground">
+                                        Applied: {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : ''}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                                <div className="space-y-2">
+                                  <p className="text-sm text-muted-foreground">
+                                    <span className="font-medium text-foreground">Father:</span> {app.fatherName}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    <span className="font-medium text-foreground">CNIC:</span> {app.cnic}
+                                  </p>
+                                </div>
+                                <div className="space-y-2">
+                                  <p className="text-sm text-muted-foreground">
+                                    <span className="font-medium text-foreground">City:</span> {app.city}
+                                  </p>
+                                  {app.notes && (
+                                    <p className="text-sm text-muted-foreground">
+                                      <span className="font-medium text-foreground">Notes:</span> {app.notes}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              {app.status === 'submitted' && (
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => openApplicationDialog(app)}
+                                    className="flex-1"
+                                  >
+                                    Review Application
+                                  </Button>
+                                </div>
+                              )}
+                              
+                              {app.status === 'review' && (
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => handleApplicationStatusUpdate(app._id, 'accepted')}
+                                    className="flex-1 bg-green-600 hover:bg-green-700"
+                                  >
+                                    <Check className="h-4 w-4 mr-2" />
+                                    Approve
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    onClick={() => handleApplicationStatusUpdate(app._id, 'rejected')}
+                                    className="flex-1"
+                                  >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Reject
+                                  </Button>
+                                </div>
+                              )}
+
+                              {app.status === 'accepted' && (
+                                <div className="flex items-center gap-2 text-green-600 p-3 bg-green-50 rounded-lg">
+                                  <Check className="h-4 w-4" />
+                                  <span className="text-sm font-medium">Application Approved</span>
+                                </div>
+                              )}
+
+                              {app.status === 'rejected' && (
+                                <div className="flex items-center gap-2 text-red-600 p-3 bg-red-50 rounded-lg">
+                                  <X className="h-4 w-4" />
+                                  <span className="text-sm font-medium">Application Rejected</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 sm:py-10">
+                          <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                          <h3 className="text-lg font-semibold text-foreground mb-2">No Patient Applications</h3>
+                          <p className="text-muted-foreground">When patients register, their applications will appear here for review.</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6, duration: 0.6 }} className="relative">
+                <Card>
+                  <CardHeader className="pb-3 sm:pb-6"><CardTitle className="text-base sm:text-lg">Quick Stats</CardTitle></CardHeader>
+                  <CardContent className="pt-0 space-y-3 sm:space-y-4">
+                    <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Total Patients</span><span className="font-semibold text-sm sm:text-base">{hospital.totalPatients || hospital.patients || 'N/A'}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Technicalities</span><span className="font-semibold text-sm sm:text-base">{hospital.specialization ? hospital.specialization.split(', ').length : 0}</span></div>
+                                         <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Doctors</span><span className="font-semibold text-sm sm:text-base">{hospital.faculty?.length || 0}</span></div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </div>
 
             <div className="space-y-4 sm:space-y-6">
@@ -761,21 +1009,105 @@ export default function HospitalDashboard() {
                   </CardContent>
                 </Card>
               </motion.div>
-
-              <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.6, duration: 0.6 }} className="relative">
-                <Card>
-                  <CardHeader className="pb-3 sm:pb-6"><CardTitle className="text-base sm:text-lg">Quick Stats</CardTitle></CardHeader>
-                  <CardContent className="pt-0 space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Total Patients</span><span className="font-semibold text-sm sm:text-base">{hospital.totalPatients || hospital.patients || 'N/A'}</span></div>
-                    <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Technicalities</span><span className="font-semibold text-sm sm:text-base">{hospital.specialization ? hospital.specialization.split(', ').length : 0}</span></div>
-                                         <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Doctors</span><span className="font-semibold text-sm sm:text-base">{hospital.faculty?.length || 0}</span></div>
-                  </CardContent>
-                </Card>
-              </motion.div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Application Review Dialog */}
+      <Dialog open={showApplicationDialog} onOpenChange={setShowApplicationDialog}>
+        <DialogContent className="max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-lg">Review Patient Application</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              Review the application details and add notes before approving or rejecting the application.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedApplication && (
+            <div className="space-y-4">
+              {/* Patient Info Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Avatar className="h-12 w-12 flex-shrink-0">
+                    <AvatarImage src={selectedApplication.user?.profileImage} />
+                    <AvatarFallback className="text-lg">{selectedApplication.patientName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-base truncate">{selectedApplication.patientName}</p>
+                    <p className="text-sm text-muted-foreground truncate">{selectedApplication.department}</p>
+                  </div>
+                </div>
+                
+                {/* Patient Details Grid */}
+                <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center py-1 border-b border-border/50">
+                      <span className="font-medium text-foreground">Father:</span> 
+                      <span className="text-muted-foreground text-right">{selectedApplication.fatherName}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-b border-border/50">
+                      <span className="font-medium text-foreground">CNIC:</span> 
+                      <span className="text-muted-foreground text-right">{selectedApplication.cnic}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-b border-border/50">
+                      <span className="font-medium text-foreground">City:</span> 
+                      <span className="text-muted-foreground text-right">{selectedApplication.city}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="font-medium text-foreground">Applied:</span> 
+                      <span className="text-muted-foreground text-right">
+                        {selectedApplication.createdAt ? new Date(selectedApplication.createdAt).toLocaleDateString() : ''}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Notes Section */}
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-sm font-medium">Notes (optional)</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Add any notes about this application..."
+                  value={applicationNotes}
+                  onChange={(e) => setApplicationNotes(e.target.value)}
+                  rows={2}
+                  className="resize-none text-sm"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 pt-2">
+                <Button 
+                  onClick={() => handleApplicationStatusUpdate(selectedApplication._id, 'accepted')}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  size="sm"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Approve Application
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => handleApplicationStatusUpdate(selectedApplication._id, 'rejected')}
+                  className="w-full"
+                  size="sm"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Reject Application
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowApplicationDialog(false)}
+                  className="w-full"
+                  size="sm"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

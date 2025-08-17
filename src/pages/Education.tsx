@@ -9,6 +9,7 @@ import InstituteCard from '@/components/education/InstituteCard'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
+import Logo from '@/assets/Logo.png'
 
 // Define Institute type
 interface Institute {
@@ -100,7 +101,7 @@ export default function Education() {
         transition={{ duration: 0.6 }}
         className="relative pt-16 sm:pt-20 pb-12 sm:pb-16"
         style={{
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)), url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1920&h=800&fit=crop')`,
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -115,9 +116,9 @@ export default function Education() {
             >
               <div className="flex flex-col sm:flex-row items-center justify-center mb-6">
                 <img 
-                  src="https://images.unsplash.com/photo-1564981797816-1043664bf78d?w=80&h=80&fit=crop&crop=face" 
+                  src={Logo} 
                   alt="Pakistan Online Logo"
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
                 />
                 <div className="text-center sm:text-left">
                   <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground">

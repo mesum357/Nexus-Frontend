@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Shop } from '@/pages/Store'
+import ShopPreview from './ShopPreview'
+import { useState, useRef, useEffect } from 'react'
 
 interface ShopCardProps {
   shop: Shop
@@ -13,9 +15,39 @@ interface ShopCardProps {
 
 export default function ShopCard({ shop, index }: ShopCardProps) {
   const navigate = useNavigate()
+  const [showPreview, setShowPreview] = useState(false)
+  const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
+  const cardRef = useRef<HTMLDivElement>(null)
+  const timeoutRef = useRef<NodeJS.Timeout>()
+  
+  const handleMouseEnter = (e: React.MouseEvent) => {
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect()
+      setPreviewPosition({ x: rect.right, y: rect.top })
+    }
+    // Add a small delay to prevent immediate preview
+    timeoutRef.current = setTimeout(() => setShowPreview(true), 200)
+  }
+  
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+    setShowPreview(false)
+  }
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
   
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ 
@@ -27,7 +59,9 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
         y: -8,
         transition: { duration: 0.3 }
       }}
-      className="group"
+      className="group relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <Card className="overflow-hidden border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
         {/* Shop Image */}
@@ -120,6 +154,13 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
           </Button>
         </CardContent>
       </Card>
+      
+      {/* Hover Preview */}
+      <ShopPreview
+        shop={shop}
+        isVisible={showPreview}
+        position={previewPosition}
+      />
     </motion.div>
   )
 }
