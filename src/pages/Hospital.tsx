@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import Logo from '@/assets/Logo.png'
-import bgImage from '@/assets/hospital-bg.svg' // Hospital-themed background
+import bgImage from '@/assets/hospital.avif' // Hospital background image
 
 interface HospitalType {
   _id: string;
