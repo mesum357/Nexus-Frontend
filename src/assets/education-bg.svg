@@ -1,0 +1,83 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="education-pattern" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+      <!-- Graduation cap pattern -->
+      <path d="M20 40 L60 20 L100 40 L60 60 Z" fill="rgba(59, 130, 246, 0.08)" stroke="rgba(59, 130, 246, 0.15)" stroke-width="1"/>
+      <path d="M60 60 L60 80" stroke="rgba(59, 130, 246, 0.15)" stroke-width="1"/>
+      <circle cx="60" cy="80" r="3" fill="rgba(59, 130, 246, 0.1)"/>
+      
+      <!-- Book pattern -->
+      <rect x="25" y="25" width="20" height="25" fill="rgba(34, 197, 94, 0.08)" stroke="rgba(34, 197, 94, 0.15)" stroke-width="1"/>
+      <line x1="30" y1="30" x2="40" y2="30" stroke="rgba(34, 197, 94, 0.15)" stroke-width="1"/>
+      <line x1="30" y1="35" x2="38" y2="35" stroke="rgba(34, 197, 94, 0.15)" stroke-width="1"/>
+      <line x1="30" y1="40" x2="35" y2="40" stroke="rgba(34, 197, 94, 0.15)" stroke-width="1"/>
+      
+      <!-- Pencil pattern -->
+      <path d="M80 30 L95 15 L100 20 L85 35 Z" fill="rgba(239, 68, 68, 0.08)" stroke="rgba(239, 68, 68, 0.15)" stroke-width="1"/>
+      <circle cx="82" cy="32" r="1" fill="rgba(239, 68, 68, 0.15)"/>
+      
+      <!-- Calculator pattern -->
+      <rect x="85" y="45" width="15" height="20" fill="rgba(168, 85, 247, 0.08)" stroke="rgba(168, 85, 247, 0.15)" stroke-width="1"/>
+      <circle cx="88" cy="50" r="1" fill="rgba(168, 85, 247, 0.15)"/>
+      <circle cx="91" cy="50" r="1" fill="rgba(168, 85, 247, 0.15)"/>
+      <circle cx="94" cy="50" r="1" fill="rgba(168, 85, 247, 0.15)"/>
+      <circle cx="88" cy="55" r="1" fill="rgba(168, 85, 247, 0.15)"/>
+      <circle cx="91" cy="55" r="1" fill="rgba(168, 85, 247, 0.15)"/>
+      <circle cx="94" cy="55" r="1" fill="rgba(168, 85, 247, 0.15)"/>
+      
+      <!-- Microscope pattern -->
+      <circle cx="30" cy="70" r="8" fill="rgba(245, 158, 11, 0.08)" stroke="rgba(245, 158, 11, 0.15)" stroke-width="1"/>
+      <rect x="26" y="78" width="8" height="15" fill="rgba(245, 158, 11, 0.08)" stroke="rgba(245, 158, 11, 0.15)" stroke-width="1"/>
+      <line x1="30" y1="78" x2="30" y2="93" stroke="rgba(245, 158, 11, 0.15)" stroke-width="1"/>
+      
+      <!-- Test tube pattern -->
+      <path d="M70 70 Q70 65 75 65 Q80 65 80 70 L80 85 Q80 90 75 90 Q70 90 70 85 Z" fill="rgba(16, 185, 129, 0.08)" stroke="rgba(16, 185, 129, 0.15)" stroke-width="1"/>
+      <circle cx="75" cy="75" r="2" fill="rgba(16, 185, 129, 0.15)"/>
+    </pattern>
+    
+    <!-- Additional decorative elements -->
+    <radialGradient id="accent-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(59, 130, 246, 0.03)"/>
+      <stop offset="100%" stop-color="rgba(59, 130, 246, 0)"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Main background with pattern -->
+  <rect width="100%" height="100%" fill="url(#education-pattern)" />
+  
+  <!-- Accent glow circles -->
+  <circle cx="200" cy="150" r="100" fill="url(#accent-glow)" />
+  <circle cx="800" cy="300" r="80" fill="url(#accent-glow)" />
+  <circle cx="400" cy="600" r="120" fill="url(#accent-glow)" />
+  <circle cx="1000" cy="650" r="90" fill="url(#accent-glow)" />
+  
+  <!-- Floating academic symbols -->
+  <g opacity="0.1">
+    <!-- Large graduation cap -->
+    <path d="M150 200 L300 100 L450 200 L300 300 Z" fill="rgba(59, 130, 246, 0.1)" stroke="rgba(59, 130, 246, 0.2)" stroke-width="2"/>
+    <path d="M300 300 L300 400" stroke="rgba(59, 130, 246, 0.2)" stroke-width="2"/>
+    <circle cx="300" cy="400" r="8" fill="rgba(59, 130, 246, 0.15)"/>
+    
+    <!-- Large book -->
+    <rect x="700" y="150" width="80" height="100" fill="rgba(34, 197, 94, 0.1)" stroke="rgba(34, 197, 94, 0.2)" stroke-width="2"/>
+    <line x1="720" y1="170" x2="760" y2="170" stroke="rgba(34, 197, 94, 0.2)" stroke-width="2"/>
+    <line x1="720" y1="185" x2="750" y2="185" stroke="rgba(34, 197, 94, 0.2)" stroke-width="2"/>
+    <line x1="720" y1="200" x2="740" y2="200" stroke="rgba(34, 197, 94, 0.2)" stroke-width="2"/>
+    
+    <!-- Large pencil -->
+    <path d="M200 500 L350 350 L400 400 L250 550 Z" fill="rgba(239, 68, 68, 0.1)" stroke="rgba(239, 68, 68, 0.2)" stroke-width="2"/>
+    <circle cx="225" cy="525" r="3" fill="rgba(239, 68, 68, 0.2)"/>
+  </g>
+  
+  <!-- Subtle grid lines for academic feel -->
+  <g opacity="0.05">
+    <line x1="0" y1="200" x2="1200" y2="200" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+    <line x1="0" y1="600" x2="1200" y2="600" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="800" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="800" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="800" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="800" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+    <line x1="1000" y1="0" x2="1000" y2="800" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+  </g>
+</svg>

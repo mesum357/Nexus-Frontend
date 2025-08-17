@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import Logo from '@/assets/Logo.png'
+import bgImage from '@/assets/education-bg.svg'
 
 // Define Institute type
 interface Institute {
@@ -101,12 +102,12 @@ export default function Education() {
         transition={{ duration: 0.6 }}
         className="relative pt-16 sm:pt-20 pb-12 sm:pb-16"
         style={{
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))`,
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.3)), url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
       >
-        <div className="absolute inset-0 bg-background/80" />
+        <div className="absolute inset-0 bg-background/40" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="text-center">
             <motion.div
