@@ -100,7 +100,7 @@ export default function Hospital() {
           backgroundPosition: 'center'
         }}
       >
-        <div className="absolute inset-0 bg-background/40" />
+        <div className="absolute inset-0 bg-background/20" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="text-center">
             <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}>

@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState } from "react";
@@ -10,13 +10,6 @@ const footerLinks = [
   { label: "Contact", href: "#contact", isPopup: false },
   { label: "Terms", href: "#terms", isPopup: true },
   { label: "Privacy", href: "#privacy", isPopup: false }
-];
-
-const socialLinks = [
-  { icon: Facebook, href: "#facebook", label: "Facebook" },
-  { icon: Twitter, href: "#twitter", label: "Twitter" },
-  { icon: Instagram, href: "#instagram", label: "Instagram" },
-  { icon: Linkedin, href: "#linkedin", label: "LinkedIn" }
 ];
 
 export function Footer() {
@@ -75,18 +68,9 @@ export function Footer() {
                 className="flex items-center space-x-3 text-slate-300"
               >
                 <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Phone className="h-4 w-4 text-blue-400" />
-                </div>
-                <span>+92 300 1234567</span>
-              </motion.div>
-              <motion.div 
-                whileHover={{ x: 5 }}
-                className="flex items-center space-x-3 text-slate-300"
-              >
-                <div className="p-2 bg-blue-500/20 rounded-lg">
                   <MapPin className="h-4 w-4 text-blue-400" />
                 </div>
-                <span>Karachi, Pakistan</span>
+                <span>Manchester Tower, Lahore</span>
               </motion.div>
             </div>
           </motion.div>
@@ -158,33 +142,7 @@ export function Footer() {
 
         {/* Bottom Section */}
         <div className="border-t border-slate-700 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-            {/* Social Links */}
-            <motion.div 
-              initial={{ x: -50, opacity: 0 }}
-              whileInView={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              viewport={{ once: true }}
-              className="flex space-x-4"
-            >
-              {socialLinks.map((social, index) => (
-                <motion.a
-                  key={social.label}
-                  href={social.href}
-                  initial={{ scale: 0, opacity: 0 }}
-                  whileInView={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  viewport={{ once: true }}
-                  className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full flex items-center justify-center hover:from-blue-400 hover:to-purple-400 transition-all duration-300 shadow-lg shadow-blue-500/25"
-                  aria-label={social.label}
-                >
-                  <social.icon size={20} />
-                </motion.a>
-              ))}
-            </motion.div>
-            
+          <div className="flex flex-col md:flex-row justify-center items-center space-y-6 md:space-y-0">
             {/* Copyright */}
             <motion.div 
               initial={{ opacity: 0 }}

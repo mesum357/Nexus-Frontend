@@ -1,20 +1,18 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { 
   CreditCard, 
   QrCode, 
-  Banknote, 
   Building2, 
   CheckCircle,
   AlertCircle,
-  Info
+  Info,
+  Upload,
+  X
 } from 'lucide-react'
 
 interface PaymentSectionProps {
@@ -24,12 +22,7 @@ interface PaymentSectionProps {
 }
 
 interface PaymentData {
-  amount: number
-  transactionId: string
-  bankName: string
-  accountNumber: string
-  transactionDate: string
-  notes: string
+  transactionScreenshot: File | null
 }
 
 export default function PaymentSection({ 
@@ -39,12 +32,7 @@ export default function PaymentSection({
 }: PaymentSectionProps) {
   const { toast } = useToast()
   const [paymentData, setPaymentData] = useState<PaymentData>({
-    amount: 0,
-    transactionId: '',
-    bankName: '',
-    accountNumber: '',
-    transactionDate: '',
-    notes: ''
+    transactionScreenshot: null
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -88,52 +76,16 @@ export default function PaymentSection({
     }
   }
 
-  const handleInputChange = (field: keyof PaymentData, value: string | number) => {
-    setPaymentData(prev => ({ ...prev, [field]: value }))
+  const handleFileChange = (file: File | null) => {
+    setPaymentData(prev => ({ ...prev, transactionScreenshot: file }))
   }
 
   const handleSubmitPayment = async () => {
     // Validation
-    if (!paymentData.amount || paymentData.amount <= 0) {
+    if (!paymentData.transactionScreenshot) {
       toast({ 
-        title: 'Invalid Amount', 
-        description: 'Please enter a valid payment amount', 
-        variant: 'destructive' 
-      })
-      return
-    }
-
-    if (!paymentData.transactionId.trim()) {
-      toast({ 
-        title: 'Transaction ID Required', 
-        description: 'Please enter the bank transaction ID', 
-        variant: 'destructive' 
-      })
-      return
-    }
-
-    if (!paymentData.bankName.trim()) {
-      toast({ 
-        title: 'Bank Name Required', 
-        description: 'Please enter the bank name', 
-        variant: 'destructive' 
-      })
-      return
-    }
-
-    if (!paymentData.accountNumber.trim()) {
-      toast({ 
-        title: 'Account Number Required', 
-        description: 'Please enter the account number', 
-        variant: 'destructive' 
-      })
-      return
-    }
-
-    if (!paymentData.transactionDate) {
-      toast({ 
-        title: 'Transaction Date Required', 
-        description: 'Please select the transaction date', 
+        title: 'Screenshot Required', 
+        description: 'Please upload a screenshot of your transaction', 
         variant: 'destructive' 
       })
       return
@@ -142,22 +94,16 @@ export default function PaymentSection({
     setIsSubmitting(true)
 
     try {
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append('entityType', entityType)
+      formData.append('transactionScreenshot', paymentData.transactionScreenshot)
+
       // Send payment request to backend
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
-        body: JSON.stringify({
-          entityType,
-          amount: paymentData.amount,
-          transactionId: paymentData.transactionId,
-          bankName: paymentData.bankName,
-          accountNumber: paymentData.accountNumber,
-          transactionDate: paymentData.transactionDate,
-          notes: paymentData.notes
-        })
+        body: formData
       })
 
       const data = await response.json()
@@ -167,7 +113,6 @@ export default function PaymentSection({
       }
 
       const paymentInfo = {
-        ...paymentData,
         entityType,
         timestamp: new Date().toISOString(),
         status: 'pending',
@@ -186,12 +131,7 @@ export default function PaymentSection({
 
       // Reset form
       setPaymentData({
-        amount: 0,
-        transactionId: '',
-        bankName: '',
-        accountNumber: '',
-        transactionDate: '',
-        notes: ''
+        transactionScreenshot: null
       })
 
     } catch (error) {
@@ -368,86 +308,75 @@ export default function PaymentSection({
           </Card>
         </div>
 
-        {/* Right Column - Deposit Request Form */}
+        {/* Right Column - Screenshot Upload Form */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Banknote className="h-5 w-5" />
-              Deposit Request Form
+              <Upload className="h-5 w-5" />
+              Upload Transaction Screenshot
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Payment Amount (PKR) *</Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="Enter amount"
-                value={paymentData.amount || ''}
-                onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
-                className="text-lg font-medium"
-              />
               <p className="text-sm text-muted-foreground">
-                Recommended: PKR {getPaymentAmount().toLocaleString()}
+                Please upload a screenshot of your bank transaction showing the payment to our account.
               </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="transactionId">Bank Transaction ID *</Label>
-              <Input
-                id="transactionId"
-                placeholder="Enter transaction ID from bank receipt"
-                value={paymentData.transactionId}
-                onChange={(e) => handleInputChange('transactionId', e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="bankName">Bank Name *</Label>
-                <Input
-                  id="bankName"
-                  placeholder="e.g., HBL, UBL, MCB"
-                  value={paymentData.bankName}
-                  onChange={(e) => handleInputChange('bankName', e.target.value)}
-                />
+              
+              {/* File Upload Area */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                {paymentData.transactionScreenshot ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center gap-2 text-green-600">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="font-medium">File Selected</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {paymentData.transactionScreenshot.name}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleFileChange(null)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Remove File
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Upload className="h-12 w-12 mx-auto text-gray-400" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, JPEG up to 10MB
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const input = document.createElement('input')
+                        input.type = 'file'
+                        input.accept = 'image/*'
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0]
+                          if (file) handleFileChange(file)
+                        }
+                        input.click()
+                      }}
+                    >
+                      Choose File
+                    </Button>
+                  </div>
+                )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="accountNumber">Account Number *</Label>
-                <Input
-                  id="accountNumber"
-                  placeholder="Your account number"
-                  value={paymentData.accountNumber}
-                  onChange={(e) => handleInputChange('accountNumber', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="transactionDate">Transaction Date *</Label>
-              <Input
-                id="transactionDate"
-                type="date"
-                value={paymentData.transactionDate}
-                onChange={(e) => handleInputChange('transactionDate', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Additional Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="Any additional information about your payment..."
-                value={paymentData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                rows={3}
-              />
             </div>
 
             <Button
               onClick={handleSubmitPayment}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !paymentData.transactionScreenshot}
               className="w-full"
               size="lg"
             >

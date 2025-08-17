@@ -158,7 +158,7 @@ export default function Navbar() {
               <img 
                 src={Logo} 
                 alt="Pakistan Online Logo" 
-                className="h-12 w-auto"
+                className="h-16 w-auto"
               />
             </Link>
           </motion.div>
