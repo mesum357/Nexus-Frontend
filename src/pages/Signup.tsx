@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import bgImage from '@/assets/hero-home.jpg'
+import logo from '@/assets/Logo.png'
 import { useToast } from '@/components/ui/use-toast'
 import { API_BASE_URL } from '@/lib/config'
 import { Camera } from 'lucide-react'
@@ -93,7 +94,9 @@ export default function Signup() {
       <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-lg p-10 w-full max-w-md text-white">
         {/* Logo and Title */}
         <div className="text-center mb-6">
-          <div className="text-5xl font-bold mb-2">M</div>
+          <div className="mb-2">
+            <img src={logo} alt="Pak Nexus Logo" className="h-16 w-auto mx-auto" />
+          </div>
           <h2 className="text-2xl font-semibold">Welcome</h2>
         </div>
 
@@ -195,7 +198,7 @@ export default function Signup() {
 
           <Button
             type="submit"
-            className="w-full bg-pink-500 hover:bg-pink-600 rounded-full py-2 font-semibold"
+            className="w-full bg-blue-500 hover:bg-blue-600 rounded-full py-2 font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Signing Up...' : 'Sign Up'}
