@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { Shop as ShopType } from './Store'
 import heroStoreImage from '@/assets/hero-store.jpg'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon, Edit, Settings, Share2, Wrench } from 'lucide-react'
+import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon, Edit, Settings, Share2, Wrench, Eye, X } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -90,6 +90,8 @@ export default function Shop() {
   const [deletingGalleryImage, setDeletingGalleryImage] = useState<number | null>(null);
   const [sharing, setSharing] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [showProductPreview, setShowProductPreview] = useState(false);
+  const [previewProduct, setPreviewProduct] = useState<ProductType | null>(null);
 
   useEffect(() => {
     if (!shopId) return;
@@ -473,6 +475,16 @@ export default function Shop() {
     }
   };
 
+  const handleProductPreview = (product: ProductType) => {
+    setPreviewProduct(product);
+    setShowProductPreview(true);
+  };
+
+  const closeProductPreview = () => {
+    setShowProductPreview(false);
+    setPreviewProduct(null);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -843,6 +855,17 @@ export default function Shop() {
                                   -{product.discountPercentage}%
                                 </span>
                               )}
+                              {/* Preview Button */}
+                              <div className="absolute bottom-2 right-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleProductPreview(product)}
+                                  className="bg-white/80 hover:bg-white h-8 w-8"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </div>
                               {/* Mobile: Product action buttons in top right */}
                               {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
                                 <div className="absolute top-2 left-2 flex gap-1 sm:hidden">
@@ -1237,6 +1260,39 @@ export default function Shop() {
                       'Delete Shop'
                     )}
                   </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Product Preview Popup */}
+          {showProductPreview && previewProduct && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+              <div className="bg-background rounded-lg shadow-xl max-w-md w-full max-h-full flex flex-col">
+                <div className="flex justify-between items-center p-4 border-b">
+                  <h3 className="font-semibold text-lg">{previewProduct.name}</h3>
+                  <button onClick={closeProductPreview} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <div className="flex-1 p-4 flex items-center justify-center">
+                  <img
+                    src={previewProduct.image || heroStoreImage}
+                    alt={previewProduct.name}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+                <div className="p-4 border-t">
+                  <p className="text-muted-foreground text-sm mb-2">Description:</p>
+                  <p className="text-foreground text-base">{previewProduct.description}</p>
+                  <div className="flex items-center gap-2 mt-4">
+                    <span className="font-bold text-primary text-lg">PKR {previewProduct.price}</span>
+                    {previewProduct.discountPercentage && previewProduct.discountPercentage > 0 && (
+                      <span className="text-xs text-muted-foreground line-through">
+                        PKR {(previewProduct.price / (1 - previewProduct.discountPercentage / 100)).toFixed(0)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
