@@ -1,63 +1,159 @@
 <svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <pattern id="hospital-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-      <!-- Medical cross pattern -->
-      <rect x="45" y="20" width="10" height="60" fill="rgba(59, 130, 246, 0.1)"/>
-      <rect x="20" y="45" width="60" height="10" fill="rgba(59, 130, 246, 0.1)"/>
+    <!-- Modern healthcare gradient backgrounds -->
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e40af" stop-opacity="0.08"/>
+      <stop offset="25%" stop-color="#dc2626" stop-opacity="0.06"/>
+      <stop offset="50%" stop-color="#059669" stop-opacity="0.05"/>
+      <stop offset="75%" stop-color="#7c3aed" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#0891b2" stop-opacity="0.03"/>
+    </linearGradient>
+    
+    <!-- Healthcare accent gradients -->
+    <radialGradient id="accent-1" cx="25%" cy="25%" r="70%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+    
+    <radialGradient id="accent-2" cx="75%" cy="75%" r="60%">
+      <stop offset="0%" stop-color="#dc2626" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+    </radialGradient>
+    
+    <radialGradient id="accent-3" cx="15%" cy="75%" r="50%">
+      <stop offset="0%" stop-color="#059669" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#059669" stop-opacity="0"/>
+    </radialGradient>
+    
+    <radialGradient id="accent-4" cx="85%" cy="25%" r="45%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Modern geometric patterns -->
+    <pattern id="geometric-pattern" x="0" y="0" width="250" height="250" patternUnits="userSpaceOnUse">
+      <!-- Subtle geometric elements -->
+      <circle cx="50" cy="50" r="6" fill="rgba(59, 130, 246, 0.04)"/>
+      <circle cx="200" cy="50" r="8" fill="rgba(220, 38, 38, 0.03)"/>
+      <circle cx="50" cy="200" r="7" fill="rgba(5, 150, 105, 0.04)"/>
+      <circle cx="200" cy="200" r="5" fill="rgba(124, 58, 237, 0.03)"/>
       
-      <!-- Heartbeat pattern -->
-      <path d="M15 60 Q25 40 35 60 T55 60 T75 60 T95 60" stroke="rgba(239, 68, 68, 0.08)" stroke-width="2" fill="none"/>
-      
-      <!-- Stethoscope pattern -->
-      <circle cx="80" cy="30" r="8" fill="rgba(34, 197, 94, 0.08)"/>
-      <path d="M80 38 Q80 50 70 60" stroke="rgba(34, 197, 94, 0.08)" stroke-width="2" fill="none"/>
+      <!-- Subtle cross pattern -->
+      <rect x="120" y="45" width="10" height="160" fill="rgba(59, 130, 246, 0.02)"/>
+      <rect x="45" y="120" width="160" height="10" fill="rgba(220, 38, 38, 0.02)"/>
     </pattern>
     
-    <!-- Gradient overlay -->
-    <linearGradient id="hospital-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:rgba(59, 130, 246, 0.05);stop-opacity:1" />
-      <stop offset="50%" style="stop-color:rgba(239, 68, 68, 0.03);stop-opacity:1" />
-      <stop offset="100%" style="stop-color:rgba(34, 197, 94, 0.05);stop-opacity:1" />
-    </linearGradient>
+    <!-- Floating healthcare elements pattern -->
+    <pattern id="floating-elements" x="0" y="0" width="400" height="400" patternUnits="userSpaceOnUse">
+      <!-- Abstract medical curves -->
+      <path d="M50 100 Q100 50 150 100 T250 100" stroke="rgba(59, 130, 246, 0.06)" stroke-width="2" fill="none"/>
+      <path d="M300 200 Q350 150 400 200 T500 200" stroke="rgba(220, 38, 38, 0.05)" stroke-width="2" fill="none"/>
+      <path d="M150 300 Q200 250 250 300 T350 300" stroke="rgba(5, 150, 105, 0.06)" stroke-width="2" fill="none"/>
+    </pattern>
+    
+    <!-- Pulse wave pattern -->
+    <pattern id="pulse-pattern" x="0" y="0" width="300" height="100" patternUnits="userSpaceOnUse">
+      <path d="M0 50 Q25 20 50 50 T100 50 T150 50 T200 50 T250 50 T300 50" 
+            stroke="rgba(220, 38, 38, 0.04)" stroke-width="1" fill="none"/>
+    </pattern>
   </defs>
   
-  <!-- Background -->
-  <rect width="1200" height="800" fill="url(#hospital-gradient)"/>
+  <!-- Main background -->
+  <rect width="100%" height="100%" fill="url(#bg-gradient)"/>
   
-  <!-- Pattern overlay -->
-  <rect width="1200" height="800" fill="url(#hospital-pattern)"/>
+  <!-- Geometric pattern overlay -->
+  <rect width="100%" height="100%" fill="url(#geometric-pattern)"/>
   
-  <!-- Floating medical icons -->
-  <g opacity="0.1">
-    <!-- Pill bottle -->
-    <rect x="100" y="100" width="20" height="30" rx="10" fill="rgba(59, 130, 246, 0.3)"/>
-    <rect x="105" y="110" width="10" height="10" fill="rgba(255, 255, 255, 0.5)"/>
+  <!-- Floating elements -->
+  <rect width="100%" height="100%" fill="url(#floating-elements)"/>
+  
+  <!-- Pulse wave overlay -->
+  <rect width="100%" height="100%" fill="url(#pulse-pattern)"/>
+  
+  <!-- Accent circles -->
+  <circle cx="200" cy="150" r="130" fill="url(#accent-1)"/>
+  <circle cx="800" cy="300" r="110" fill="url(#accent-2)"/>
+  <circle cx="400" cy="600" r="150" fill="url(#accent-3)"/>
+  <circle cx="1000" cy="650" r="120" fill="url(#accent-4)"/>
+  <circle cx="600" cy="200" r="90" fill="url(#accent-1)"/>
+  
+  <!-- Modern geometric shapes -->
+  <g opacity="0.08">
+    <!-- Medical cross -->
+    <rect x="300" y="200" width="12" height="80" fill="rgba(59, 130, 246, 0.1)" stroke="rgba(59, 130, 246, 0.2)" stroke-width="1"/>
+    <rect x="250" y="240" width="80" height="12" fill="rgba(59, 130, 246, 0.1)" stroke="rgba(59, 130, 246, 0.2)" stroke-width="1"/>
     
-    <!-- Syringe -->
-    <rect x="200" y="150" width="4" height="25" fill="rgba(239, 68, 68, 0.3)"/>
-    <circle cx="202" cy="175" r="8" fill="rgba(239, 68, 68, 0.3)"/>
-    
-    <!-- Medical chart -->
-    <rect x="300" y="120" width="25" height="35" fill="rgba(34, 197, 94, 0.3)"/>
-    <line x1="305" y1="130" x2="320" y2="130" stroke="rgba(255, 255, 255, 0.5)" stroke-width="1"/>
-    <line x1="305" y1="140" x2="315" y2="140" stroke="rgba(255, 255, 255, 0.5)" stroke-width="1"/>
-    <line x1="305" y1="150" x2="318" y2="150" stroke="rgba(255, 255, 255, 0.5)" stroke-width="1"/>
-    
-    <!-- Heart -->
-    <path d="M400 140 Q400 120 420 120 T440 140 Q440 160 420 180 Q400 160 400 140" fill="rgba(239, 68, 68, 0.3)"/>
+    <!-- Heart shape -->
+    <path d="M700 200 Q700 180 720 180 T740 200 Q740 220 720 240 Q700 220 700 200" 
+          fill="rgba(220, 38, 38, 0.1)" stroke="rgba(220, 38, 38, 0.2)" stroke-width="1"/>
     
     <!-- DNA helix -->
-    <path d="M500 100 Q520 120 500 140 T500 180" stroke="rgba(59, 130, 246, 0.3)" stroke-width="2" fill="none"/>
-    <path d="M500 100 Q480 120 500 140 T500 180" stroke="rgba(239, 68, 68, 0.3)" stroke-width="2" fill="none"/>
+    <path d="M200 500 Q220 480 240 500 T280 500" stroke="rgba(5, 150, 105, 0.1)" stroke-width="2" fill="none"/>
+    <path d="M200 500 Q180 520 240 500 T280 500" stroke="rgba(124, 58, 237, 0.1)" stroke-width="2" fill="none"/>
     
-    <!-- Microscope -->
-    <circle cx="600" cy="160" r="15" fill="rgba(34, 197, 94, 0.3)"/>
-    <rect x="590" y="175" width="20" height="25" fill="rgba(34, 197, 94, 0.3)"/>
+    <!-- Stethoscope -->
+    <circle cx="800" cy="500" r="15" fill="rgba(5, 150, 105, 0.1)" stroke="rgba(5, 150, 105, 0.2)" stroke-width="1"/>
+    <path d="M800 515 Q800 530 790 540" stroke="rgba(5, 150, 105, 0.2)" stroke-width="1" fill="none"/>
+    <circle cx="790" cy="540" r="5" fill="rgba(5, 150, 105, 0.15)"/>
     
-    <!-- X-ray -->
-    <rect x="700" y="130" width="30" height="40" fill="rgba(59, 130, 246, 0.3)"/>
-    <circle cx="715" cy="150" r="3" fill="rgba(255, 255, 255, 0.5)"/>
-    <circle cx="720" cy="160" r="2" fill="rgba(255, 255, 255, 0.5)"/>
-    <circle cx="710" cy="170" r="4" fill="rgba(255, 255, 255, 0.5)"/>
+    <!-- Pill bottle -->
+    <rect x="900" y="400" width="25" height="35" rx="12" fill="rgba(124, 58, 237, 0.1)" stroke="rgba(124, 58, 237, 0.2)" stroke-width="1"/>
+    <rect x="905" y="410" width="15" height="15" fill="rgba(255, 255, 255, 0.3)"/>
+  </g>
+  
+  <!-- Subtle grid system -->
+  <g opacity="0.03">
+    <line x1="0" y1="200" x2="1200" y2="200" stroke="rgba(59, 130, 246, 0.4)" stroke-width="1"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="rgba(220, 38, 38, 0.4)" stroke-width="1"/>
+    <line x1="0" y1="600" x2="1200" y2="600" stroke="rgba(5, 150, 105, 0.4)" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="800" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="800" stroke="rgba(220, 38, 38, 0.3)" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="800" stroke="rgba(5, 150, 105, 0.3)" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="800" stroke="rgba(124, 58, 237, 0.3)" stroke-width="1"/>
+    <line x1="1000" y1="0" x2="1000" y2="800" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1"/>
+  </g>
+  
+  <!-- Modern dots pattern -->
+  <g opacity="0.05">
+    <circle cx="150" cy="100" r="3" fill="rgba(59, 130, 246, 0.8)"/>
+    <circle cx="350" cy="120" r="2" fill="rgba(220, 38, 38, 0.8)"/>
+    <circle cx="550" cy="90" r="4" fill="rgba(5, 150, 105, 0.8)"/>
+    <circle cx="750" cy="110" r="3" fill="rgba(124, 58, 237, 0.8)"/>
+    <circle cx="950" cy="130" r="2" fill="rgba(8, 145, 178, 0.8)"/>
+    
+    <circle cx="200" cy="300" r="3" fill="rgba(220, 38, 38, 0.8)"/>
+    <circle cx="400" cy="320" r="2" fill="rgba(5, 150, 105, 0.8)"/>
+    <circle cx="600" cy="290" r="4" fill="rgba(124, 58, 237, 0.8)"/>
+    <circle cx="800" cy="310" r="3" fill="rgba(8, 145, 178, 0.8)"/>
+    <circle cx="1000" cy="330" r="2" fill="rgba(59, 130, 246, 0.8)"/>
+    
+    <circle cx="150" cy="500" r="3" fill="rgba(5, 150, 105, 0.8)"/>
+    <circle cx="350" cy="520" r="2" fill="rgba(124, 58, 237, 0.8)"/>
+    <circle cx="550" cy="490" r="4" fill="rgba(8, 145, 178, 0.8)"/>
+    <circle cx="750" cy="510" r="3" fill="rgba(59, 130, 246, 0.8)"/>
+    <circle cx="950" cy="530" r="2" fill="rgba(220, 38, 38, 0.8)"/>
+    
+    <circle cx="200" cy="700" r="3" fill="rgba(124, 58, 237, 0.8)"/>
+    <circle cx="400" cy="720" r="2" fill="rgba(8, 145, 178, 0.8)"/>
+    <circle cx="600" cy="690" r="4" fill="rgba(59, 130, 246, 0.8)"/>
+    <circle cx="800" cy="710" r="3" fill="rgba(220, 38, 38, 0.8)"/>
+    <circle cx="1000" cy="730" r="2" fill="rgba(5, 150, 105, 0.8)"/>
+  </g>
+  
+  <!-- Subtle medical symbols -->
+  <g opacity="0.04">
+    <!-- Small crosses scattered -->
+    <g transform="translate(100, 300)">
+      <rect x="0" y="0" width="2" height="8" fill="rgba(59, 130, 246, 0.6)"/>
+      <rect x="-3" y="3" width="8" height="2" fill="rgba(59, 130, 246, 0.6)"/>
+    </g>
+    <g transform="translate(500, 150)">
+      <rect x="0" y="0" width="2" height="8" fill="rgba(220, 38, 38, 0.6)"/>
+      <rect x="-3" y="3" width="8" height="2" fill="rgba(220, 38, 38, 0.6)"/>
+    </g>
+    <g transform="translate(900, 400)">
+      <rect x="0" y="0" width="2" height="8" fill="rgba(5, 150, 105, 0.6)"/>
+      <rect x="-3" y="3" width="8" height="2" fill="rgba(5, 150, 105, 0.6)"/>
+    </g>
   </g>
 </svg>
