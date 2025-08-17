@@ -2,6 +2,7 @@ import storeIcon from "@/assets/icon-store.jpg";
 import educationIcon from "@/assets/icon-education.jpg";
 import socialIcon from "@/assets/icon-social.jpg";
 import marketplaceIcon from "@/assets/icon-marketplace.jpg";
+import hospitalIcon from "@/assets/hospital.avif";
 import { motion } from "framer-motion";
 
 const features = [
@@ -23,7 +24,12 @@ const features = [
   {
     icon: marketplaceIcon,
     title: "Marketplace",
-    description: "Buy & sell items (OLX‑style)"
+    description: "Buy & sell items"
+  },
+  {
+    icon: hospitalIcon,
+    title: "Healthcare",
+    description: "Find hospitals & doctors"
   }
 ];
 
@@ -31,7 +37,7 @@ export function FeaturesSection() {
   return (
     <section className="py-20 bg-background">
       <div className="container mx-auto px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {features.map((feature, index) => (
             <motion.div 
               key={feature.title}
