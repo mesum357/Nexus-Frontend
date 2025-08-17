@@ -3,11 +3,12 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import AboutPopup from "./ui/AboutPopup";
+import TermsPopup from "./ui/TermsPopup";
 
 const footerLinks = [
   { label: "About", href: "#about", isPopup: true },
   { label: "Contact", href: "#contact", isPopup: false },
-  { label: "Terms", href: "#terms", isPopup: false },
+  { label: "Terms", href: "#terms", isPopup: true },
   { label: "Privacy", href: "#privacy", isPopup: false }
 ];
 
@@ -20,6 +21,7 @@ const socialLinks = [
 
 export function Footer() {
   const [showAbout, setShowAbout] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   return (
     <motion.footer 
@@ -102,7 +104,13 @@ export function Footer() {
                 <motion.div key={link.label} whileHover={{ x: 5 }}>
                   {link.isPopup ? (
                     <button
-                      onClick={() => setShowAbout(true)}
+                      onClick={() => {
+                        if (link.label === "About") {
+                          setShowAbout(true);
+                        } else if (link.label === "Terms") {
+                          setShowTerms(true);
+                        }
+                      }}
                       className="text-slate-300 hover:text-blue-400 transition-colors duration-300 block py-1 font-medium text-left w-full"
                     >
                       {link.label}
@@ -200,6 +208,12 @@ export function Footer() {
       <AboutPopup
         isOpen={showAbout}
         onClose={() => setShowAbout(false)}
+      />
+
+      {/* Terms Popup */}
+      <TermsPopup
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
       />
     </motion.footer>
   );
