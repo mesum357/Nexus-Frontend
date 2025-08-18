@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SearchableSelect } from '@/components/ui/searchable-select'
 import Navbar from '@/components/Navbar'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
@@ -15,6 +16,7 @@ import { ImageCropper } from '@/components/ui/image-cropper'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import PaymentSection from '@/components/PaymentSection'
 import TermsAndPolicies from '@/components/ui/TermsAndPolicies'
+import { PAKISTAN_CITIES } from '@/lib/cities'
 
 const steps = [
   'Basic Information',
@@ -283,137 +285,12 @@ export default function CreateHospital() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="city">City *</Label>
-                <Select value={form.city} onValueChange={value => setForm({ ...form, city: value })}>
-                  <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Karachi">Karachi</SelectItem>
-                    <SelectItem value="Lahore">Lahore</SelectItem>
-                    <SelectItem value="Islamabad">Islamabad</SelectItem>
-                    <SelectItem value="Rawalpindi">Rawalpindi</SelectItem>
-                    <SelectItem value="Faisalabad">Faisalabad</SelectItem>
-                    <SelectItem value="Multan">Multan</SelectItem>
-                    <SelectItem value="Peshawar">Peshawar</SelectItem>
-                    <SelectItem value="Quetta">Quetta</SelectItem>
-                    <SelectItem value="Sialkot">Sialkot</SelectItem>
-                    <SelectItem value="Gujranwala">Gujranwala</SelectItem>
-                    <SelectItem value="Hyderabad">Hyderabad</SelectItem>
-                    <SelectItem value="Bahawalpur">Bahawalpur</SelectItem>
-                    <SelectItem value="Sargodha">Sargodha</SelectItem>
-                    <SelectItem value="Sukkur">Sukkur</SelectItem>
-                    <SelectItem value="Larkana">Larkana</SelectItem>
-                    <SelectItem value="Sheikhupura">Sheikhupura</SelectItem>
-                    <SelectItem value="Mardan">Mardan</SelectItem>
-                    <SelectItem value="Gujrat">Gujrat</SelectItem>
-                    <SelectItem value="Kasur">Kasur</SelectItem>
-                    <SelectItem value="Dera Ghazi Khan">Dera Ghazi Khan</SelectItem>
-                    <SelectItem value="Sahiwal">Sahiwal</SelectItem>
-                    <SelectItem value="Nawabshah">Nawabshah</SelectItem>
-                    <SelectItem value="Mingora">Mingora</SelectItem>
-                    <SelectItem value="Burewala">Burewala</SelectItem>
-                    <SelectItem value="Jhelum">Jhelum</SelectItem>
-                    <SelectItem value="Kamoke">Kamoke</SelectItem>
-                    <SelectItem value="Hafizabad">Hafizabad</SelectItem>
-                    <SelectItem value="Khanewal">Khanewal</SelectItem>
-                    <SelectItem value="Vehari">Vehari</SelectItem>
-                    <SelectItem value="Dera Ismail Khan">Dera Ismail Khan</SelectItem>
-                    <SelectItem value="Nowshera">Nowshera</SelectItem>
-                    <SelectItem value="Charsadda">Charsadda</SelectItem>
-                    <SelectItem value="Jhang">Jhang</SelectItem>
-                    <SelectItem value="Mandi Bahauddin">Mandi Bahauddin</SelectItem>
-                    <SelectItem value="Ahmadpur East">Ahmadpur East</SelectItem>
-                    <SelectItem value="Kamalia">Kamalia</SelectItem>
-                    <SelectItem value="Gojra">Gojra</SelectItem>
-                    <SelectItem value="Mansehra">Mansehra</SelectItem>
-                    <SelectItem value="Kabirwala">Kabirwala</SelectItem>
-                    <SelectItem value="Okara">Okara</SelectItem>
-                    <SelectItem value="Gilgit">Gilgit</SelectItem>
-                    <SelectItem value="Mirpur Khas">Mirpur Khas</SelectItem>
-                    <SelectItem value="Rahim Yar Khan">Rahim Yar Khan</SelectItem>
-                    <SelectItem value="Leiah">Leiah</SelectItem>
-                    <SelectItem value="Muzaffargarh">Muzaffargarh</SelectItem>
-                    <SelectItem value="Khanpur">Khanpur</SelectItem>
-                    <SelectItem value="Jampur">Jampur</SelectItem>
-                    <SelectItem value="Dadu">Dadu</SelectItem>
-                    <SelectItem value="Khairpur">Khairpur</SelectItem>
-                    <SelectItem value="Pakpattan">Pakpattan</SelectItem>
-                    <SelectItem value="Bahawalnagar">Bahawalnagar</SelectItem>
-                    <SelectItem value="Tando Adam">Tando Adam</SelectItem>
-                    <SelectItem value="Tando Allahyar">Tando Allahyar</SelectItem>
-                    <SelectItem value="Mirpur Mathelo">Mirpur Mathelo</SelectItem>
-                    <SelectItem value="Shikarpur">Shikarpur</SelectItem>
-                    <SelectItem value="Jacobabad">Jacobabad</SelectItem>
-                    <SelectItem value="Ghotki">Ghotki</SelectItem>
-                    <SelectItem value="Mehar">Mehar</SelectItem>
-                    <SelectItem value="Tando Muhammad Khan">Tando Muhammad Khan</SelectItem>
-                    <SelectItem value="Dera Allahyar">Dera Allahyar</SelectItem>
-                    <SelectItem value="Shahdadkot">Shahdadkot</SelectItem>
-                    <SelectItem value="Matiari">Matiari</SelectItem>
-                    <SelectItem value="Gambat">Gambat</SelectItem>
-                    <SelectItem value="Nasirabad">Nasirabad</SelectItem>
-                    <SelectItem value="Mehrabpur">Mehrabpur</SelectItem>
-                    <SelectItem value="Rohri">Rohri</SelectItem>
-                    <SelectItem value="Pano Aqil">Pano Aqil</SelectItem>
-                    <SelectItem value="Sakrand">Sakrand</SelectItem>
-                    <SelectItem value="Umerkot">Umerkot</SelectItem>
-                    <SelectItem value="Chhor">Chhor</SelectItem>
-                    <SelectItem value="Kunri">Kunri</SelectItem>
-                    <SelectItem value="Pithoro">Pithoro</SelectItem>
-                    <SelectItem value="Samaro">Samaro</SelectItem>
-                    <SelectItem value="Goth Garelo">Goth Garelo</SelectItem>
-                    <SelectItem value="Ranipur">Ranipur</SelectItem>
-                    <SelectItem value="Dokri">Dokri</SelectItem>
-                    <SelectItem value="Lakhi">Lakhi</SelectItem>
-                    <SelectItem value="Dingro">Dingro</SelectItem>
-                    <SelectItem value="Kandhkot">Kandhkot</SelectItem>
-                    <SelectItem value="Kashmore">Kashmore</SelectItem>
-                    <SelectItem value="Ubauro">Ubauro</SelectItem>
-                    <SelectItem value="Sadiqabad">Sadiqabad</SelectItem>
-                    <SelectItem value="Liaquatpur">Liaquatpur</SelectItem>
-                    <SelectItem value="Uch Sharif">Uch Sharif</SelectItem>
-                    <SelectItem value="Alipur">Alipur</SelectItem>
-                    <SelectItem value="Jatoi">Jatoi</SelectItem>
-                    <SelectItem value="Taunsa">Taunsa</SelectItem>
-                    <SelectItem value="Kot Addu">Kot Addu</SelectItem>
-                    <SelectItem value="Layyah">Layyah</SelectItem>
-                    <SelectItem value="Chobara">Chobara</SelectItem>
-                    <SelectItem value="Kot Sultan">Kot Sultan</SelectItem>
-                    <SelectItem value="Bhakkar">Bhakkar</SelectItem>
-                    <SelectItem value="Darya Khan">Darya Khan</SelectItem>
-                    <SelectItem value="Kallur Kot">Kallur Kot</SelectItem>
-                    <SelectItem value="Mankera">Mankera</SelectItem>
-                    <SelectItem value="Dullewala">Dullewala</SelectItem>
-                    <SelectItem value="Daud Khel">Daud Khel</SelectItem>
-                    <SelectItem value="Pindi Gheb">Pindi Gheb</SelectItem>
-                    <SelectItem value="Fateh Jang">Fateh Jang</SelectItem>
-                    <SelectItem value="Gujar Khan">Gujar Khan</SelectItem>
-                    <SelectItem value="Kallar Syedan">Kallar Syedan</SelectItem>
-                    <SelectItem value="Taxila">Taxila</SelectItem>
-                    <SelectItem value="Wah Cantonment">Wah Cantonment</SelectItem>
-                    <SelectItem value="Murree">Murree</SelectItem>
-                    <SelectItem value="Kahuta">Kahuta</SelectItem>
-                    <SelectItem value="Kotli Sattian">Kotli Sattian</SelectItem>
-                    <SelectItem value="Chakwal">Chakwal</SelectItem>
-                    <SelectItem value="Attock">Attock</SelectItem>
-                    <SelectItem value="Abbottabad">Abbottabad</SelectItem>
-                    <SelectItem value="Haripur">Haripur</SelectItem>
-                    <SelectItem value="Batagram">Batagram</SelectItem>
-                    <SelectItem value="Shangla">Shangla</SelectItem>
-                    <SelectItem value="Swat">Swat</SelectItem>
-                    <SelectItem value="Buner">Buner</SelectItem>
-                    <SelectItem value="Malakand">Malakand</SelectItem>
-                    <SelectItem value="Dir">Dir</SelectItem>
-                    <SelectItem value="Chitral">Chitral</SelectItem>
-                    <SelectItem value="Kohistan">Kohistan</SelectItem>
-                    <SelectItem value="Torghar">Torghar</SelectItem>
-                    <SelectItem value="Bannu">Bannu</SelectItem>
-                    <SelectItem value="Tank">Tank</SelectItem>
-                    <SelectItem value="Kohat">Kohat</SelectItem>
-                    <SelectItem value="Hangu">Hangu</SelectItem>
-                    <SelectItem value="Karak">Karak</SelectItem>
-                    <SelectItem value="Lakki Marwat">Lakki Marwat</SelectItem>
-                    <SelectItem value="Dera Ismail Khan">Dera Ismail Khan</SelectItem>
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={form.city}
+                  onValueChange={(value) => setForm({ ...form, city: value })}
+                  placeholder="Select city"
+                  options={PAKISTAN_CITIES}
+                />
               </div>
               <div>
                 <Label htmlFor="province">Province *</Label>
