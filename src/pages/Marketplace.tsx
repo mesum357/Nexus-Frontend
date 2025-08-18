@@ -12,6 +12,7 @@ import Navbar from '@/components/Navbar'
 import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
+import marketImage from '@/assets/market.avif'
 
 
 
@@ -260,9 +261,15 @@ export default function Marketplace() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="bg-gradient-to-br from-orange-500/10 via-background to-primary/5 py-8 sm:py-12"
+          className="relative py-8 sm:py-12"
+          style={{
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.3)), url(${marketImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="absolute inset-0 bg-background/80" />
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-6 sm:mb-8">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3 sm:mb-4">
                 Pakistan <span className="text-orange-500">Marketplace</span>

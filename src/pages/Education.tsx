@@ -140,7 +140,7 @@ export default function Education() {
                 </div>
               </div>
               <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-                Explore top institutes across Pakistan. Building trust through education.
+                Connect with trusted schools, colleges, tutors and training centers across Pakistan. Search courses, compare programs, read reviews from other learners, and book classes or admissions
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
                 <Button 
