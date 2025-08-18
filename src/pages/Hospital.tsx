@@ -112,7 +112,7 @@ export default function Hospital() {
                 />
                 <div className="text-center sm:text-left">
                   <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground">
-                    Pakistan <span className="text-primary">Online</span>
+                    Find Local <span className="text-primary">Hospitals & Healthcare Services</span>
                   </h1>
                   <div className="flex flex-col sm:flex-row items-center gap-2 mt-2">
                     <div className="flex items-center gap-2">
