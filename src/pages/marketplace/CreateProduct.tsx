@@ -72,7 +72,8 @@ export default function CreateProduct() {
     city: '',
     contactPreference: 'both',
     ownerPhone: '',
-    ownerEmail: ''
+    ownerEmail: '',
+    agentId: ''
   });
 
   useEffect(() => {
@@ -352,6 +353,17 @@ export default function CreateProduct() {
                         placeholder="Describe your product in detail"
                         rows={4}
                         maxLength={1000}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium">Agent ID <span className="text-muted-foreground">(Optional)</span></label>
+                      <Input
+                        name="agentId"
+                        value={formData.agentId || ''}
+                        onChange={handleInputChange}
+                        placeholder="Enter agent ID if applicable"
+                        className="h-10 sm:h-10"
                       />
                     </div>
 

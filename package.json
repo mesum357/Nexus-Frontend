@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "vite preview --port $PORT --host 0.0.0.0",
-    "start:direct": "vite preview --port 8080 --host 0.0.0.0"
+    "start:direct": "vite preview --port 8080 --host 0.0.0.0",
+    "serve": "npx serve dist -p 8080 -l 0.0.0.0"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",

@@ -249,19 +249,25 @@ export default function CreateHospital() {
                  </Select>
               </div>
             </div>
-            <div>
-              <Label htmlFor="description" className="text-sm sm:text-base">Description *</Label>
-              <RichTextEditor value={form.description || ''} onChange={(value) => setForm({ ...form, description: value })} placeholder="Describe your hospital, departments, and services" rows={6} maxLength={2000} />
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div>
+                <Label htmlFor="agentId" className="text-sm sm:text-base">Agent ID (Optional)</Label>
+                <Input id="agentId" placeholder="Enter agent ID if applicable" value={form.agentId || ''} onChange={handleChange} className="h-10 sm:h-10" />
+              </div>
               <div>
                 <Label htmlFor="establishedYear" className="text-sm sm:text-base">Year Established</Label>
                 <Input id="establishedYear" type="number" placeholder="e.g. 1995" value={form.establishedYear || ''} onChange={handleChange} className="h-10 sm:h-10" />
               </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <Label htmlFor="totalPatients" className="text-sm sm:text-base">Number of Patients</Label>
                 <Input id="totalPatients" placeholder="e.g. 120000" value={form.totalPatients || ''} onChange={handleChange} className="h-10 sm:h-10" />
               </div>
+            </div>
+            <div>
+              <Label htmlFor="description" className="text-sm sm:text-base">Description *</Label>
+              <RichTextEditor value={form.description || ''} onChange={(value) => setForm({ ...form, description: value })} placeholder="Describe your hospital, departments, and services" rows={6} maxLength={2000} />
             </div>
           </div>
         )

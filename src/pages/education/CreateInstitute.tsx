@@ -356,6 +356,17 @@ export default function CreateInstitute() {
               </div>
             </div>
             
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div>
+                <Label htmlFor="agentId" className="text-sm sm:text-base">Agent ID (Optional)</Label>
+                <Input id="agentId" placeholder="Enter agent ID if applicable" value={form.agentId || ''} onChange={handleChange} className="h-10 sm:h-10" />
+              </div>
+              <div>
+                <Label htmlFor="establishedYear" className="text-sm sm:text-base">Year Established</Label>
+                <Input id="establishedYear" type="number" placeholder="e.g. 1984" value={form.establishedYear || ''} onChange={handleChange} className="h-10 sm:h-10" />
+              </div>
+            </div>
+            
             <div>
               <Label htmlFor="description" className="text-sm sm:text-base">Description *</Label>
               <RichTextEditor
@@ -368,10 +379,6 @@ export default function CreateInstitute() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <div>
-                <Label htmlFor="establishedYear" className="text-sm sm:text-base">Year Established</Label>
-                <Input id="establishedYear" type="number" placeholder="e.g. 1984" value={form.establishedYear || ''} onChange={handleChange} className="h-10 sm:h-10" />
-              </div>
               <div>
                 <Label htmlFor="totalStudents" className="text-sm sm:text-base">Number of Students</Label>
                 <Input id="totalStudents" placeholder="e.g. 5000" value={form.totalStudents || ''} onChange={handleChange} className="h-10 sm:h-10" />

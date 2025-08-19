@@ -72,6 +72,20 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
         </div>
       </div>
 
+      {/* Agent ID */}
+      <div className="space-y-2">
+        <Label htmlFor="agentId" className="text-sm font-medium">
+          Agent ID <span className="text-muted-foreground">(Optional)</span>
+        </Label>
+        <Input
+          id="agentId"
+          placeholder="Enter agent ID if applicable"
+          value={data.agentId || ''}
+          onChange={(e) => updateData({ agentId: e.target.value })}
+          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20 h-10 sm:h-10"
+        />
+      </div>
+
       {/* Shop Type */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
