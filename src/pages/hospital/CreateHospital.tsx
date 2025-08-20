@@ -87,6 +87,7 @@ export default function CreateHospital() {
       // Prepare FormData for hospital creation
       const formData = new FormData();
       formData.append('name', form.name);
+      formData.append('agentId', form.agentId || '');
       formData.append('type', form.type);
       formData.append('description', form.description);
       formData.append('address', form.address);

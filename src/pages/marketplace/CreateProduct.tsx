@@ -111,6 +111,7 @@ export default function CreateProduct() {
       const formData = new FormData();
       formData.append('title', formData.title);
       formData.append('description', formData.description);
+      formData.append('agentId', formData.agentId || '');
       formData.append('price', formData.price);
       formData.append('category', formData.category);
       formData.append('condition', formData.condition);

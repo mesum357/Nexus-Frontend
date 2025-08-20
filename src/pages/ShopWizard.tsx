@@ -69,6 +69,7 @@ const ShopWizard: React.FC = () => {
       const formData = new FormData();
       formData.append('shopName', shopData.shopName);
       formData.append('city', shopData.city);
+      formData.append('agentId', shopData.agentId || '');
       formData.append('shopType', shopData.shopType);
       formData.append('shopDescription', shopData.shopDescription);
       formData.append('categories', JSON.stringify(shopData.categories));
