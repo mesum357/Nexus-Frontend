@@ -53,6 +53,7 @@ export default function CreateInstitute() {
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [createdInstitute, setCreatedInstitute] = useState<any>(null);
   
   // Image cropper states
   const [showLogoCropper, setShowLogoCropper] = useState(false)
@@ -108,13 +109,85 @@ export default function CreateInstitute() {
     setCourses(courses.filter((_, i) => i !== index))
   }
 
-  const handlePaymentComplete = (paymentData: any) => {
-    setPaymentCompleted(true);
-    console.log('Payment completed:', paymentData);
-    toast({ 
-      title: 'Payment Submitted', 
-      description: 'Payment request submitted successfully. You can now proceed to review and submit.' 
-    });
+  const handlePaymentComplete = async (paymentData: any) => {
+    // First create the institute to get the entityId and Agent ID
+    setIsSubmitting(true);
+    try {
+      // Prepare FormData for institute creation
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('type', form.type);
+      formData.append('description', form.description);
+      formData.append('address', form.address);
+      formData.append('city', form.city);
+      formData.append('contactNumber', form.contactNumber);
+      formData.append('email', form.email);
+      formData.append('website', form.website);
+      formData.append('establishedYear', form.establishedYear);
+      formData.append('accreditation', form.accreditation);
+      formData.append('facilities', form.facilities);
+      formData.append('acceptTerms', 'true');
+      
+      if (logoFile) formData.append('logo', logoFile);
+      if (bannerFile) formData.append('banner', bannerFile);
+      
+      if (courses.length > 0) {
+        formData.append('courses', JSON.stringify(courses));
+      }
+
+      // Create institute first
+      const instituteResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/institute`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!instituteResponse.ok) {
+        const errorData = await instituteResponse.json();
+        throw new Error(errorData.error || 'Failed to create institute');
+      }
+
+      const instituteData = await instituteResponse.json();
+      console.log('Institute created successfully:', instituteData);
+
+      // Now submit payment with the institute's entityId
+      const paymentFormData = new FormData();
+      paymentFormData.append('entityType', 'institute');
+      paymentFormData.append('entityId', instituteData.institute._id);
+      paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
+      paymentFormData.append('amount', '10000'); // Default institute payment amount
+
+      const paymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
+        method: 'POST',
+        credentials: 'include',
+        body: paymentFormData
+      });
+
+      if (!paymentResponse.ok) {
+        const paymentError = await paymentResponse.json();
+        throw new Error(paymentError.error || 'Failed to submit payment');
+      }
+
+      setPaymentCompleted(true);
+      console.log('Payment completed:', paymentData);
+      toast({ 
+        title: 'Institute Created & Payment Submitted', 
+        description: 'Your institute has been created successfully and payment request submitted. You can now proceed to review.' 
+      });
+
+      // Store the created institute data for the review step
+      setCreatedInstitute(instituteData.institute);
+
+    } catch (error) {
+      console.error('Error creating institute or submitting payment:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create institute or submit payment. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const handleAcceptTerms = () => {
@@ -221,113 +294,13 @@ export default function CreateInstitute() {
       return;
     }
     
-    // Clear previous course errors
-    setCourseError(null);
-    
-    // Debug: log form state and files
-    console.log('Submitting form:', form);
-    console.log('logoFile:', logoFile);
-    console.log('bannerFile:', bannerFile);
-    console.log('courses:', courses);
-    
-    // Enhanced validation with specific error messages
-    const missingFields = [];
-    
-    if (!form.name) missingFields.push('Institute Name');
-    if (!form.type) missingFields.push('Institute Type');
-    if (!form.city) missingFields.push('City');
-    if (!form.province) missingFields.push('Province');
-    if (!form.description) missingFields.push('Description');
-    if (!form.phone) missingFields.push('Phone Number');
-    if (!form.email) missingFields.push('Email Address');
-    if (!form.address) missingFields.push('Address');
-    if (!form.specialization) missingFields.push('Main Specialization');
-    if (!logoFile) missingFields.push('Logo Image');
-    if (!bannerFile) missingFields.push('Banner Image');
-    if (courses.length === 0) {
-      missingFields.push('At least one course');
-      setCourseError('Please add at least one course');
-    }
-    
-    if (missingFields.length > 0) {
-      toast({ 
-        title: 'Missing Required Fields', 
-        description: `Please provide: ${missingFields.join(', ')}`, 
-        variant: 'destructive' 
-      });
-      return;
-    }
-    
-    setIsSubmitting(true)
-    try {
-      const formData = new FormData()
-      
-    // Add all form fields to FormData
-      Object.entries(form).forEach(([key, value]) => {
-        if (key !== 'logo' && key !== 'banner' && value) {
-          formData.append(key, value as string)
-        }
-      })
-      
-    // Convert course inputs to course objects matching the backend schema
-    const courseObjects = courses.map(c => ({
-      name: c.name,
-      description: '',
-      duration: c.duration || '',
-      fee: 0,
-      category: ''
-    }));
-      
-      // Add courses as JSON string
-      formData.append('courses', JSON.stringify(courseObjects))
-      
-      // Add files
-      if (logoFile) formData.append('logo', logoFile)
-      if (bannerFile) formData.append('banner', bannerFile)
-      
-      // Determine method and URL
-      const method = id ? 'PUT' : 'POST'
-      const url = id ? `${API_BASE_URL}/api/institute/${id}` : `${API_BASE_URL}/api/institute/create`
-      
-      console.log('Making request to:', url);
-      console.log('Method:', method);
-      
-      const res = await fetch(url, {
-        method,
-        body: formData,
-        credentials: 'include',
-      })
-      
-      console.log('Response status:', res.status);
-      
-      if (res.ok) {
-        const responseData = await res.json();
-        console.log('Success response:', responseData);
-        toast({ 
-          title: 'Success!', 
-          description: id ? 'Institute updated successfully!' : 'Institute created successfully and is pending admin approval!', 
-          variant: 'default' 
-        });
-        navigate('/education');
-      } else {
-        const errorData = await res.json();
-        console.error('Error response:', errorData);
-        toast({ 
-          title: 'Error', 
-          description: errorData.error || errorData.message || 'Failed to submit institute', 
-          variant: 'destructive' 
-        });
-      }
-    } catch (error) {
-      console.error('Network error:', error);
-      toast({ 
-        title: 'Network Error', 
-        description: 'Failed to connect to server. Please check your connection and try again.', 
-        variant: 'destructive' 
-      });
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Institute is already created in handlePaymentComplete, just navigate to success
+    toast({ 
+      title: 'Institute Creation Complete!', 
+      description: 'Your institute has been created successfully and payment submitted. It is now pending admin approval!', 
+      variant: 'default' 
+    });
+    navigate('/education');
   }
 
   const renderStepContent = () => {
@@ -638,11 +611,12 @@ export default function CreateInstitute() {
 
       case 4:
         return (
-          <PaymentSection 
-            entityType="institute"
-            onPaymentComplete={handlePaymentComplete}
-            isRequired={true}
-          />
+                  <PaymentSection 
+          entityType="institute"
+          onPaymentComplete={handlePaymentComplete}
+          isRequired={true}
+          isSubmitting={isSubmitting}
+        />
         )
 
       case 5:

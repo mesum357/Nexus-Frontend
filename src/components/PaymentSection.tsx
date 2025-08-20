@@ -19,6 +19,7 @@ interface PaymentSectionProps {
   entityType: 'shop' | 'institute' | 'hospital' | 'marketplace'
   onPaymentComplete?: (paymentData: any) => void
   isRequired?: boolean
+  isSubmitting?: boolean
 }
 
 interface PaymentData {
@@ -28,7 +29,8 @@ interface PaymentData {
 export default function PaymentSection({ 
   entityType, 
   onPaymentComplete, 
-  isRequired = true 
+  isRequired = true,
+  isSubmitting = false
 }: PaymentSectionProps) {
   const { toast } = useToast()
   const [paymentData, setPaymentData] = useState<PaymentData>({
@@ -383,7 +385,7 @@ export default function PaymentSection({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Submitting Payment...
+                  Creating Shop & Submitting Payment...
                 </>
               ) : (
                 <>

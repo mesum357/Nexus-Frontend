@@ -46,6 +46,7 @@ export default function CreateHospital() {
   const [paymentCompleted, setPaymentCompleted] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [showTerms, setShowTerms] = useState(false)
+  const [createdHospital, setCreatedHospital] = useState<any>(null)
 
   const [showLogoCropper, setShowLogoCropper] = useState(false)
   const [showBannerCropper, setShowBannerCropper] = useState(false)
@@ -79,13 +80,86 @@ export default function CreateHospital() {
 
   const removeTech = (index: number) => setTechs(techs.filter((_, i) => i !== index))
 
-  const handlePaymentComplete = (paymentData: any) => {
-    setPaymentCompleted(true);
-    console.log('Payment completed:', paymentData);
-    toast({ 
-      title: 'Payment Submitted', 
-      description: 'Payment request submitted successfully. You can now proceed to review and submit.' 
-    });
+  const handlePaymentComplete = async (paymentData: any) => {
+    // First create the hospital to get the entityId and Agent ID
+    setIsSubmitting(true);
+    try {
+      // Prepare FormData for hospital creation
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('type', form.type);
+      formData.append('description', form.description);
+      formData.append('address', form.address);
+      formData.append('city', form.city);
+      formData.append('province', form.province);
+      formData.append('phone', form.phone);
+      formData.append('email', form.email);
+      formData.append('website', form.website);
+      formData.append('establishedYear', form.establishedYear);
+      formData.append('accreditation', form.accreditation);
+      formData.append('facilities', form.facilities);
+      formData.append('acceptTerms', 'true');
+      
+      if (logoFile) formData.append('logo', logoFile);
+      if (bannerFile) formData.append('banner', bannerFile);
+      
+      if (techs.length > 0) {
+        formData.append('techs', JSON.stringify(techs));
+      }
+
+      // Create hospital first
+      const hospitalResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/institute`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!hospitalResponse.ok) {
+        const errorData = await hospitalResponse.json();
+        throw new Error(errorData.error || 'Failed to create hospital');
+      }
+
+      const hospitalData = await hospitalResponse.json();
+      console.log('Hospital created successfully:', hospitalData);
+
+      // Now submit payment with the hospital's entityId
+      const paymentFormData = new FormData();
+      paymentFormData.append('entityType', 'hospital');
+      paymentFormData.append('entityId', hospitalData.institute._id);
+      paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
+      paymentFormData.append('amount', '15000'); // Default hospital payment amount
+
+      const paymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
+        method: 'POST',
+        credentials: 'include',
+        body: paymentFormData
+      });
+
+      if (!paymentResponse.ok) {
+        const paymentError = await paymentResponse.json();
+        throw new Error(paymentError.error || 'Failed to submit payment');
+      }
+
+      setPaymentCompleted(true);
+      console.log('Payment completed:', paymentData);
+      toast({ 
+        title: 'Hospital Created & Payment Submitted', 
+        description: 'Your hospital has been created successfully and payment request submitted. You can now proceed to review.' 
+      });
+
+      // Store the created hospital data for the review step
+      setCreatedHospital(hospitalData.institute);
+
+    } catch (error) {
+      console.error('Error creating hospital or submitting payment:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create hospital or submit payment. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const handleAcceptTerms = () => {
@@ -143,86 +217,12 @@ export default function CreateHospital() {
   const handleCloseBannerCropper = () => { setShowBannerCropper(false); setTempBannerFile(null) }
 
   const handleSubmit = async () => {
-    if (currentStep === 3 && newTech.trim()) {
-      addTech()
-      setTechError('Please click Add to add your technicality before submitting.')
-      return
-    }
-    setTechError(null)
-
-    const missing: string[] = []
-    if (!form.name) missing.push('Hospital Name')
-    if (!form.type) missing.push('Hospital Type')
-    if (!form.city) missing.push('City')
-    if (!form.province) missing.push('Province')
-    if (!form.description) missing.push('Description')
-    if (!form.phone) missing.push('Phone Number')
-    if (!form.email) missing.push('Email Address')
-    if (!form.address) missing.push('Address')
-    if (!logoFile) missing.push('Logo Image')
-    if (!bannerFile) missing.push('Banner Image')
-    if (techs.length === 0) { missing.push('At least one technicality'); setTechError('Please add at least one technicality') }
-
-    if (missing.length > 0) {
-      toast({ title: 'Missing Required Fields', description: `Please provide: ${missing.join(', ')}`, variant: 'destructive' })
-      return
-    }
-
-    setIsSubmitting(true)
-    try {
-      const formData = new FormData()
-      // Ensure type matches backend enum (merged edu + healthcare)
-      const allowedTypes = ['Hospital','General','Specialized','Clinic','Medical Center','University','College','School','Academy']
-      const typeToSend = allowedTypes.includes(form.type) ? form.type : 'Hospital'
-      Object.entries(form).forEach(([key, value]) => {
-        if (key === 'type') return // append sanitized type separately
-        if (key !== 'logo' && key !== 'banner' && value) formData.append(key, value as string)
-      })
-      formData.append('type', typeToSend)
-      // Backend expects courses array similar to institute. Map technicalities to courses.
-      const courseObjects = techs.map(t => ({ name: t.name, description: '', duration: '', fee: 0, category: '' }))
-      formData.append('courses', JSON.stringify(courseObjects))
-      // Also send specialization for consistency
-      formData.append('specialization', techs.map(t => t.name).join(', '))
-      // Mark as healthcare domain so backend separates it from education
-      formData.append('domain', 'healthcare')
-      if (logoFile) formData.append('logo', logoFile)
-      if (bannerFile) formData.append('banner', bannerFile)
-
-      const method = id ? 'PUT' : 'POST'
-      // Reuse institute endpoints for now
-      const url = id ? `${API_BASE_URL}/api/institute/${id}` : `${API_BASE_URL}/api/institute/create`
-      console.log('CreateHospital: submitting to', url, 'method:', method)
-      console.log('CreateHospital: form fields + files being sent:')
-      for (const [key, value] of (formData as any).entries()) {
-        console.log('  ', key, value instanceof File ? `(file: ${value.name})` : value)
-      }
-
-      const res = await fetch(url, { method, body: formData, credentials: 'include' })
-      console.log('CreateHospital: response status', res.status)
-      if (res.ok) {
-        const responseData = await res.json().catch(() => ({}))
-        console.log('CreateHospital: success response', responseData)
-        toast({ title: 'Success!', description: id ? 'Hospital updated successfully!' : 'Hospital created successfully and is pending admin approval!' })
-        navigate('/hospital')
-      } else {
-        let serverMessage = ''
-        try {
-          const errorData = await res.json()
-          console.log('CreateHospital: error JSON', errorData)
-          serverMessage = errorData.error || errorData.message || ''
-        } catch (e) {
-          const text = await res.text().catch(() => '')
-          console.log('CreateHospital: error TEXT', text)
-          serverMessage = text
-        }
-        toast({ title: 'Error', description: serverMessage || 'Failed to submit hospital', variant: 'destructive' })
-      }
-    } catch (error) {
-      toast({ title: 'Network Error', description: 'Failed to connect to server. Please try again.', variant: 'destructive' })
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Hospital is already created in handlePaymentComplete, just navigate to success
+    toast({ 
+      title: 'Hospital Creation Complete!', 
+      description: 'Your hospital has been created successfully and payment submitted. It is now pending admin approval!' 
+    });
+    navigate('/hospital');
   }
 
   const renderStepContent = () => {
@@ -405,11 +405,12 @@ export default function CreateHospital() {
         )
       case 4:
         return (
-          <PaymentSection 
-            entityType="hospital"
-            onPaymentComplete={handlePaymentComplete}
-            isRequired={true}
-          />
+                  <PaymentSection 
+          entityType="hospital"
+          onPaymentComplete={handlePaymentComplete}
+          isRequired={true}
+          isSubmitting={isSubmitting}
+        />
         )
 
       case 5:

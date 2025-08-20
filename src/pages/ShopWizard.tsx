@@ -53,6 +53,7 @@ const ShopWizard: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [createdShop, setCreatedShop] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -60,13 +61,94 @@ const ShopWizard: React.FC = () => {
     setShopData(prev => ({ ...prev, ...updates }));
   };
 
-  const handlePaymentComplete = (paymentData: any) => {
-    setPaymentCompleted(true);
-    console.log('Payment completed:', paymentData);
-    toast({ 
-      title: 'Payment Submitted', 
-      description: 'Payment request submitted successfully. You can now proceed to review and submit.' 
-    });
+  const handlePaymentComplete = async (paymentData: any) => {
+    // First create the shop to get the entityId and Agent ID
+    setIsSubmitting(true);
+    try {
+      // Prepare FormData for shop creation
+      const formData = new FormData();
+      formData.append('shopName', shopData.shopName);
+      formData.append('city', shopData.city);
+      formData.append('shopType', shopData.shopType);
+      formData.append('shopDescription', shopData.shopDescription);
+      formData.append('categories', JSON.stringify(shopData.categories));
+      formData.append('websiteUrl', shopData.websiteUrl);
+      formData.append('facebookUrl', shopData.facebookUrl);
+      formData.append('instagramHandle', shopData.instagramHandle);
+      formData.append('whatsappNumber', shopData.whatsappNumber);
+      if (shopData.shopLogo) formData.append('shopLogo', shopData.shopLogo);
+      if (shopData.shopBanner) formData.append('shopBanner', shopData.shopBanner);
+      if (shopData.ownerProfilePhoto) formData.append('ownerProfilePhoto', shopData.ownerProfilePhoto);
+      if (shopData.products.length > 0) {
+        formData.append('products', JSON.stringify(shopData.products.map(product => ({
+          ...product,
+          images: undefined, // Don't send File objects in JSON
+          imagePreviews: undefined // Don't send previews in JSON
+        }))));
+        shopData.products.forEach((product, productIdx) => {
+          if (product.images && product.images.length > 0) {
+            product.images.forEach((imageFile, imageIdx) => {
+              // Name: product-<productIdx>-<imageIdx>
+              formData.append('productImages', imageFile, `product-${productIdx}-${imageIdx}-${imageFile.name}`);
+            });
+          }
+        });
+      }
+      formData.append('acceptTerms', 'true');
+
+      // Create shop first
+      const shopResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/shop-wizard/create`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!shopResponse.ok) {
+        const errorData = await shopResponse.json();
+        throw new Error(errorData.error || 'Failed to create shop');
+      }
+
+      const shopData = await shopResponse.json();
+      console.log('Shop created successfully:', shopData);
+
+      // Now submit payment with the shop's entityId
+      const paymentFormData = new FormData();
+      paymentFormData.append('entityType', 'shop');
+      paymentFormData.append('entityId', shopData.shop._id);
+      paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
+      paymentFormData.append('amount', '5000'); // Default shop payment amount
+
+      const paymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
+        method: 'POST',
+        credentials: 'include',
+        body: paymentFormData
+      });
+
+      if (!paymentResponse.ok) {
+        const paymentError = await paymentResponse.json();
+        throw new Error(paymentError.error || 'Failed to submit payment');
+      }
+
+      setPaymentCompleted(true);
+      console.log('Payment completed:', paymentData);
+      toast({ 
+        title: 'Shop Created & Payment Submitted', 
+        description: 'Your shop has been created successfully and payment request submitted. You can now proceed to review.' 
+      });
+
+      // Store the created shop data for the review step
+      setCreatedShop(shopData.shop);
+
+    } catch (error) {
+      console.error('Error creating shop or submitting payment:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create shop or submit payment. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const validateStep = (step: number): boolean => {
@@ -84,7 +166,7 @@ const ShopWizard: React.FC = () => {
       case 5:
         return paymentCompleted; // Payment must be completed
       case 6:
-        return shopData.acceptTerms;
+        return true; // Review step doesn't need validation
       default:
         return true;
     }
@@ -130,66 +212,12 @@ const ShopWizard: React.FC = () => {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      // Prepare FormData
-      const formData = new FormData();
-      formData.append('shopName', shopData.shopName);
-      formData.append('city', shopData.city);
-      formData.append('shopType', shopData.shopType);
-      formData.append('shopDescription', shopData.shopDescription);
-      formData.append('categories', JSON.stringify(shopData.categories));
-      formData.append('websiteUrl', shopData.websiteUrl);
-      formData.append('facebookUrl', shopData.facebookUrl);
-      formData.append('instagramHandle', shopData.instagramHandle);
-      formData.append('whatsappNumber', shopData.whatsappNumber);
-      if (shopData.shopLogo) formData.append('shopLogo', shopData.shopLogo);
-      if (shopData.shopBanner) formData.append('shopBanner', shopData.shopBanner);
-      if (shopData.ownerProfilePhoto) formData.append('ownerProfilePhoto', shopData.ownerProfilePhoto);
-      if (shopData.products.length > 0) {
-        formData.append('products', JSON.stringify(shopData.products.map(product => ({
-          ...product,
-          images: undefined, // Don't send File objects in JSON
-          imagePreviews: undefined // Don't send previews in JSON
-        }))));
-        shopData.products.forEach((product, productIdx) => {
-          if (product.images && product.images.length > 0) {
-            product.images.forEach((imageFile, imageIdx) => {
-              // Name: product-<productIdx>-<imageIdx>
-              formData.append('productImages', imageFile, `product-${productIdx}-${imageIdx}-${imageFile.name}`);
-            });
-          }
-        });
-      }
-      // Send to backend
-      const response = await fetch(`${API_BASE_URL}/api/shop-wizard/create`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-      const result = await response.json();
-      if (response.ok) {
-        toast({
-          title: "Shop Created Successfully!",
-          description: "Your shop has been created and is pending admin approval.",
-        });
-        navigate('/store');
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || 'Failed to create shop',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Network Error",
-        description: 'Could not connect to server. Please check if the backend is running on port 3000.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Shop is already created in handlePaymentComplete, just navigate to success
+    toast({
+      title: "Shop Creation Complete!",
+      description: "Your shop has been created successfully and payment submitted. It is now pending admin approval.",
+    });
+    navigate('/store');
   };
 
   const renderStepContent = () => {
@@ -218,6 +246,7 @@ const ShopWizard: React.FC = () => {
             entityType="shop"
             onPaymentComplete={handlePaymentComplete}
             isRequired={true}
+            isSubmitting={isSubmitting}
           />
         );
       case 6:
@@ -331,7 +360,7 @@ const ShopWizard: React.FC = () => {
                 className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Creating Shop...' : 'Create Shop'}
+                Complete Setup
               </Button>
             ) : (
               <Button onClick={handleNext} className="w-full sm:w-auto order-1 sm:order-2">
