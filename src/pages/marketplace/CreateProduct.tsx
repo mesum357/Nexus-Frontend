@@ -74,7 +74,7 @@ export default function CreateProduct() {
     contactPreference: 'both',
     ownerPhone: '',
     ownerEmail: '',
-    agentId: ''
+
   });
 
   useEffect(() => {
@@ -104,79 +104,15 @@ export default function CreateProduct() {
   };
 
   const handlePaymentComplete = async (paymentData: any) => {
-    // First create the product to get the entityId and Agent ID
-    setIsSubmitting(true);
-    try {
-      // Prepare FormData for product creation
-      const formData = new FormData();
-      formData.append('title', formData.title);
-      formData.append('description', formData.description);
-      formData.append('agentId', formData.agentId || '');
-      formData.append('price', formData.price);
-      formData.append('category', formData.category);
-      formData.append('condition', formData.condition);
-      formData.append('location', formData.location);
-      formData.append('tags', JSON.stringify(tags));
-      formData.append('acceptTerms', 'true');
-      
-      // Add images
-      imageFiles.forEach((imageFile, index) => {
-        formData.append('images', imageFile);
-      });
-
-      // Create product first
-      const productResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/marketplace`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-
-      if (!productResponse.ok) {
-        const errorData = await productResponse.json();
-        throw new Error(errorData.error || 'Failed to create product');
-      }
-
-      const productData = await productResponse.json();
-      console.log('Product created successfully:', productData);
-
-      // Now submit payment with the product's entityId
-      const paymentFormData = new FormData();
-      paymentFormData.append('entityType', 'marketplace');
-      paymentFormData.append('entityId', productData.product._id);
-      paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
-      paymentFormData.append('amount', '2000'); // Default marketplace payment amount
-
-      const paymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
-        method: 'POST',
-        credentials: 'include',
-        body: paymentFormData
-      });
-
-      if (!paymentResponse.ok) {
-        const paymentError = await paymentResponse.json();
-        throw new Error(paymentError.error || 'Failed to submit payment');
-      }
-
-      setPaymentCompleted(true);
-      console.log('Payment completed:', paymentData);
-      toast({ 
-        title: 'Product Created & Payment Submitted', 
-        description: 'Your product has been created successfully and payment request submitted. You can now proceed to review.' 
-      });
-
-      // Store the created product data for the review step
-      setCreatedProduct(productData.product);
-
-    } catch (error) {
-      console.error('Error creating product or submitting payment:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create product or submit payment. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Payment is now handled directly in PaymentSection component
+    // This function is called after successful payment submission
+    setPaymentCompleted(true);
+    console.log('Payment completed:', paymentData);
+    
+    toast({ 
+      title: 'Payment Submitted Successfully', 
+      description: 'Your payment request has been submitted to the admin panel for review. You can now proceed to review your product details.' 
+    });
   }
 
   const handleImageUpload = (e) => {
@@ -355,16 +291,7 @@ export default function CreateProduct() {
                       />
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium">Agent ID <span className="text-muted-foreground">(Optional)</span></label>
-                      <Input
-                        name="agentId"
-                        value={formData.agentId || ''}
-                        onChange={handleInputChange}
-                        placeholder="Enter agent ID if applicable"
-                        className="h-10 sm:h-10"
-                      />
-                    </div>
+
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>

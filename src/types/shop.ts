@@ -3,7 +3,6 @@ export interface ShopData {
   city: string;
   shopType: 'Product Seller' | 'Service Provider' | '';
   shopDescription: string;
-  agentId?: string;
   categories: string[];
   shopLogo: File | null;
   shopBanner: File | null;

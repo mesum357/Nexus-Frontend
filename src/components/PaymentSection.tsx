@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Info,
   Upload,
-  X
+  X,
+  User
 } from 'lucide-react'
 
 interface PaymentSectionProps {
@@ -24,6 +25,7 @@ interface PaymentSectionProps {
 
 interface PaymentData {
   transactionScreenshot: File | null
+  agentId: string
 }
 
 export default function PaymentSection({ 
@@ -34,7 +36,8 @@ export default function PaymentSection({
 }: PaymentSectionProps) {
   const { toast } = useToast()
   const [paymentData, setPaymentData] = useState<PaymentData>({
-    transactionScreenshot: null
+    transactionScreenshot: null,
+    agentId: ''
   })
   const [loading, setLoading] = useState(true)
   const [bankDetails, setBankDetails] = useState({
@@ -81,6 +84,10 @@ export default function PaymentSection({
     setPaymentData(prev => ({ ...prev, transactionScreenshot: file }))
   }
 
+  const handleAgentIdChange = (value: string) => {
+    setPaymentData(prev => ({ ...prev, agentId: value }))
+  }
+
   const handleSubmitPayment = async () => {
     // Validation
     if (!paymentData.transactionScreenshot) {
@@ -92,15 +99,58 @@ export default function PaymentSection({
       return
     }
 
-    // Call the callback if provided - this will handle the entity creation and payment
-    if (onPaymentComplete) {
-      onPaymentComplete(paymentData)
+    if (!paymentData.agentId.trim()) {
+      toast({ 
+        title: 'Agent ID Required', 
+        description: 'Please enter your Agent ID', 
+        variant: 'destructive' 
+      })
+      return
     }
 
-    // Reset form after successful submission
-    setPaymentData({
-      transactionScreenshot: null
-    })
+    // Submit payment directly without creating entity
+    try {
+      const paymentFormData = new FormData();
+      paymentFormData.append('entityType', entityType);
+      paymentFormData.append('agentId', paymentData.agentId);
+      paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
+      paymentFormData.append('amount', getPaymentAmount().toString());
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
+        method: 'POST',
+        credentials: 'include',
+        body: paymentFormData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit payment');
+      }
+
+      toast({ 
+        title: 'Payment Submitted Successfully', 
+        description: 'Your payment request has been submitted to the admin panel for review.' 
+      });
+
+      // Call the callback if provided (for any additional handling)
+      if (onPaymentComplete) {
+        onPaymentComplete(paymentData)
+      }
+
+      // Reset form after successful submission
+      setPaymentData({
+        transactionScreenshot: null,
+        agentId: ''
+      })
+
+    } catch (error) {
+      console.error('Error submitting payment:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit payment. Please try again.',
+        variant: 'destructive'
+      });
+    }
   }
 
   const getEntityDisplayName = () => {
@@ -251,6 +301,25 @@ export default function PaymentSection({
                 </p>
               </div>
               
+                             {/* Agent ID Input */}
+               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                 <div className="flex items-center gap-2 text-green-800 mb-2">
+                   <User className="h-4 w-4" />
+                   <span className="font-medium">Agent ID</span>
+                   <span className="text-red-500">*</span>
+                 </div>
+                 <input
+                   type="text"
+                   value={paymentData.agentId}
+                   onChange={(e) => handleAgentIdChange(e.target.value)}
+                   placeholder="Enter your Agent ID"
+                   className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-green-900 font-mono"
+                 />
+                 <p className="text-sm text-green-700 mt-1">
+                   This Agent ID will be included in your payment request
+                 </p>
+               </div>
+              
               <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
                 <div className="flex items-center gap-2 text-amber-800 mb-2">
                   <AlertCircle className="h-4 w-4" />
@@ -332,23 +401,23 @@ export default function PaymentSection({
               </div>
             </div>
 
-            <Button
-              onClick={handleSubmitPayment}
-              disabled={isSubmitting || !paymentData.transactionScreenshot}
-              className="w-full"
-              size="lg"
-            >
-                             {isSubmitting ? (
+                         <Button
+               onClick={handleSubmitPayment}
+               disabled={isSubmitting || !paymentData.transactionScreenshot || !paymentData.agentId.trim()}
+               className="w-full"
+               size="lg"
+             >
+                                                           {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Submitting Payment Request...
+                  </>
+                ) : (
                  <>
-                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                   Creating {getEntityDisplayName()} & Submitting Payment...
+                   <CheckCircle className="h-4 w-4 mr-2" />
+                   Submit Payment Request
                  </>
-               ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Submit Payment Request
-                </>
-              )}
+               )}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">

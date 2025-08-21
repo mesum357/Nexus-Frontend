@@ -62,94 +62,15 @@ const ShopWizard: React.FC = () => {
   };
 
   const handlePaymentComplete = async (paymentData: any) => {
-    // First create the shop to get the entityId and Agent ID
-    setIsSubmitting(true);
-    try {
-      // Prepare FormData for shop creation
-      const formData = new FormData();
-      formData.append('shopName', shopData.shopName);
-      formData.append('city', shopData.city);
-      formData.append('agentId', shopData.agentId || '');
-      formData.append('shopType', shopData.shopType);
-      formData.append('shopDescription', shopData.shopDescription);
-      formData.append('categories', JSON.stringify(shopData.categories));
-      formData.append('websiteUrl', shopData.websiteUrl);
-      formData.append('facebookUrl', shopData.facebookUrl);
-      formData.append('instagramHandle', shopData.instagramHandle);
-      formData.append('whatsappNumber', shopData.whatsappNumber);
-      if (shopData.shopLogo) formData.append('shopLogo', shopData.shopLogo);
-      if (shopData.shopBanner) formData.append('shopBanner', shopData.shopBanner);
-      if (shopData.ownerProfilePhoto) formData.append('ownerProfilePhoto', shopData.ownerProfilePhoto);
-      if (shopData.products.length > 0) {
-        formData.append('products', JSON.stringify(shopData.products.map(product => ({
-          ...product,
-          images: undefined, // Don't send File objects in JSON
-          imagePreviews: undefined // Don't send previews in JSON
-        }))));
-        shopData.products.forEach((product, productIdx) => {
-          if (product.images && product.images.length > 0) {
-            product.images.forEach((imageFile, imageIdx) => {
-              // Name: product-<productIdx>-<imageIdx>
-              formData.append('productImages', imageFile, `product-${productIdx}-${imageIdx}-${imageFile.name}`);
-            });
-          }
-        });
-      }
-      formData.append('acceptTerms', 'true');
-
-      // Create shop first
-      const shopResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/shop-wizard/create`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-
-      if (!shopResponse.ok) {
-        const errorData = await shopResponse.json();
-        throw new Error(errorData.error || 'Failed to create shop');
-      }
-
-      const shopData = await shopResponse.json();
-      console.log('Shop created successfully:', shopData);
-
-      // Now submit payment with the shop's entityId
-      const paymentFormData = new FormData();
-      paymentFormData.append('entityType', 'shop');
-      paymentFormData.append('entityId', shopData.shop._id);
-      paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
-      paymentFormData.append('amount', '5000'); // Default shop payment amount
-
-      const paymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
-        method: 'POST',
-        credentials: 'include',
-        body: paymentFormData
-      });
-
-      if (!paymentResponse.ok) {
-        const paymentError = await paymentResponse.json();
-        throw new Error(paymentError.error || 'Failed to submit payment');
-      }
-
-      setPaymentCompleted(true);
-      console.log('Payment completed:', paymentData);
-      toast({ 
-        title: 'Shop Created & Payment Submitted', 
-        description: 'Your shop has been created successfully and payment request submitted. You can now proceed to review.' 
-      });
-
-      // Store the created shop data for the review step
-      setCreatedShop(shopData.shop);
-
-    } catch (error) {
-      console.error('Error creating shop or submitting payment:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create shop or submit payment. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Payment is now handled directly in PaymentSection component
+    // This function is called after successful payment submission
+    setPaymentCompleted(true);
+    console.log('Payment completed:', paymentData);
+    
+    toast({ 
+      title: 'Payment Submitted Successfully', 
+      description: 'Your payment request has been submitted to the admin panel for review. You can now proceed to review your shop details.' 
+    });
   }
 
   const validateStep = (step: number): boolean => {

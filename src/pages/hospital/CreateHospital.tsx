@@ -81,86 +81,15 @@ export default function CreateHospital() {
   const removeTech = (index: number) => setTechs(techs.filter((_, i) => i !== index))
 
   const handlePaymentComplete = async (paymentData: any) => {
-    // First create the hospital to get the entityId and Agent ID
-    setIsSubmitting(true);
-    try {
-      // Prepare FormData for hospital creation
-      const formData = new FormData();
-      formData.append('name', form.name);
-      formData.append('agentId', form.agentId || '');
-      formData.append('type', form.type);
-      formData.append('description', form.description);
-      formData.append('address', form.address);
-      formData.append('city', form.city);
-      formData.append('province', form.province);
-      formData.append('phone', form.phone);
-      formData.append('email', form.email);
-      formData.append('website', form.website);
-      formData.append('establishedYear', form.establishedYear);
-      formData.append('accreditation', form.accreditation);
-      formData.append('facilities', form.facilities);
-      formData.append('acceptTerms', 'true');
-      
-      if (logoFile) formData.append('logo', logoFile);
-      if (bannerFile) formData.append('banner', bannerFile);
-      
-      if (techs.length > 0) {
-        formData.append('techs', JSON.stringify(techs));
-      }
-
-      // Create hospital first
-      const hospitalResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/institute`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-
-      if (!hospitalResponse.ok) {
-        const errorData = await hospitalResponse.json();
-        throw new Error(errorData.error || 'Failed to create hospital');
-      }
-
-      const hospitalData = await hospitalResponse.json();
-      console.log('Hospital created successfully:', hospitalData);
-
-      // Now submit payment with the hospital's entityId
-      const paymentFormData = new FormData();
-      paymentFormData.append('entityType', 'hospital');
-      paymentFormData.append('entityId', hospitalData.institute._id);
-      paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
-      paymentFormData.append('amount', '15000'); // Default hospital payment amount
-
-      const paymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
-        method: 'POST',
-        credentials: 'include',
-        body: paymentFormData
-      });
-
-      if (!paymentResponse.ok) {
-        const paymentError = await paymentResponse.json();
-        throw new Error(paymentError.error || 'Failed to submit payment');
-      }
-
-      setPaymentCompleted(true);
-      console.log('Payment completed:', paymentData);
-      toast({ 
-        title: 'Hospital Created & Payment Submitted', 
-        description: 'Your hospital has been created successfully and payment request submitted. You can now proceed to review.' 
-      });
-
-      // Store the created hospital data for the review step
-      setCreatedHospital(hospitalData.institute);
-
-    } catch (error) {
-      console.error('Error creating hospital or submitting payment:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create hospital or submit payment. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Payment is now handled directly in PaymentSection component
+    // This function is called after successful payment submission
+    setPaymentCompleted(true);
+    console.log('Payment completed:', paymentData);
+    
+    toast({ 
+      title: 'Payment Submitted Successfully', 
+      description: 'Your payment request has been submitted to the admin panel for review. You can now proceed to review your hospital details.' 
+    });
   }
 
   const handleAcceptTerms = () => {
@@ -250,15 +179,9 @@ export default function CreateHospital() {
                  </Select>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <div>
-                <Label htmlFor="agentId" className="text-sm sm:text-base">Agent ID (Optional)</Label>
-                <Input id="agentId" placeholder="Enter agent ID if applicable" value={form.agentId || ''} onChange={handleChange} className="h-10 sm:h-10" />
-              </div>
-              <div>
-                <Label htmlFor="establishedYear" className="text-sm sm:text-base">Year Established</Label>
-                <Input id="establishedYear" type="number" placeholder="e.g. 1995" value={form.establishedYear || ''} onChange={handleChange} className="h-10 sm:h-10" />
-              </div>
+            <div>
+              <Label htmlFor="establishedYear" className="text-sm sm:text-base">Year Established</Label>
+              <Input id="establishedYear" type="number" placeholder="e.g. 1995" value={form.establishedYear || ''} onChange={handleChange} className="h-10 sm:h-10" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
