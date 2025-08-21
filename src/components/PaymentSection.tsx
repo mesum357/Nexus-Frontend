@@ -99,20 +99,13 @@ export default function PaymentSection({
       return
     }
 
-    if (!paymentData.agentId.trim()) {
-      toast({ 
-        title: 'Agent ID Required', 
-        description: 'Please enter your Agent ID', 
-        variant: 'destructive' 
-      })
-      return
-    }
+    // Agent ID is optional - no validation needed
 
     // Submit payment directly without creating entity
     try {
       const paymentFormData = new FormData();
       paymentFormData.append('entityType', entityType);
-      paymentFormData.append('agentId', paymentData.agentId);
+      paymentFormData.append('agentId', paymentData.agentId.trim() || '');
       paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
       paymentFormData.append('amount', getPaymentAmount().toString());
 
@@ -306,7 +299,7 @@ export default function PaymentSection({
                  <div className="flex items-center gap-2 text-green-800 mb-2">
                    <User className="h-4 w-4" />
                    <span className="font-medium">Agent ID</span>
-                   <span className="text-red-500">*</span>
+                   <span className="text-gray-500 text-sm">(Optional)</span>
                  </div>
                  <input
                    type="text"
@@ -316,7 +309,7 @@ export default function PaymentSection({
                    className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-green-900 font-mono"
                  />
                  <p className="text-sm text-green-700 mt-1">
-                   This Agent ID will be included in your payment request
+                   This Agent ID will be included in your payment request (optional)
                  </p>
                </div>
               
@@ -403,7 +396,7 @@ export default function PaymentSection({
 
                          <Button
                onClick={handleSubmitPayment}
-               disabled={isSubmitting || !paymentData.transactionScreenshot || !paymentData.agentId.trim()}
+               disabled={isSubmitting || !paymentData.transactionScreenshot}
                className="w-full"
                size="lg"
              >
