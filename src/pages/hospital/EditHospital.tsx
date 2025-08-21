@@ -46,7 +46,7 @@ export default function EditHospital() {
     if (!id) { navigate('/hospital'); return }
     fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
       .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => fetch(`${API_BASE_URL}/api/institute/${id}`).then(res => res.json()).then(hData => {
+              .then(data => fetch(`${API_BASE_URL}/api/hospital/${id}`).then(res => res.json()).then(hData => {
         if (hData.hospital) {
           const hospital = hData.hospital
           if (String(hospital.owner) !== String(data.user._id)) {
@@ -94,7 +94,7 @@ export default function EditHospital() {
       formData.append('specialization', techs.join(', '))
       if (logoFile) formData.append('logo', logoFile)
       if (bannerFile) formData.append('banner', bannerFile)
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}`, { method: 'PUT', credentials: 'include', body: formData })
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}`, { method: 'PUT', credentials: 'include', body: formData })
       if (response.ok) {
         toast({ title: 'Success!', description: 'Hospital updated successfully.' })
         navigate(`/hospital/hospital/${id}`)

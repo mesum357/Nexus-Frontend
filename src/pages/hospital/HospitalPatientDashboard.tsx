@@ -128,7 +128,7 @@ export default function HospitalPatientDashboard() {
     if (!id) { setError('Hospital ID not found'); setIsLoading(false); return }
 
     // Fetch hospital details
-    fetch(`${API_BASE_URL}/api/institute/${id}`)
+    fetch(`${API_BASE_URL}/api/hospital/${id}`)
       .then(res => { if (!res.ok) throw new Error('Hospital not found'); return res.json() })
       .then(data => {
         const h = data.institute || data.hospital
@@ -143,7 +143,7 @@ export default function HospitalPatientDashboard() {
 
     // Fetch patient's applications for this hospital
     if (currentUser) {
-      fetch(`${API_BASE_URL}/api/institute/${id}/applications/me`, { credentials: 'include' })
+      fetch(`${API_BASE_URL}/api/hospital/${id}/patient-applications`, { credentials: 'include' })
         .then(res => res.json())
         .then(data => {
           const apps = (data.applications || []).map((app: any) => ({
@@ -166,7 +166,7 @@ export default function HospitalPatientDashboard() {
       console.log('Fetching data for hospital:', hospital._id, 'with ID:', id);
       
       // Fetch notifications for this hospital
-      fetch(`${API_BASE_URL}/api/institute/${id}/notifications`)
+      fetch(`${API_BASE_URL}/api/hospital/${id}/notifications`)
         .then(res => {
           console.log('Notifications response status:', res.status);
           return res.json();
@@ -187,7 +187,7 @@ export default function HospitalPatientDashboard() {
         })
 
       // Fetch messages for this hospital
-      fetch(`${API_BASE_URL}/api/institute/${id}/messages`)
+      fetch(`${API_BASE_URL}/api/hospital/${id}/messages`)
         .then(res => {
           console.log('Messages response status:', res.status);
           return res.json();
@@ -209,7 +209,7 @@ export default function HospitalPatientDashboard() {
         })
 
       // Fetch tasks for this hospital
-      fetch(`${API_BASE_URL}/api/institute/${id}/tasks`)
+      fetch(`${API_BASE_URL}/api/hospital/${id}/tasks`)
         .then(res => {
           console.log('Tasks response status:', res.status);
           return res.json();

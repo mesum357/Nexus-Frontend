@@ -44,7 +44,7 @@ export default function Technicalities() {
       setIsLoading(false)
       return
     }
-    fetch(`${API_BASE_URL}/api/institute/${id}`)
+    fetch(`${API_BASE_URL}/api/hospital/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('Hospital not found')
         return res.json()

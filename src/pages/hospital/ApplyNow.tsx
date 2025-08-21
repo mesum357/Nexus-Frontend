@@ -64,7 +64,7 @@ export default function HospitalApplyNow() {
 
   const fetchHospital = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}`)
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}`)
       if (response.ok) {
         const data = await response.json()
         setHospital(data.institute)
@@ -98,7 +98,7 @@ export default function HospitalApplyNow() {
 
     setSubmitting(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/patient-apply`, {
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/patient-application`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

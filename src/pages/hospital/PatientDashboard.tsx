@@ -82,7 +82,7 @@ export default function PatientDashboard() {
   useEffect(() => {
     const fetchRegistrations = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/institute/applications/my`, {
+        const response = await fetch(`${API_BASE_URL}/api/hospital/patient/applications`, {
           credentials: 'include'
         });
         if (response.ok) {
@@ -116,11 +116,11 @@ export default function PatientDashboard() {
 
   useEffect(() => {
     if (hospital?.id) {
-      fetch(`${API_BASE_URL}/api/institute/${hospital.id}/notifications`)
+      fetch(`${API_BASE_URL}/api/hospital/${hospital.id}/notifications`)
         .then(res => res.json())
         .then(data => setNotifications((data.notifications || []).map((n: any) => ({ id: String(n._id || ''), message: n.message, time: new Date(n.createdAt).toLocaleString(), type: n.title || 'notice' }))))
         .catch(() => {})
-      fetch(`${API_BASE_URL}/api/institute/${hospital.id}/messages`)
+      fetch(`${API_BASE_URL}/api/hospital/${hospital.id}/messages`)
         .then(res => res.json())
         .then(data => {
           const mapped = (data.messages || []).map((m: any) => ({ id: String(m._id || ''), from: m.senderName, subject: m.message, time: new Date(m.createdAt).toLocaleString(), unread: true }));
@@ -129,7 +129,7 @@ export default function PatientDashboard() {
         .catch(() => {})
     } else {
       // Limit to healthcare domain so education messages don't leak in
-      fetch(`${API_BASE_URL}/api/institute/messages/my?domain=healthcare`, { credentials: 'include' })
+      fetch(`${API_BASE_URL}/api/hospital/messages/my`, { credentials: 'include' })
         .then(res => res.json())
         .then(data => {
           const mapped = (data.messages || []).map((m: any) => ({ id: String(m._id || ''), from: m.senderName, subject: m.message, time: new Date(m.createdAt).toLocaleString(), unread: true }));
@@ -142,7 +142,7 @@ export default function PatientDashboard() {
   useEffect(() => {
     if (registrations.length === 0) { setNotifications([]); return }
     // Limit to healthcare domain
-    fetch(`${API_BASE_URL}/api/institute/notifications/my?domain=healthcare`, { credentials: 'include' })
+          fetch(`${API_BASE_URL}/api/hospital/notifications/my`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => setNotifications((data.notifications || []).map((n: any) => ({ id: String(n._id || ''), message: n.message, time: new Date(n.createdAt).toLocaleString(), type: n.title || (n.hospital?.name ? `Notice - ${n.hospital.name}` : 'notice') }))))
       .catch(() => {})
@@ -150,7 +150,7 @@ export default function PatientDashboard() {
 
   useEffect(() => {
     if (hospital?.id) {
-      fetch(`${API_BASE_URL}/api/institute/${hospital.id}/tasks`)
+      fetch(`${API_BASE_URL}/api/hospital/${hospital.id}/tasks`)
         .then(res => res.json())
         .then(data => {
           const items = (data.tasks || []).map((t: any) => ({ id: String(t._id || ''), title: t.title, description: t.description, type: t.type, hospitalName: hospital?.name, time: new Date(t.createdAt).toLocaleTimeString() }));
@@ -160,7 +160,7 @@ export default function PatientDashboard() {
       return;
     }
     // Limit to healthcare domain
-    fetch(`${API_BASE_URL}/api/institute/tasks/my/today?domain=healthcare`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}/api/hospital/tasks/my/today`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const items = (data.tasks || []).map((t: any) => ({ id: String(t._id || ''), title: t.title, description: t.description, type: t.type, hospitalName: t.hospital?.name, time: new Date(t.createdAt).toLocaleTimeString() }));

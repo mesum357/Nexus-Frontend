@@ -146,7 +146,7 @@ export default function HospitalDashboard() {
   useEffect(() => {
     if (!id) { setError('Hospital ID not found'); setIsLoading(false); return }
 
-    fetch(`${API_BASE_URL}/api/institute/${id}`)
+    fetch(`${API_BASE_URL}/api/hospital/${id}`)
       .then(res => { if (!res.ok) throw new Error('Hospital not found'); return res.json() })
       .then(data => {
         const h = data.institute || data.hospital
@@ -160,17 +160,17 @@ export default function HospitalDashboard() {
       })
       .catch(err => { setError(err.message); setIsLoading(false) })
 
-    fetch(`${API_BASE_URL}/api/institute/${id}/notifications`).then(res => res.json()).then(data => setNotifications(data.notifications || [])).catch(() => setNotifications([]))
-    fetch(`${API_BASE_URL}/api/institute/${id}/messages`).then(res => res.json()).then(data => setMessages(data.messages || [])).catch(() => setMessages([]))
-    fetch(`${API_BASE_URL}/api/institute/${id}/tasks`).then(res => res.json()).then(data => setTasks(data.tasks || [])).catch(() => setTasks([]))
+    fetch(`${API_BASE_URL}/api/hospital/${id}/notifications`).then(res => res.json()).then(data => setNotifications(data.notifications || [])).catch(() => setNotifications([]))
+    fetch(`${API_BASE_URL}/api/hospital/${id}/messages`).then(res => res.json()).then(data => setMessages(data.messages || [])).catch(() => setMessages([]))
+    fetch(`${API_BASE_URL}/api/hospital/${id}/tasks`).then(res => res.json()).then(data => setTasks(data.tasks || [])).catch(() => setTasks([]))
   }, [id])
 
   // Separate useEffect for patient applications to ensure it runs when currentUser is available
   useEffect(() => {
     console.log('Patient applications useEffect triggered:', { id, currentUser: currentUser?._id })
     if (id && currentUser) {
-      console.log('Fetching patient applications from:', `${API_BASE_URL}/api/institute/${id}/patient-applications`)
-      fetch(`${API_BASE_URL}/api/institute/${id}/patient-applications`, { credentials: 'include' })
+          console.log('Fetching patient applications from:', `${API_BASE_URL}/api/hospital/${id}/patient-applications`)
+    fetch(`${API_BASE_URL}/api/hospital/${id}/patient-applications`, { credentials: 'include' })
         .then(res => {
           console.log('Patient applications response status:', res.status)
           return res.json()
@@ -208,7 +208,7 @@ export default function HospitalDashboard() {
     const formData = new FormData()
     Array.from(files).forEach(file => formData.append('gallery', file))
     try {
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/gallery`, { method: 'POST', credentials: 'include', body: formData })
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/gallery`, { method: 'POST', credentials: 'include', body: formData })
       const data = await response.json()
       if (response.ok) {
         const added = (data.images as string[]) || (data.imageUrl ? [data.imageUrl] : [])
@@ -223,7 +223,7 @@ export default function HospitalDashboard() {
 
   const removeGalleryImage = async (imageUrl: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/gallery`, { method: 'DELETE', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl }) })
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/gallery`, { method: 'DELETE', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageUrl }) })
       if (response.ok) {
         setGalleryImages(prev => prev.filter(img => img !== imageUrl))
         toast({ title: 'Success', description: 'Image removed from gallery successfully!' })
@@ -271,7 +271,7 @@ export default function HospitalDashboard() {
       console.log('Current hospital state:', hospital)
       console.log('Current faculty count:', hospital.faculty?.length || 0)
       
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/faculty`, { 
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/doctors`, { 
         method: 'POST', 
         credentials: 'include', 
         body: formData 
@@ -314,7 +314,7 @@ export default function HospitalDashboard() {
 
   const removeDoctor = async (doctorId: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/faculty/${doctorId}`, { method: 'DELETE', credentials: 'include' })
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/doctors/${doctorId}`, { method: 'DELETE', credentials: 'include' })
       const data = await response.json()
       if (response.ok) {
         setHospital(prev => prev ? { ...prev, faculty: prev.faculty?.filter(d => d._id !== doctorId) || [] } : null)
@@ -328,7 +328,7 @@ export default function HospitalDashboard() {
   const handleCreateNotification = async () => {
     if (!newNotification.message.trim()) { toast({ title: 'Validation', description: 'Notification message is required', variant: 'destructive' }); return }
     try {
-      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/notifications`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(newNotification) })
+      const res = await fetch(`${API_BASE_URL}/api/hospital/${id}/notifications`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(newNotification) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to create notification')
       setNotifications(prev => [data.notification, ...prev])
@@ -342,7 +342,7 @@ export default function HospitalDashboard() {
   const handleCreateMessage = async () => {
     if (!newMessage.senderName.trim() || !newMessage.message.trim()) { toast({ title: 'Validation', description: 'Sender name and message are required', variant: 'destructive' }); return }
     try {
-      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(newMessage) })
+      const res = await fetch(`${API_BASE_URL}/api/hospital/${id}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(newMessage) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to create message')
       if (data.message && data.message._id) {
@@ -380,7 +380,7 @@ export default function HospitalDashboard() {
       
       console.log('Task data being sent:', taskData);
       
-      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/tasks`, { 
+      const res = await fetch(`${API_BASE_URL}/api/hospital/${id}/tasks`, { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
         credentials: 'include', 
@@ -407,7 +407,7 @@ export default function HospitalDashboard() {
     if (!editingTask || !editingTask._id) return
     if (!editingTask.title.trim() || !editingTask.description.trim()) { toast({ title: 'Validation', description: 'Title and description are required', variant: 'destructive' }); return }
     try {
-      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/tasks/${editingTask._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ title: editingTask.title, description: editingTask.description, type: editingTask.type }) })
+      const res = await fetch(`${API_BASE_URL}/api/hospital/${id}/tasks/${editingTask._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ title: editingTask.title, description: editingTask.description, type: editingTask.type }) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to update task')
       setTasks(prev => prev.map(t => t._id === editingTask._id ? data.task : t))
@@ -422,7 +422,7 @@ export default function HospitalDashboard() {
   const handleDeleteTask = async (taskId?: string) => {
     if (!taskId) return
     try {
-      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/tasks/${taskId}`, { method: 'DELETE', credentials: 'include' })
+      const res = await fetch(`${API_BASE_URL}/api/hospital/${id}/tasks/${taskId}`, { method: 'DELETE', credentials: 'include' })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Failed to delete task')
       setTasks(prev => prev.filter(t => t._id !== taskId))
@@ -435,7 +435,7 @@ export default function HospitalDashboard() {
   // Handle patient application status update
   const handleApplicationStatusUpdate = async (applicationId: string, status: string) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/institute/${id}/patient-applications/${applicationId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/hospital/${id}/patient-applications/${applicationId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -477,7 +477,7 @@ export default function HospitalDashboard() {
   const refreshPatientApplications = async () => {
     if (id && currentUser) {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/institute/${id}/patient-applications`, { credentials: 'include' })
+        const res = await fetch(`${API_BASE_URL}/api/hospital/${id}/patient-applications`, { credentials: 'include' })
         const data = await res.json()
         if (res.ok) {
           setPatientApplications(data.applications || [])

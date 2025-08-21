@@ -113,7 +113,7 @@ export default function HospitalDetail() {
       return
     }
 
-    fetch(`${API_BASE_URL}/api/institute/${id}`)
+    fetch(`${API_BASE_URL}/api/hospital/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('Hospital not found')
         return res.json()
@@ -131,17 +131,17 @@ export default function HospitalDetail() {
         setIsLoading(false)
       })
 
-    fetch(`${API_BASE_URL}/api/institute/${id}/reviews`)
+    fetch(`${API_BASE_URL}/api/hospital/${id}/reviews`)
       .then(res => res.json())
       .then(data => setReviews(data.reviews || []))
       .catch(() => {})
 
-    fetch(`${API_BASE_URL}/api/institute/${id}/gallery`)
+    fetch(`${API_BASE_URL}/api/hospital/${id}/gallery`)
       .then(res => res.json())
       .then(data => setGalleryImages(data.gallery || []))
       .catch(() => setGalleryImages([]))
 
-    fetch(`${API_BASE_URL}/api/institute/${id}/faculty`)
+    fetch(`${API_BASE_URL}/api/hospital/${id}/doctors`)
       .then(res => res.json())
       .then(data => setDoctors((data.faculty || []).map((f: any) => ({
         _id: f._id,
@@ -165,7 +165,7 @@ export default function HospitalDetail() {
     }
     setIsSubmittingReview(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}/reviews`, {
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -174,7 +174,7 @@ export default function HospitalDetail() {
       const data = await response.json()
       if (response.ok) {
         toast({ title: 'Review Submitted', description: 'Your review has been added successfully!' })
-        const reviewsResponse = await fetch(`${API_BASE_URL}/api/institute/${id}/reviews`)
+        const reviewsResponse = await fetch(`${API_BASE_URL}/api/hospital/${id}/reviews`)
         const reviewsData = await reviewsResponse.json()
         setReviews(reviewsData.reviews || [])
         setNewReview({ rating: 5, comment: '' })
