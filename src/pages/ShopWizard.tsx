@@ -58,7 +58,30 @@ const ShopWizard: React.FC = () => {
   const { toast } = useToast();
 
   const updateShopData = (updates: Partial<ShopData>) => {
-    setShopData(prev => ({ ...prev, ...updates }));
+    console.log('🔄 ShopWizard - updateShopData called with:', updates);
+    if (updates.products) {
+      console.log('🔄 ShopWizard - Products update details:');
+      console.log('   - Current products in state:', shopData.products);
+      console.log('   - New products being set:', updates.products);
+      console.log('   - New products length:', updates.products.length);
+      if (updates.products.length > 0) {
+        updates.products.forEach((product, index) => {
+          console.log(`   - Product ${index + 1} "${product.name}":`);
+          console.log(`     - imagePreviews: ${product.imagePreviews ? JSON.stringify(product.imagePreviews) : 'NOT SET'}`);
+          console.log(`     - imagePreviews length: ${product.imagePreviews?.length || 0}`);
+        });
+      }
+    }
+    
+    setShopData(prev => {
+      const newData = { ...prev, ...updates };
+      console.log('🔄 ShopWizard - New shopData after update:', newData);
+      if (updates.products) {
+        console.log('🔄 ShopWizard - Products being updated:', updates.products);
+        console.log('🔄 ShopWizard - Total products after update:', newData.products.length);
+      }
+      return newData;
+    });
   };
 
   const handlePaymentComplete = async (paymentData: any) => {
@@ -163,12 +186,16 @@ const ShopWizard: React.FC = () => {
         return <ProductListingStep data={shopData} updateData={updateShopData} />;
       case 5:
         console.log('Rendering PaymentSection');
+        console.log('🛍️ ShopWizard - shopData being passed to PaymentSection:', shopData);
+        console.log('🛍️ ShopWizard - Products in shopData:', shopData.products);
+        console.log('🛍️ ShopWizard - Number of products:', shopData.products.length);
         return (
           <PaymentSection 
             entityType="shop"
             onPaymentComplete={handlePaymentComplete}
             isRequired={true}
             isSubmitting={isSubmitting}
+            shopData={shopData}
           />
         );
       case 6:

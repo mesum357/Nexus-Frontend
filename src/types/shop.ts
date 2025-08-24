@@ -15,8 +15,8 @@ export interface ShopData {
     name: string;
     price: number;
     description: string;
-    image: File | null;
-    imagePreview: string;
+    images: File[];
+    imagePreviews: string[];
     category: string;
     discountPercentage: number;
   }>;

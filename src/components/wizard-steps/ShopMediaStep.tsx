@@ -46,46 +46,157 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
   };
 
   // Handle cropped logo
-  const handleLogoCropComplete = (croppedFile: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      updateData({
-        shopLogo: croppedFile,
-        logoPreview: result
+  const handleLogoCropComplete = async (croppedFile: File) => {
+    try {
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('image', croppedFile);
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
       });
-    };
-    reader.readAsDataURL(croppedFile);
+      
+      if (response.ok) {
+        const result = await response.json();
+
+        
+        updateData({
+          shopLogo: croppedFile,
+          logoPreview: result.imageUrl // Use Cloudinary URL instead of data URL
+        });
+      } else {
+        console.error('Failed to upload logo to Cloudinary');
+        // Fallback to data URL if upload fails
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          updateData({
+            shopLogo: croppedFile,
+            logoPreview: result
+          });
+        };
+        reader.readAsDataURL(croppedFile);
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      // Fallback to data URL if upload fails
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        updateData({
+          shopLogo: croppedFile,
+          logoPreview: result
+        });
+      };
+      reader.readAsDataURL(croppedFile);
+    }
+    
     setTempLogoFile(null);
     setShowLogoCropper(false);
   };
 
   // Handle cropped banner
-  const handleBannerCropComplete = (croppedFile: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      updateData({
-        shopBanner: croppedFile,
-        bannerPreview: result
+  const handleBannerCropComplete = async (croppedFile: File) => {
+    try {
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('image', croppedFile);
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
       });
-    };
-    reader.readAsDataURL(croppedFile);
+      
+      if (response.ok) {
+        const result = await response.json();
+
+        
+        updateData({
+          shopBanner: croppedFile,
+          bannerPreview: result.imageUrl // Use Cloudinary URL instead of data URL
+        });
+      } else {
+        console.error('Failed to upload banner to Cloudinary');
+        // Fallback to data URL if upload fails
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          updateData({
+            shopBanner: croppedFile,
+            bannerPreview: result
+          });
+        };
+        reader.readAsDataURL(croppedFile);
+      }
+    } catch (error) {
+      console.error('Error uploading banner:', error);
+      // Fallback to data URL if upload fails
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        updateData({
+          shopBanner: croppedFile,
+          bannerPreview: result
+        });
+      };
+      reader.readAsDataURL(croppedFile);
+    }
+    
     setTempBannerFile(null);
     setShowBannerCropper(false);
   };
 
   // Handle cropped owner profile
-  const handleOwnerProfileCropComplete = (croppedFile: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      updateData({
-        ownerProfilePhoto: croppedFile,
-        ownerProfilePreview: result
+  const handleOwnerProfileCropComplete = async (croppedFile: File) => {
+    try {
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('image', croppedFile);
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
       });
-    };
-    reader.readAsDataURL(croppedFile);
+      
+      if (response.ok) {
+        const result = await response.json();
+
+        
+        updateData({
+          ownerProfilePhoto: croppedFile,
+          ownerProfilePreview: result.imageUrl // Use Cloudinary URL instead of data URL
+        });
+      } else {
+        console.error('Failed to upload owner profile to Cloudinary');
+        // Fallback to data URL if upload fails
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          updateData({
+            ownerProfilePhoto: croppedFile,
+            ownerProfilePreview: result
+          });
+        };
+        reader.readAsDataURL(croppedFile);
+      }
+    } catch (error) {
+      console.error('Error uploading owner profile:', error);
+      // Fallback to data URL if upload fails
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        updateData({
+          ownerProfilePhoto: croppedFile,
+          ownerProfilePreview: result
+        });
+      };
+      reader.readAsDataURL(croppedFile);
+    }
+    
     setTempOwnerProfileFile(null);
     setShowOwnerProfileCropper(false);
   };

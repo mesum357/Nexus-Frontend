@@ -166,28 +166,69 @@ export default function Shop() {
     }
   };
 
-  const handleProductImageUpload = (files: FileList | null) => {
+  const handleProductImageUpload = async (files: FileList | null) => {
     if (!files) return;
     const newFiles: File[] = Array.from(files);
     const newPreviews: string[] = [];
-    let loaded = 0;
-    newFiles.forEach((file, idx) => {
+    
+    console.log('📸 Shop - Starting image upload for', newFiles.length, 'files');
+    
+    // Upload each image to Cloudinary (matching wizard flow)
+    for (let i = 0; i < newFiles.length; i++) {
+      const file = newFiles[i];
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          newPreviews[idx] = result;
-          loaded++;
-          if (loaded === newFiles.length) {
-            setProductForm(prev => ({
-              ...prev,
-              images: [...prev.images, ...newFiles],
-              imagePreviews: [...prev.imagePreviews, ...newPreviews]
-            }));
+        try {
+          const formData = new FormData();
+          formData.append('image', file);
+          
+          console.log(`📸 Shop - Uploading file ${i + 1}:`, file.name);
+          
+          const response = await fetch(`${API_BASE_URL}/api/upload/image`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            console.log(`📸 Shop - File ${i + 1} uploaded successfully:`, result.imageUrl);
+            newPreviews.push(result.imageUrl); // Use Cloudinary URL
+          } else {
+            console.error(`📸 Shop - Failed to upload file ${i + 1} to Cloudinary:`, response.status);
+            // Fallback to data URL if upload fails
+            const reader = new FileReader();
+            const dataUrl = await new Promise<string>((resolve) => {
+              reader.onload = (e) => resolve(e.target?.result as string);
+              reader.readAsDataURL(file);
+            });
+            console.log(`📸 Shop - File ${i + 1} fallback to data URL:`, dataUrl.substring(0, 50) + '...');
+            newPreviews.push(dataUrl);
           }
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+          console.error(`📸 Shop - Error uploading file ${i + 1}:`, error);
+          // Fallback to data URL if upload fails
+          const reader = new FileReader();
+          const dataUrl = await new Promise<string>((resolve) => {
+            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.readAsDataURL(file);
+          });
+          console.log(`📸 Shop - File ${i + 1} error fallback to data URL:`, dataUrl.substring(0, 50) + '...');
+          newPreviews.push(dataUrl);
+        }
       }
+    }
+    
+    console.log('📸 Shop - All uploads completed. newPreviews:', newPreviews);
+    
+    // Update the form with uploaded images
+    setProductForm(prev => {
+      const updatedForm = {
+        ...prev,
+        images: [...prev.images, ...newFiles],
+        imagePreviews: [...prev.imagePreviews, ...newPreviews]
+      };
+      console.log('📸 Shop - Updated form imagePreviews:', updatedForm.imagePreviews);
+      return updatedForm;
     });
   };
 
@@ -206,7 +247,12 @@ export default function Shop() {
     if (!productForm.price || isNaN(Number(productForm.price)) || Number(productForm.price) <= 0) errors.price = 'Valid price is required.';
     if (productForm.discountPercentage && (isNaN(Number(productForm.discountPercentage)) || Number(productForm.discountPercentage) < 0)) errors.discountPercentage = 'Discount must be a positive number.';
     if (!productForm.category.trim()) errors.category = 'Category is required.';
-    if (productForm.images.length === 0) errors.images = 'At least one product image is required.';
+    
+    // Check if we have either images (Files) or imagePreviews (Cloudinary URLs)
+    if (productForm.images.length === 0 && productForm.imagePreviews.length === 0) {
+      errors.images = 'At least one product image is required.';
+    }
+    
     return errors;
   };
 
@@ -216,6 +262,11 @@ export default function Shop() {
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setIsSubmitting(true);
+    
+    console.log('📦 Shop - Adding product with form data:', productForm);
+    console.log('📦 Shop - Product images:', productForm.images);
+    console.log('📦 Shop - Product imagePreviews:', productForm.imagePreviews);
+    
     try {
       const formData = new FormData();
       formData.append('name', productForm.name);
@@ -223,9 +274,17 @@ export default function Shop() {
       formData.append('price', productForm.price);
       formData.append('discountPercentage', productForm.discountPercentage);
       formData.append('category', productForm.category);
+      
+      // Send the first image if available (either File or Cloudinary URL)
       if (productForm.images[0]) {
         formData.append('productImage', productForm.images[0]);
+        console.log('📦 Shop - Sending image file:', productForm.images[0]);
+      } else if (productForm.imagePreviews[0]) {
+        // If no File but we have Cloudinary URL, we need to handle this differently
+        console.log('📦 Shop - No image file but have Cloudinary URL:', productForm.imagePreviews[0]);
+        // For now, we'll still send the File if available, otherwise the backend will use placeholder
       }
+      
       const response = await fetch(`${API_BASE_URL}/api/shop/${shopId}/add-product`, {
         method: 'POST',
         body: formData,
@@ -233,14 +292,17 @@ export default function Shop() {
       });
       const result = await response.json();
       if (response.ok) {
+        console.log('📦 Shop - Product added successfully:', result);
         setShop(result.shop);
         setShowAddProduct(false);
         setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
         toast({ title: 'Product Added', description: 'Your product was added successfully!', variant: 'default' });
       } else {
+        console.error('📦 Shop - Failed to add product:', result);
         toast({ title: 'Error', description: result.error || 'Failed to add product', variant: 'destructive' });
       }
     } catch (err) {
+      console.error('📦 Shop - Error adding product:', err);
       toast({ title: 'Network Error', description: 'Could not connect to server.', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
@@ -287,6 +349,12 @@ export default function Shop() {
     setFormErrors(errors);
     if (Object.keys(errors).length > 0 || editProductIndex === null) return;
     setIsSubmitting(true);
+    
+    console.log('📦 Shop - Updating product at index:', editProductIndex);
+    console.log('📦 Shop - Update form data:', productForm);
+    console.log('📦 Shop - Product images:', productForm.images);
+    console.log('📦 Shop - Product imagePreviews:', productForm.imagePreviews);
+    
     try {
       const formData = new FormData();
       formData.append('name', productForm.name);
@@ -294,9 +362,15 @@ export default function Shop() {
       formData.append('price', productForm.price);
       formData.append('discountPercentage', productForm.discountPercentage);
       formData.append('category', productForm.category);
+      
+      // Send the first image if available
       if (productForm.images[0]) {
         formData.append('productImage', productForm.images[0]);
+        console.log('📦 Shop - Sending updated image file:', productForm.images[0]);
+      } else {
+        console.log('📦 Shop - No new image uploaded for update');
       }
+      
       const response = await fetch(`${API_BASE_URL}/api/shop/${shopId}/update-product/${editProductIndex}`, {
         method: 'PUT',
         body: formData,
@@ -304,14 +378,17 @@ export default function Shop() {
       });
       const result = await response.json();
       if (response.ok) {
+        console.log('📦 Shop - Product updated successfully:', result);
         setShop(result.shop);
         setEditProductIndex(null);
         setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
         toast({ title: 'Product Updated', description: 'Your product was updated successfully!', variant: 'default' });
       } else {
+        console.error('📦 Shop - Failed to update product:', result);
         toast({ title: 'Error', description: result.error || 'Failed to update product', variant: 'destructive' });
       }
     } catch (err) {
+      console.error('📦 Shop - Error updating product:', err);
       toast({ title: 'Network Error', description: 'Could not connect to server.', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);

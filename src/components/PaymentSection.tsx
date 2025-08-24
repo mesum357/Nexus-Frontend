@@ -21,6 +21,7 @@ interface PaymentSectionProps {
   onPaymentComplete?: (paymentData: any) => void
   isRequired?: boolean
   isSubmitting?: boolean
+  shopData?: any
 }
 
 interface PaymentData {
@@ -32,7 +33,8 @@ export default function PaymentSection({
   entityType, 
   onPaymentComplete, 
   isRequired = true,
-  isSubmitting = false
+  isSubmitting = false,
+  shopData
 }: PaymentSectionProps) {
   const { toast } = useToast()
   const [paymentData, setPaymentData] = useState<PaymentData>({
@@ -103,11 +105,22 @@ export default function PaymentSection({
 
     // Submit payment directly without creating entity
     try {
+      const paymentAmount = getPaymentAmount();
+      console.log('💰 Frontend payment data:', {
+        entityType,
+        agentId: paymentData.agentId.trim() || '',
+        amount: paymentAmount,
+        amountType: typeof paymentAmount,
+        screenshotFile: paymentData.transactionScreenshot?.name
+      });
+
       const paymentFormData = new FormData();
       paymentFormData.append('entityType', entityType);
       paymentFormData.append('agentId', paymentData.agentId.trim() || '');
       paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
-      paymentFormData.append('amount', getPaymentAmount().toString());
+      paymentFormData.append('amount', paymentAmount.toString());
+
+      console.log('📤 Sending payment request to:', `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`);
 
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
         method: 'POST',
@@ -116,14 +129,219 @@ export default function PaymentSection({
       });
 
       if (!response.ok) {
+        let errorMessage = 'Failed to submit payment';
+        try {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit payment');
+          errorMessage = errorData.error || errorData.details || errorMessage;
+          console.error('❌ Backend error response:', errorData);
+        } catch (parseError) {
+          console.error('❌ Could not parse error response:', parseError);
+        }
+        throw new Error(errorMessage);
       }
 
-      toast({ 
-        title: 'Payment Submitted Successfully', 
-        description: 'Your payment request has been submitted to the admin panel for review.' 
-      });
+      // After successful payment, create the entity with pending approval status
+      try {
+        console.log(`🏗️ Creating ${entityType} after successful payment...`);
+        console.log('📦 Entity data received:', shopData);
+
+        let entityCreationData = {};
+        let entityEndpoint = '';
+        let entityName = '';
+
+        switch (entityType) {
+          case 'shop':
+            entityName = 'Shop';
+            entityEndpoint = '/api/shop-wizard/create-from-wizard';
+            entityCreationData = {
+              shopName: shopData?.shopName || 'My Shop',
+              city: shopData?.city || 'Unknown City',
+              shopType: shopData?.shopType || 'General',
+              shopDescription: shopData?.shopDescription || 'Shop description',
+              categories: shopData?.categories || [],
+              shopLogo: shopData?.logoPreview || 'https://picsum.photos/200/200?random=1',
+              shopBanner: shopData?.bannerPreview || 'https://picsum.photos/800/400?random=2',
+              ownerProfilePhoto: shopData?.ownerProfilePreview || 'https://picsum.photos/100/100?random=3',
+              facebookUrl: shopData?.facebookUrl || '',
+              instagramHandle: shopData?.instagramHandle || '',
+              whatsappNumber: shopData?.whatsappNumber || '',
+              websiteUrl: shopData?.websiteUrl || '',
+              products: shopData?.products?.map(product => {
+                const processedProduct = {
+                  id: product.id,
+                  name: product.name,
+                  description: product.description,
+                  price: product.price,
+                  discountPercentage: product.discountPercentage,
+                  category: product.category,
+                  image: (product.imagePreviews && product.imagePreviews.length > 0) ? product.imagePreviews[0] : 'https://picsum.photos/150/150?random=4'
+                };
+                return processedProduct;
+              }) || [],
+              agentId: paymentData.agentId.trim() || '',
+              approvalStatus: 'pending'
+            };
+            break;
+
+          case 'institute':
+            entityName = 'Institute';
+            entityEndpoint = '/api/institute-wizard/create-from-wizard';
+            entityCreationData = {
+              name: shopData.name || shopData.instituteName,
+              type: shopData.type || shopData.instituteType,
+              city: shopData.city,
+              province: shopData.province || 'Punjab',
+              description: shopData.description || shopData.instituteDescription,
+              specialization: shopData.specialization,
+              phone: shopData.phone,
+              email: shopData.email,
+              website: shopData.website,
+              address: shopData.address,
+              facebook: shopData.facebook,
+              instagram: shopData.instagram,
+              twitter: shopData.twitter,
+              linkedin: shopData.linkedin,
+              courses: shopData.courses || [],
+              faculty: shopData.faculty || [],
+              totalStudents: shopData.totalStudents,
+              totalCourses: shopData.totalCourses,
+              admissionStatus: shopData.admissionStatus,
+              establishedYear: shopData.establishedYear,
+              accreditation: shopData.accreditation || [],
+              facilities: shopData.facilities || [],
+              domain: shopData.domain || 'education',
+              logo: shopData.logoPreview || 'https://picsum.photos/200/200?random=1',
+              banner: shopData.bannerPreview || 'https://picsum.photos/800/400?random=2',
+              gallery: shopData.galleryPreviews || ['https://picsum.photos/400/300?random=3'],
+              agentId: paymentData.agentId.trim() || '',
+              approvalStatus: 'pending'
+            };
+            break;
+
+          case 'hospital':
+            entityName = 'Hospital';
+            entityEndpoint = '/api/hospital-wizard/create-from-wizard';
+            entityCreationData = {
+              name: shopData.name || shopData.hospitalName,
+              type: shopData.type || shopData.hospitalType,
+              city: shopData.city,
+              province: shopData.province || 'Punjab',
+              description: shopData.description || shopData.hospitalDescription,
+              specialization: shopData.specialization,
+              phone: shopData.phone,
+              email: shopData.email,
+              website: shopData.website,
+              address: shopData.address,
+              emergencyContact: shopData.emergencyContact,
+              facebook: shopData.facebook,
+              instagram: shopData.instagram,
+              twitter: shopData.twitter,
+              linkedin: shopData.linkedin,
+              departments: shopData.departments || [],
+              doctors: shopData.doctors || [],
+              totalPatients: shopData.totalPatients,
+              totalDoctors: shopData.totalDoctors,
+              admissionStatus: shopData.admissionStatus,
+              establishedYear: shopData.establishedYear,
+              accreditation: shopData.accreditation || [],
+              facilities: shopData.facilities || [],
+              insuranceAccepted: shopData.insuranceAccepted || [],
+              emergencyServices: shopData.emergencyServices,
+              ambulanceService: shopData.ambulanceService,
+              logo: shopData.logoPreview || 'https://picsum.photos/200/200?random=1',
+              banner: shopData.bannerPreview || 'https://picsum.photos/800/400?random=2',
+              gallery: shopData.galleryPreviews || ['https://picsum.photos/400/300?random=3'],
+              agentId: paymentData.agentId.trim() || '',
+              approvalStatus: 'pending'
+            };
+            break;
+
+          case 'marketplace':
+            entityName = 'Product';
+            entityEndpoint = '/api/product-wizard/create-from-wizard';
+            entityCreationData = {
+              title: shopData.title || shopData.productTitle,
+              description: shopData.description || shopData.productDescription,
+              price: shopData.price || shopData.productPrice,
+              priceType: shopData.priceType || 'fixed',
+              category: shopData.category || shopData.productCategory,
+              condition: shopData.condition || 'used',
+              location: shopData.location,
+              city: shopData.city,
+              images: shopData.imagePreviews || shopData.productImages || ['https://picsum.photos/400/400?random=1'],
+              tags: shopData.tags || [],
+              specifications: shopData.specifications || {},
+              contactPreference: shopData.contactPreference || 'both',
+              agentId: paymentData.agentId.trim() || '',
+              approvalStatus: 'pending'
+            };
+            break;
+
+          default:
+            console.warn('⚠️ Unknown entity type:', entityType);
+            break;
+        }
+        
+                if (entityCreationData && entityEndpoint) {
+          console.log(`📝 ${entityName} creation data:`, entityCreationData);
+
+          const entityResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${entityEndpoint}`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(entityCreationData)
+          });
+
+          if (entityResponse.ok) {
+            const entityResult = await entityResponse.json();
+            console.log(`✅ ${entityName} created successfully:`, entityResult);
+            
+            // Link payment request to created entity
+            try {
+              console.log(`🔗 Linking payment request to created ${entityName.toLowerCase()}...`);
+              const updatePaymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/${paymentData.transactionId}/link-shop`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  shopId: entityResult[entityName.toLowerCase()]?._id || entityResult.entity?._id
+                })
+              });
+              
+              if (updatePaymentResponse.ok) {
+                console.log(`✅ Payment request linked to ${entityName.toLowerCase()} successfully`);
+              } else {
+                console.warn(`⚠️ Failed to link payment request to ${entityName.toLowerCase()}:`, updatePaymentResponse.status);
+              }
+            } catch (linkError) {
+              console.warn(`⚠️ Error linking payment to ${entityName.toLowerCase()}:`, linkError);
+            }
+
+            toast({ 
+              title: `Payment & ${entityName} Setup Complete!`, 
+              description: `Your payment has been submitted and ${entityName.toLowerCase()} has been created. It is now pending admin approval.` 
+            });
+          } else {
+            console.error(`❌ ${entityName} creation failed:`, entityResponse.status);
+            toast({ 
+              title: `Payment Submitted, ${entityName} Creation Failed`, 
+              description: `Payment was submitted but ${entityName.toLowerCase()} creation failed. Please contact support.`, 
+              variant: 'destructive' 
+            });
+          }
+        }
+      } catch (entityError) {
+        console.error(`❌ Error creating ${entityType}:`, entityError);
+        toast({ 
+          title: `Payment Submitted, ${entityType} Creation Failed`, 
+          description: `Payment was submitted but ${entityType} creation failed. Please contact support.`, 
+          variant: 'destructive' 
+        });
+      }
 
       // Call the callback if provided (for any additional handling)
       if (onPaymentComplete) {

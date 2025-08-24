@@ -58,7 +58,7 @@ export function HeroSection() {
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1, delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            className="flex flex-col sm:flex-row gap-8 justify-center items-center"
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -71,17 +71,34 @@ export function HeroSection() {
                 Get Started
               </Button>
             </motion.div>
+            
+            {/* YouTube Video Section */}
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1, delay: 0.9 }}
+              className="relative group cursor-pointer"
+                             onClick={() => window.open('https://www.youtube.com/watch?v=honOJloqesA', '_blank')}
             >
-              <Button 
-                variant="outline"
-                size="lg"
-                className="text-lg font-semibold px-8 py-4 h-14 rounded-full border-2 border-primary/20 hover:border-primary/40 backdrop-blur-sm"
-              >
-                Learn More
-              </Button>
+              <div className="relative w-80 h-48 rounded-2xl overflow-hidden shadow-2xl shadow-primary/25 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 group-hover:scale-105">
+                                 <iframe
+                   src="https://www.youtube.com/embed/honOJloqesA?autoplay=1&mute=1&loop=1&playlist=honOJloqesA&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0"
+                   title="Pakistan Online Introduction"
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+                {/* Play Button Overlay */}
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors duration-300">
+                    <i className="fas fa-play text-primary text-xl ml-1"></i>
+                  </div>
+                </div>
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-2 font-medium">
+                Watch Our Story
+              </p>
             </motion.div>
           </motion.div>
         </div>

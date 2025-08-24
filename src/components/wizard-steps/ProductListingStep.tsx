@@ -48,6 +48,7 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
+    console.log('📦 ProductListingStep - Resetting form. Current imagePreviews:', productForm.imagePreviews);
     setProductForm({
       id: '',
       name: '',
@@ -62,28 +63,69 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
     setEditingProductId(null);
   };
 
-  const handleImagesUpload = (files: FileList | null) => {
+  const handleImagesUpload = async (files: FileList | null) => {
     if (!files) return;
     const newFiles: File[] = Array.from(files);
     const newPreviews: string[] = [];
-    let loaded = 0;
-    newFiles.forEach((file, idx) => {
+    
+    console.log('📸 ProductListingStep - Starting image upload for', newFiles.length, 'files');
+    
+    // Upload each image to Cloudinary
+    for (let i = 0; i < newFiles.length; i++) {
+      const file = newFiles[i];
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          newPreviews[idx] = result;
-          loaded++;
-          if (loaded === newFiles.length) {
-            setProductForm(prev => ({
-              ...prev,
-              images: [...prev.images, ...newFiles],
-              imagePreviews: [...prev.imagePreviews, ...newPreviews]
-            }));
+        try {
+          const formData = new FormData();
+          formData.append('image', file);
+          
+          console.log(`📸 ProductListingStep - Uploading file ${i + 1}:`, file.name);
+          
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            console.log(`📸 ProductListingStep - File ${i + 1} uploaded successfully:`, result.imageUrl);
+            newPreviews.push(result.imageUrl); // Use push instead of index assignment
+          } else {
+            console.error(`📸 ProductListingStep - Failed to upload file ${i + 1} to Cloudinary:`, response.status);
+            // Fallback to data URL if upload fails
+            const reader = new FileReader();
+            const dataUrl = await new Promise<string>((resolve) => {
+              reader.onload = (e) => resolve(e.target?.result as string);
+              reader.readAsDataURL(file);
+            });
+            console.log(`📸 ProductListingStep - File ${i + 1} fallback to data URL:`, dataUrl.substring(0, 50) + '...');
+            newPreviews.push(dataUrl);
           }
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+          console.error(`📸 ProductListingStep - Error uploading file ${i + 1}:`, error);
+          // Fallback to data URL if upload fails
+          const reader = new FileReader();
+          const dataUrl = await new Promise<string>((resolve) => {
+            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.readAsDataURL(file);
+          });
+          console.log(`📸 ProductListingStep - File ${i + 1} error fallback to data URL:`, dataUrl.substring(0, 50) + '...');
+          newPreviews.push(dataUrl);
+        }
       }
+    }
+    
+    console.log('📸 ProductListingStep - All uploads completed. newPreviews:', newPreviews);
+    
+    // Update the form with uploaded images
+    setProductForm(prev => {
+      const updatedForm = {
+        ...prev,
+        images: [...prev.images, ...newFiles],
+        imagePreviews: [...prev.imagePreviews, ...newPreviews]
+      };
+      console.log('📸 ProductListingStep - Updated form imagePreviews:', updatedForm.imagePreviews);
+      return updatedForm;
     });
   };
 
@@ -96,14 +138,21 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
   };
 
   const startAddingProduct = () => {
+    console.log('📦 ProductListingStep - Starting to add new product');
     resetForm();
-    setProductForm(prev => ({ ...prev, id: Date.now().toString() }));
+    setProductForm(prev => {
+      const updatedForm = { ...prev, id: Date.now().toString() };
+      console.log('📦 ProductListingStep - New product form initialized:', updatedForm);
+      return updatedForm;
+    });
     setIsAddingProduct(true);
   };
 
   const startEditingProduct = (productId: string) => {
     const product = data.products.find(p => p.id === productId);
     if (product) {
+      console.log('📦 ProductListingStep - Editing product:', product);
+      console.log('📦 ProductListingStep - Product imagePreviews:', product.imagePreviews);
       setProductForm({
         id: product.id,
         name: product.name,
@@ -134,16 +183,28 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
       discountPercentage: productForm.discountPercentage,
       category: productForm.category
     };
+    
+    console.log('📦 ProductListingStep - Product being saved:', productToSave);
+    console.log('📦 ProductListingStep - imagePreviews array:', productForm.imagePreviews);
+    console.log('📦 ProductListingStep - imagePreviews length:', productForm.imagePreviews?.length || 0);
+    console.log('📦 ProductListingStep - First imagePreview:', productForm.imagePreviews?.[0] || 'NOT SET');
 
     if (editingProductId) {
       // Update existing product
       const updatedProducts = data.products.map(p => 
         p.id === editingProductId ? productToSave : p
       );
+      console.log('📦 ProductListingStep - Updating product:', productToSave);
+      console.log('📦 ProductListingStep - Updated products array:', updatedProducts);
+      console.log('📦 ProductListingStep - Calling updateData with products:', updatedProducts);
       updateData({ products: updatedProducts });
     } else {
       // Add new product
-      updateData({ products: [...data.products, productToSave] });
+      const newProducts = [...data.products, productToSave];
+      console.log('📦 ProductListingStep - Adding new product:', productToSave);
+      console.log('📦 ProductListingStep - New products array:', newProducts);
+      console.log('📦 ProductListingStep - Calling updateData with products:', newProducts);
+      updateData({ products: newProducts });
     }
 
     resetForm();
