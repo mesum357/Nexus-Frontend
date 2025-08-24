@@ -39,14 +39,30 @@ export default function Store() {
   useEffect(() => {
     const fetchShops = async () => {
       try {
+        console.log('🛍️ Fetching shops from:', `${API_BASE_URL}/api/shop/all`);
         const response = await fetch(`${API_BASE_URL}/api/shop/all`);
         const data = await response.json();
+        console.log('🛍️ Shops data received:', data);
+        
         if (Array.isArray(data.shops)) {
+          console.log('🛍️ Number of shops:', data.shops.length);
+          data.shops.forEach((shop, index) => {
+            console.log(`   Shop ${index + 1}:`, {
+              name: shop.shopName,
+              logo: shop.shopLogo,
+              banner: shop.shopBanner,
+              ownerDp: shop.ownerDp,
+              approvalStatus: shop.approvalStatus
+            });
+          });
+          
           setShops(data.shops);
           setFilteredShops(data.shops);
+        } else {
+          console.error('❌ Shops data is not an array:', data);
         }
       } catch (error) {
-        // Optionally handle error
+        console.error('❌ Error fetching shops:', error);
       } finally {
         setIsLoading(false);
       }

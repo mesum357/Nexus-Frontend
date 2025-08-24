@@ -196,7 +196,7 @@ export default function Shop() {
           } else {
             console.error(`📸 Shop - Failed to upload file ${i + 1} to Cloudinary:`, response.status);
             // Fallback to data URL if upload fails
-            const reader = new FileReader();
+        const reader = new FileReader();
             const dataUrl = await new Promise<string>((resolve) => {
               reader.onload = (e) => resolve(e.target?.result as string);
               reader.readAsDataURL(file);
@@ -223,10 +223,10 @@ export default function Shop() {
     // Update the form with uploaded images
     setProductForm(prev => {
       const updatedForm = {
-        ...prev,
-        images: [...prev.images, ...newFiles],
-        imagePreviews: [...prev.imagePreviews, ...newPreviews]
-      };
+              ...prev,
+              images: [...prev.images, ...newFiles],
+              imagePreviews: [...prev.imagePreviews, ...newPreviews]
+        };
       console.log('📸 Shop - Updated form imagePreviews:', updatedForm.imagePreviews);
       return updatedForm;
     });

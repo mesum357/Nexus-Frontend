@@ -110,10 +110,14 @@ export default function CreateInstitute() {
   }
 
   const handlePaymentComplete = async (paymentData: any) => {
+    console.log('🎯 handlePaymentComplete called with data:', paymentData);
+    console.log('🏫 Current form state in handlePaymentComplete:', form);
+    console.log('📚 Current courses in handlePaymentComplete:', courses);
+    
     // Payment is now handled directly in PaymentSection component
     // This function is called after successful payment submission
     setPaymentCompleted(true);
-    console.log('Payment completed:', paymentData);
+    console.log('✅ Payment completed flag set to true');
     
     toast({ 
       title: 'Payment Submitted Successfully', 
@@ -214,24 +218,6 @@ export default function CreateInstitute() {
   const handleCloseBannerCropper = () => {
     setShowBannerCropper(false);
     setTempBannerFile(null);
-  }
-
-  // Submit handler
-  const handleSubmit = async () => {
-    // If on the courses step and newCourse is not empty, add it and block submit
-    if (currentStep === 3 && newCourseName.trim()) {
-      addCourse();
-      setCourseError('Please click Add to add your course before submitting.');
-      return;
-    }
-    
-    // Institute is already created in handlePaymentComplete, just navigate to success
-    toast({ 
-      title: 'Institute Creation Complete!', 
-      description: 'Your institute has been created successfully and payment submitted. It is now pending admin approval!', 
-      variant: 'default' 
-    });
-    navigate('/education');
   }
 
   const renderStepContent = () => {
@@ -535,13 +521,49 @@ export default function CreateInstitute() {
         )
 
       case 4:
+        const paymentData = {
+          name: form.name,
+          type: form.type,
+          city: form.city || 'Unknown City',
+          province: form.province || 'Punjab',
+          description: form.description,
+          specialization: form.specialization,
+          phone: form.phone,
+          email: form.email,
+          website: form.website,
+          address: form.address,
+          facebook: form.facebook,
+          instagram: form.instagram,
+          twitter: form.twitter,
+          linkedin: form.linkedin,
+          courses: courses,
+          faculty: form.faculty || [],
+          totalStudents: form.totalStudents,
+          totalCourses: courses.length.toString(),
+          admissionStatus: form.admissionStatus,
+          establishedYear: form.establishedYear,
+          accreditation: form.accreditation || [],
+          facilities: form.facilities || [],
+          domain: 'education',
+          logoPreview: logoPreview,
+          bannerPreview: bannerPreview,
+          agentId: form.agentId || ''
+        };
+        
+        console.log('🎓 PaymentSection shopData being passed:', paymentData);
+        console.log('🎓 Form name:', form.name);
+        console.log('🎓 Form type:', form.type);
+        console.log('🎓 Form city:', form.city);
+        console.log('🎓 Courses count:', courses.length);
+        
         return (
                   <PaymentSection 
-          entityType="institute"
-          onPaymentComplete={handlePaymentComplete}
-          isRequired={true}
-          isSubmitting={isSubmitting}
-        />
+                    entityType="institute"
+                    shopData={paymentData}
+                    onPaymentComplete={handlePaymentComplete}
+                    isRequired={true}
+                    isSubmitting={isSubmitting}
+                  />
         )
 
       case 5:
@@ -642,6 +664,31 @@ export default function CreateInstitute() {
       default:
         return null
     }
+  }
+
+  // Submit handler
+  const handleSubmit = async () => {
+    console.log('🚀 handleSubmit called - Review & Submit step');
+    console.log('📊 Current form state:', form);
+    console.log('📚 Courses:', courses);
+    console.log('💰 Payment completed:', paymentCompleted);
+    console.log('✅ Terms accepted:', acceptTerms);
+    
+    // If on the courses step and newCourse is not empty, add it and block submit
+    if (currentStep === 3 && newCourseName.trim()) {
+      addCourse();
+      setCourseError('Please click Add to add your course before submitting.');
+      return;
+    }
+    
+    // Institute is already created in handlePaymentComplete, just navigate to success
+    console.log('🎉 Institute creation complete! Navigating to education page...');
+    toast({ 
+      title: 'Institute Creation Complete!', 
+      description: 'Your institute has been created successfully and payment submitted. It is now pending admin approval!', 
+      variant: 'default' 
+    });
+    navigate('/education');
   }
 
   return (

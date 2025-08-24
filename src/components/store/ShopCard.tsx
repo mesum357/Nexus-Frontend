@@ -14,6 +14,13 @@ interface ShopCardProps {
 export default function ShopCard({ shop, index }: ShopCardProps) {
   const navigate = useNavigate()
   
+  // Debug image URLs
+  console.log(`🖼️ ShopCard ${index + 1} - ${shop.shopName}:`, {
+    logo: shop.shopLogo,
+    banner: shop.shopBanner,
+    ownerDp: shop.ownerDp
+  });
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}

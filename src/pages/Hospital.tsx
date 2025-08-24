@@ -48,14 +48,32 @@ export default function Hospital() {
 
   const fetchHospitals = () => {
     setIsLoading(true)
-    // Reuse institute/all with domain=healthcare so only hospitals show
-    fetch(`${API_BASE_URL}/api/institute/all?domain=healthcare`)
+    // Use the dedicated hospital endpoint to fetch approved hospitals
+    fetch(`${API_BASE_URL}/api/hospital/all`)
       .then(res => res.json())
       .then(data => {
-        setHospitals((data.institutes || []) as any)
+        console.log('🏥 Hospitals data received:', data);
+        console.log('🏥 Number of hospitals:', data.hospitals ? data.hospitals.length : 0);
+        
+        if (data.hospitals && data.hospitals.length > 0) {
+          data.hospitals.forEach((hospital, index) => {
+            console.log(`🏥 Hospital ${index + 1}:`, {
+              _id: hospital._id,
+              name: hospital.name,
+              type: hospital.type,
+              city: hospital.city,
+              approvalStatus: hospital.approvalStatus
+            });
+          });
+        }
+        
+        setHospitals((data.hospitals || []) as any)
         setIsLoading(false)
       })
-      .catch(() => { setIsLoading(false) })
+      .catch((error) => { 
+        console.error('❌ Error fetching hospitals:', error);
+        setIsLoading(false) 
+      })
   }
 
   useEffect(() => {

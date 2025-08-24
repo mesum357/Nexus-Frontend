@@ -57,11 +57,11 @@ interface Hospital {
   specialization?: string; // comma-separated technicalities
   phone?: string;
   email?: string;
-  owner?: string;
+  owner?: string | { _id: string; username?: string; fullName?: string; email?: string; profileImage?: string };
   website?: string;
   description?: string;
   gallery?: string[];
-  faculty?: Doctor[];
+  doctors?: Doctor[];
   facebook?: string;
   instagram?: string;
   twitter?: string;
@@ -149,13 +149,15 @@ export default function HospitalDashboard() {
     fetch(`${API_BASE_URL}/api/hospital/${id}`)
       .then(res => { if (!res.ok) throw new Error('Hospital not found'); return res.json() })
       .then(data => {
-        const h = data.institute || data.hospital
-        if (h) {
-          setHospital(h)
-          setGalleryImages(h.gallery || [])
+        console.log('🏥 Hospital data received:', data);
+        if (data.hospital) {
+          console.log('🏥 Setting hospital data:', data.hospital);
+          console.log('🏥 Current gallery images:', data.hospital.gallery || []);
+          setHospital(data.hospital)
+          setGalleryImages(data.hospital.gallery || [])
           setIsLoading(false)
         } else {
-          throw new Error('Institute data not found in response')
+          throw new Error('Hospital data not found in response')
         }
       })
       .catch(err => { setError(err.message); setIsLoading(false) })
@@ -187,18 +189,32 @@ export default function HospitalDashboard() {
   }, [id, currentUser])
 
   useEffect(() => {
-    console.log('Owner check useEffect:', { 
+    console.log('🏥 Owner check useEffect:', { 
       hospitalOwner: hospital?.owner, 
       currentUserId: currentUser?._id,
-      hospital: hospital?._id,
+      hospitalId: hospital?._id,
+      hospitalName: hospital?.name,
       currentUser: currentUser?._id 
     })
     if (hospital && currentUser) {
-      const isOwnerCheck = String(hospital.owner) === String(currentUser._id)
-      console.log('Setting isOwner to:', isOwnerCheck)
+      const isOwnerCheck = String(hospital.owner._id || hospital.owner) === String(currentUser._id)
+      console.log('🏥 Setting isOwner to:', isOwnerCheck)
+      console.log('🏥 Hospital owner ID:', hospital.owner)
+      console.log('🏥 Current user ID:', currentUser._id)
       setIsOwner(isOwnerCheck)
+    } else {
+      console.log('🏥 Missing data for owner check:', { hasHospital: !!hospital, hasCurrentUser: !!currentUser })
     }
   }, [hospital, currentUser])
+
+  // Clear any existing gallery images on component mount (for development/testing)
+  useEffect(() => {
+    if (hospital && hospital.gallery && hospital.gallery.length > 0) {
+      console.log('🏥 Found existing gallery images:', hospital.gallery);
+      // Uncomment the next line to automatically clear existing gallery images
+      // clearAllGalleryImages();
+    }
+  }, [hospital])
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -211,9 +227,14 @@ export default function HospitalDashboard() {
       const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/gallery`, { method: 'POST', credentials: 'include', body: formData })
       const data = await response.json()
       if (response.ok) {
-        const added = (data.images as string[]) || (data.imageUrl ? [data.imageUrl] : [])
-        setGalleryImages(prev => [...prev, ...added])
-        toast({ title: 'Success', description: `${added.length || 1} image(s) uploaded to gallery successfully!` })
+        console.log('🏥 Gallery upload response:', data);
+        // The backend returns the updated gallery array
+        if (data.gallery && Array.isArray(data.gallery)) {
+          setGalleryImages(data.gallery)
+          toast({ title: 'Success', description: `Gallery updated successfully!` })
+        } else {
+          throw new Error('Invalid response format from server')
+        }
         if (input) { input.value = '' }
       } else { throw new Error(data.error || 'Failed to upload image(s)') }
     } catch (error: any) {
@@ -230,6 +251,18 @@ export default function HospitalDashboard() {
       } else { throw new Error('Failed to remove image') }
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to remove image from gallery.', variant: 'destructive' })
+    }
+  }
+
+  const clearAllGalleryImages = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/gallery/clear`, { method: 'DELETE', credentials: 'include' })
+      if (response.ok) {
+        setGalleryImages([])
+        toast({ title: 'Success', description: 'All gallery images cleared successfully!' })
+      } else { throw new Error('Failed to clear gallery') }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to clear gallery images.', variant: 'destructive' })
     }
   }
 
@@ -269,7 +302,7 @@ export default function HospitalDashboard() {
       })
       
       console.log('Current hospital state:', hospital)
-      console.log('Current faculty count:', hospital.faculty?.length || 0)
+      console.log('Current doctors count:', hospital.doctors?.length || 0)
       
       const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/doctors`, { 
         method: 'POST', 
@@ -282,16 +315,17 @@ export default function HospitalDashboard() {
       const data = await response.json()
       console.log('Doctor creation response data:', data)
       
-      if (response.ok && data.faculty) {
-        // Add the new doctor to the hospital's faculty list
+      if (response.ok && data.doctors) {
+        console.log('🏥 Doctor creation response:', data);
+        // Update the hospital state with the new doctors array
         setHospital(prev => {
           if (prev) {
             const updatedHospital = {
               ...prev,
-              faculty: [...(prev.faculty || []), data.faculty]
+              doctors: data.doctors // Use the doctors array from response
             }
-            console.log('Updated hospital state:', updatedHospital)
-            console.log('New faculty count:', updatedHospital.faculty?.length || 0)
+            console.log('🏥 Updated hospital state:', updatedHospital)
+            console.log('🏥 New doctors count:', updatedHospital.doctors?.length || 0)
             return updatedHospital
           }
           return prev
@@ -317,7 +351,7 @@ export default function HospitalDashboard() {
       const response = await fetch(`${API_BASE_URL}/api/hospital/${id}/doctors/${doctorId}`, { method: 'DELETE', credentials: 'include' })
       const data = await response.json()
       if (response.ok) {
-        setHospital(prev => prev ? { ...prev, faculty: prev.faculty?.filter(d => d._id !== doctorId) || [] } : null)
+        setHospital(prev => prev ? { ...prev, doctors: prev.doctors?.filter(d => d._id !== doctorId) || [] } : null)
         toast({ title: 'Success', description: 'Doctor removed successfully!' })
       } else { throw new Error(data.error || 'Failed to remove doctor') }
     } catch (error: any) {
@@ -524,7 +558,13 @@ export default function HospitalDashboard() {
       <Navbar />
       <div className="pt-16 sm:pt-20">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} className="relative h-48 sm:h-64 md:h-72 lg:h-80 xl:h-96">
-          <img src={getImageUrl(hospital.banner) || 'https://images.unsplash.com/photo-1584433144859-1fc3ab64a957?w=1200&h=600&fit=crop'} alt={hospital.name} className="w-full h-full object-cover" />
+                     {hospital.banner ? (
+             <img src={getImageUrl(hospital.banner)} alt={hospital.name} className="w-full h-full object-cover" />
+           ) : (
+             <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+               <Building2 className="h-32 w-32 text-blue-400" />
+             </div>
+           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           <Button variant="ghost" className="absolute top-2 sm:top-4 left-2 sm:left-4 text-white hover:bg-white/20 text-xs sm:text-sm" onClick={() => navigate(`/hospital/hospital/${hospital._id}`)}>
             <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
@@ -533,7 +573,13 @@ export default function HospitalDashboard() {
           </Button>
           <div className="absolute bottom-4 sm:bottom-8 left-2 sm:left-8 text-white">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
-              <img src={getImageUrl(hospital.logo) || 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=100&h=100&fit=crop&crop=face'} alt={`${hospital.name} logo`} className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border-2 sm:border-4 border-white shadow-lg object-cover" />
+                             {hospital.logo ? (
+                 <img src={getImageUrl(hospital.logo)} alt={`${hospital.name} logo`} className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border-2 sm:border-4 border-white shadow-lg object-cover" />
+               ) : (
+                 <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border-2 sm:border-4 border-white shadow-lg bg-white/20 flex items-center justify-center">
+                   <Building2 className="h-6 w-6 sm:w-8 sm:h-8 text-white" />
+                 </div>
+               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
                   <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl font-bold truncate">{hospital.name}</h1>
@@ -579,20 +625,48 @@ export default function HospitalDashboard() {
 
               <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.6 }} className="relative">
                 <Card>
-                  <CardHeader className="pb-3 sm:pb-6"><CardTitle className="flex items-center gap-2 text-base sm:text-lg lg:text-xl"><Users className="h-4 w-4 sm:h-5 sm:w-5" />Gallery</CardTitle></CardHeader>
+                  <CardHeader className="pb-3 sm:pb-6">
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg lg:text-xl">
+                      <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                      Gallery
+                      {isOwner && (
+                        <Badge variant="secondary" className="ml-2">Owner Access</Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
                   <CardContent className="pt-0">
-                    {isOwner && (
-                      <div className="mb-4 sm:mb-6">
-                        <Label htmlFor="gallery-upload" className="cursor-pointer">
-                          <div className="border-2 border-dashed border-border rounded-lg p-4 sm:p-6 text-center hover:border-primary transition-colors">
-                            <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground mx-auto mb-2" />
-                            <p className="text-sm sm:text-base text-muted-foreground">Click to upload image(s) to gallery</p>
-                            <p className="text-xs sm:text-sm text-muted-foreground">PNG, JPG up to 10MB</p>
-                          </div>
-                        </Label>
-                        <input id="gallery-upload" type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" disabled={uploadingImage} />
+                    {/* Debug info */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div className="text-xs text-muted-foreground p-2 bg-muted rounded mb-4">
+                                                  Debug: isOwner={String(isOwner)}, currentUser={currentUser?._id || 'null'}, hospital.owner.id={hospital?.owner?._id || hospital?.owner || 'null'}
                       </div>
                     )}
+                                         {isOwner && (
+                       <div className="mb-4 sm:mb-6">
+                         <div className="flex items-center justify-between mb-3">
+                           <Label htmlFor="gallery-upload" className="cursor-pointer">
+                             <div className="border-2 border-dashed border-border rounded-lg p-4 sm:p-6 text-center hover:border-primary transition-colors">
+                               <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground mx-auto mb-2" />
+                               <p className="text-sm sm:text-base text-muted-foreground">Click to upload image(s) to gallery</p>
+                               <p className="text-xs sm:text-sm text-muted-foreground">PNG, JPG up to 10MB</p>
+                             </div>
+                           </Label>
+                         </div>
+                         <input id="gallery-upload" type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" disabled={uploadingImage} />
+                         {galleryImages.length > 0 && (
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={clearAllGalleryImages}
+                             className="w-full mt-2"
+                             disabled={uploadingImage}
+                           >
+                             <X className="h-3 w-3 mr-2" />
+                             Clear All Gallery Images
+                           </Button>
+                         )}
+                       </div>
+                     )}
                     {galleryImages.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
                         {galleryImages.map((image, index) => (
@@ -643,7 +717,13 @@ export default function HospitalDashboard() {
                 <Card>
                   <CardHeader className="pb-4 sm:pb-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                      <CardTitle className="flex items-center gap-2 text-lg sm:text-xl lg:text-2xl"><Stethoscope className="h-5 w-5 sm:h-6 sm:w-6" />Our Doctors</CardTitle>
+                      <CardTitle className="flex items-center gap-2 text-lg sm:text-xl lg:text-2xl">
+                        <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6" />
+                        Our Doctors
+                        {isOwner && (
+                          <Badge variant="secondary" className="ml-2">Owner Access</Badge>
+                        )}
+                      </CardTitle>
                       {isOwner && (
                         <Dialog open={showAddDoctor} onOpenChange={setShowAddDoctor}>
                           <DialogTrigger asChild>
@@ -689,9 +769,9 @@ export default function HospitalDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                                         {hospital.faculty && hospital.faculty.length > 0 ? (
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                         {hospital.faculty.map((member, index) => (
+                                                             {hospital.doctors && hospital.doctors.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        {hospital.doctors.map((member, index) => (
                           <div key={index} className="border rounded-lg p-4 sm:p-5 transform transition-transform hover:scale-105">
                             <div className="flex items-center gap-4 sm:gap-5">
                               <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
@@ -749,7 +829,7 @@ export default function HospitalDashboard() {
                       {/* Debug info */}
                       {process.env.NODE_ENV === 'development' && (
                         <div className="text-xs text-muted-foreground p-2 bg-muted rounded mb-4">
-                          Debug: isOwner={String(isOwner)}, currentUser={currentUser?._id}, hospital.owner={hospital?.owner}
+                          Debug: isOwner={String(isOwner)}, currentUser={currentUser?._id || 'null'}, hospital.owner.id={hospital?.owner?._id || hospital?.owner || 'null'}
                         </div>
                       )}
                       
@@ -875,7 +955,7 @@ export default function HospitalDashboard() {
                   <CardContent className="pt-0 space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Total Patients</span><span className="font-semibold text-sm sm:text-base">{hospital.totalPatients || hospital.patients || 'N/A'}</span></div>
                     <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Technicalities</span><span className="font-semibold text-sm sm:text-base">{hospital.specialization ? hospital.specialization.split(', ').length : 0}</span></div>
-                                         <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Doctors</span><span className="font-semibold text-sm sm:text-base">{hospital.faculty?.length || 0}</span></div>
+                                         <div className="flex items-center justify-between"><span className="text-xs sm:text-sm text-muted-foreground">Doctors</span><span className="font-semibold text-sm sm:text-base">{hospital.doctors?.length || 0}</span></div>
                   </CardContent>
                 </Card>
               </motion.div>

@@ -34,13 +34,19 @@ interface HospitalCardProps {
 export default function HospitalCard({ hospital, index, currentUser }: HospitalCardProps) {
   const navigate = useNavigate()
   const id = hospital._id || hospital.id
+  
+  // Debug logging
+  console.log(`🏥 HospitalCard ${index + 1} - ${hospital.name}:`, {
+    _id: hospital._id,
+    id: hospital.id,
+    finalId: id,
+    name: hospital.name
+  });
+  
   const [bannerError, setBannerError] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-
-  const defaultBanner = "https://images.unsplash.com/photo-1584433144859-1fc3ab64a957?w=400&h=200&fit=crop"
-  const defaultLogo = "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=80&h=80&fit=crop&crop=face"
 
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return null
@@ -67,20 +73,32 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
     <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 * index, duration: 0.6 }}>
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1" onClick={() => navigate(`/hospital/hospital/${id}`)}>
         <div className="relative h-40 sm:h-48">
-          <img
-            src={getImageUrl(hospital.banner) && !bannerError ? getImageUrl(hospital.banner)! : defaultBanner}
-            alt={hospital.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={() => setBannerError(true)}
-          />
+          {hospital.banner ? (
+            <img
+              src={getImageUrl(hospital.banner)}
+              alt={hospital.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={() => setBannerError(true)}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+              <Building2 className="h-16 w-16 text-blue-400" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-            <img
-              src={getImageUrl(hospital.logo) && !logoError ? getImageUrl(hospital.logo)! : defaultLogo}
-              alt={`${hospital.name} logo`}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white shadow-lg object-cover"
-              onError={() => setLogoError(true)}
-            />
+            {hospital.logo ? (
+              <img
+                src={getImageUrl(hospital.logo)}
+                alt={`${hospital.name} logo`}
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white shadow-lg object-cover"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white shadow-lg bg-white/20 flex items-center justify-center">
+                <Building2 className="h-6 w-6 text-white" />
+              </div>
+            )}
           </div>
           <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
             <Badge className="bg-primary text-white text-xs">

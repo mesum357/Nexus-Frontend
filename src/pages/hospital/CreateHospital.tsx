@@ -330,11 +330,28 @@ export default function CreateHospital() {
       case 4:
         return (
                   <PaymentSection 
-          entityType="hospital"
-          onPaymentComplete={handlePaymentComplete}
-          isRequired={true}
-          isSubmitting={isSubmitting}
-        />
+                    entityType="hospital"
+                    shopData={{
+                      name: form.name,
+                      type: form.type,
+                      city: form.city || 'Unknown City',
+                      province: form.province || 'Punjab',
+                      description: form.description,
+                      phone: form.phone,
+                      email: form.email,
+                      address: form.address,
+                      totalPatients: form.totalPatients,
+                      establishedYear: form.establishedYear,
+                      logoPreview: logoPreview,
+                      bannerPreview: bannerPreview,
+                      agentId: form.agentId || '',
+                      specialization: techs.map(tech => tech.name).join(', '),
+                      departments: techs.map(tech => tech.name)
+                    }}
+                    onPaymentComplete={handlePaymentComplete}
+                    isRequired={true}
+                    isSubmitting={isSubmitting}
+                  />
         )
 
       case 5:

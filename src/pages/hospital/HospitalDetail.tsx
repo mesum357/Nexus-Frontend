@@ -97,6 +97,7 @@ export default function HospitalDetail() {
     fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => {
+        console.log('🏥 Current user data:', data.user);
         setCurrentUser(data.user)
         setIsAuthenticated(true)
       })
@@ -107,26 +108,35 @@ export default function HospitalDetail() {
   }, [])
 
   useEffect(() => {
+    console.log('🏥 HospitalDetail useEffect triggered with ID:', id);
+    
     if (!id) {
+      console.log('❌ No hospital ID provided');
       setError('Hospital ID not found')
       setIsLoading(false)
       return
     }
 
+    console.log('🏥 Fetching hospital data for ID:', id);
     fetch(`${API_BASE_URL}/api/hospital/${id}`)
       .then(res => {
+        console.log('🏥 Hospital fetch response status:', res.status);
         if (!res.ok) throw new Error('Hospital not found')
         return res.json()
       })
       .then(data => {
-        if (data.institute) {
-          setHospital(data.institute)
+        console.log('🏥 Hospital fetch response data:', data);
+        if (data.hospital) {
+          console.log('✅ Hospital data found:', data.hospital);
+          setHospital(data.hospital)
           setIsLoading(false)
         } else {
-          throw new Error('Institute data not found in response')
+          console.log('❌ Hospital data not found in response');
+          throw new Error('Hospital data not found in response')
         }
       })
       .catch(err => {
+        console.log('❌ Hospital fetch error:', err.message);
         setError(err.message)
         setIsLoading(false)
       })
@@ -143,15 +153,21 @@ export default function HospitalDetail() {
 
     fetch(`${API_BASE_URL}/api/hospital/${id}/doctors`)
       .then(res => res.json())
-      .then(data => setDoctors((data.faculty || []).map((f: any) => ({
-        _id: f._id,
-        name: f.name,
-        specialty: f.position,
-        qualification: f.qualification,
-        experience: f.experience,
-        image: f.image,
-      }))))
-      .catch(() => setDoctors([]))
+      .then(data => {
+        console.log('🏥 Doctors data received:', data);
+        setDoctors((data.doctors || []).map((f: any) => ({
+          _id: f._id,
+          name: f.name,
+          specialty: f.position,
+          qualification: f.qualification,
+          experience: f.experience,
+          image: f.image,
+        })))
+      })
+      .catch((error) => {
+        console.error('🏥 Error fetching doctors:', error);
+        setDoctors([])
+      })
   }, [id])
 
   const handleSubmitReview = async () => {
@@ -251,7 +267,13 @@ export default function HospitalDetail() {
       <Navbar />
       <div className="pt-20">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} className="relative h-96">
-          <img src={getImageUrl(hospital.banner) || 'https://images.unsplash.com/photo-1584433144859-1fc3ab64a957?w=1200&h=600&fit=crop'} alt={hospital.name} className="w-full h-full object-cover" />
+          {hospital.banner ? (
+            <img src={getImageUrl(hospital.banner)} alt={hospital.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+              <Building2 className="h-32 w-32 text-blue-400" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           <Button variant="ghost" className="absolute top-4 left-4 text-white hover:bg-white/20" onClick={() => navigate('/hospital')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -263,7 +285,13 @@ export default function HospitalDetail() {
           </Button>
           <div className="absolute bottom-8 left-8 text-white">
             <div className="flex items-center gap-4 mb-4">
-              <img src={getImageUrl(hospital.logo) || 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=100&h=100&fit=crop&crop=face'} alt={`${hospital.name} logo`} className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover" />
+              {hospital.logo ? (
+                <img src={getImageUrl(hospital.logo)} alt={`${hospital.name} logo`} className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover" />
+              ) : (
+                <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg bg-white/20 flex items-center justify-center">
+                  <Building2 className="h-12 w-12 text-white" />
+                </div>
+              )}
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <h1 className="text-4xl font-bold">{hospital.name}</h1>
@@ -497,9 +525,9 @@ export default function HospitalDetail() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
-                      <DropdownMenuItem onClick={() => navigate(`/hospital/hospital/${id}/technicalities`)}>All Technicalities</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/hospital/${id}/technicalities`)}>All Technicalities</DropdownMenuItem>
                       {hospital.specialization && hospital.specialization.split(', ').map((tech, index) => (
-                        <DropdownMenuItem key={index} onClick={() => navigate(`/hospital/hospital/${id}/technicalities?specialization=${tech}`)}>
+                        <DropdownMenuItem key={index} onClick={() => navigate(`/hospital/${id}/technicalities?specialization=${tech}`)}>
                           {tech}
                         </DropdownMenuItem>
                       ))}
@@ -516,7 +544,9 @@ export default function HospitalDetail() {
                     </div>
                   )}
 
-                  {isAuthenticated && currentUser && hospital && String(hospital.owner) === String(currentUser._id) && (
+
+                  
+                  {isAuthenticated && currentUser && hospital && (String(hospital.owner?._id || hospital.owner) === String(currentUser._id)) && (
                     <div className="border-t pt-3 mt-3">
                       <p className="text-sm font-medium text-muted-foreground mb-2">Owner Actions</p>
                       <div className="space-y-2">

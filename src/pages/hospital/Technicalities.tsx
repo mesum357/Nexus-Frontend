@@ -108,7 +108,7 @@ export default function Technicalities() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} className="relative h-64">
           <img src={getImageUrl(hospital.banner) || 'https://images.unsplash.com/photo-1584433144859-1fc3ab64a957?w=1200&h=400&fit=crop'} alt={hospital.name} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-          <Button variant="ghost" className="absolute top-4 left-4 text-white hover:bg-white/20" onClick={() => navigate(`/hospital/hospital/${hospital._id}/dashboard`)}>
+                          <Button variant="ghost" className="absolute top-4 left-4 text-white hover:bg-white/20" onClick={() => navigate(`/hospital/${hospital._id}/dashboard`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -142,7 +142,7 @@ export default function Technicalities() {
                         <Stethoscope className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium text-primary">Filtering by specialization: <span className="font-semibold">{specialization}</span></span>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => navigate(`/hospital/hospital/${id}/technicalities`)} className="text-primary hover:text-primary/80">Clear Filter</Button>
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/hospital/${id}/technicalities`)} className="text-primary hover:text-primary/80">Clear Filter</Button>
                     </div>
                   </div>
                 )}
