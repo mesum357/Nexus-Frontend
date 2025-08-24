@@ -279,7 +279,7 @@ export default function HospitalDetail() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Hospitals
           </Button>
-          <Button variant="default" className="absolute top-4 right-4 bg-primary text-white hover:bg-primary/90 shadow-lg" onClick={() => navigate(`/hospital/hospital/${hospital._id}/dashboard`)}>
+          <Button variant="default" className="absolute top-4 right-4 bg-primary text-white hover:bg-primary/90 shadow-lg" onClick={() => navigate(`/hospital/${hospital._id}/dashboard`)}>
             <Building2 className="h-4 w-4 mr-2" />
             Hospital Dashboard
           </Button>

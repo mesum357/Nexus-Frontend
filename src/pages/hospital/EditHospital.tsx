@@ -97,7 +97,7 @@ export default function EditHospital() {
       const response = await fetch(`${API_BASE_URL}/api/hospital/${id}`, { method: 'PUT', credentials: 'include', body: formData })
       if (response.ok) {
         toast({ title: 'Success!', description: 'Hospital updated successfully.' })
-        navigate(`/hospital/hospital/${id}`)
+        navigate(`/hospital/${id}`)
       } else {
         const error = await response.json()
         throw new Error(error.message || 'Failed to update hospital')

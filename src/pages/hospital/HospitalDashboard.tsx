@@ -566,7 +566,7 @@ export default function HospitalDashboard() {
              </div>
            )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-          <Button variant="ghost" className="absolute top-2 sm:top-4 left-2 sm:left-4 text-white hover:bg-white/20 text-xs sm:text-sm" onClick={() => navigate(`/hospital/hospital/${hospital._id}`)}>
+          <Button variant="ghost" className="absolute top-2 sm:top-4 left-2 sm:left-4 text-white hover:bg-white/20 text-xs sm:text-sm" onClick={() => navigate(`/hospital/${hospital._id}`)}>
             <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Back to Hospital</span>
             <span className="sm:hidden">Back</span>
@@ -695,7 +695,7 @@ export default function HospitalDashboard() {
                   <CardContent className="pt-0">
                     <div className="mb-4 sm:mb-6">
                       <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">{hospital.specialization ? hospital.specialization.split(', ').length : 0} item(s) available</p>
-                      <Button onClick={() => navigate(`/hospital/hospital/${hospital._id}/technicalities`)} className="w-full sm:w-auto text-sm sm:text-base">
+                      <Button onClick={() => navigate(`/hospital/${hospital._id}/technicalities`)} className="w-full sm:w-auto text-sm sm:text-base">
                         <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         View All Technicalities
                       </Button>

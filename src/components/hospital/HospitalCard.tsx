@@ -71,7 +71,7 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
 
   return (
     <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 * index, duration: 0.6 }}>
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1" onClick={() => navigate(`/hospital/hospital/${id}`)}>
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group hover:-translate-y-1" onClick={() => navigate(`/hospital/${id}`)}>
         <div className="relative h-40 sm:h-48">
           {hospital.banner ? (
             <img
@@ -154,7 +154,7 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
               className="w-full bg-primary hover:bg-primary/90 text-sm sm:text-base h-9 sm:h-10"
               onClick={(e) => {
                 e.stopPropagation()
-                navigate(`/hospital/hospital/${id}`)
+                navigate(`/hospital/${id}`)
               }}
             >
               View Details

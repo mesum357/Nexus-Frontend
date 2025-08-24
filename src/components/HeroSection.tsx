@@ -54,36 +54,18 @@ export function HeroSection() {
           >
             Your city's all‑in‑one digital hub for shopping, learning, and community engagement across Pakistan Online.
           </motion.p>
+          {/* Video positioned at bottom right */}
           <motion.div
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1, delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-8 justify-center items-center"
+            className="absolute bottom-8 right-8 z-20"
           >
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button 
-                size="lg"
-                className="text-lg font-semibold px-8 py-4 h-14 rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg shadow-primary/25"
-              >
-                Get Started
-              </Button>
-            </motion.div>
-            
-            {/* YouTube Video Section */}
-            <motion.div
-              initial={{ y: 60, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1, delay: 0.9 }}
-              className="relative group cursor-pointer"
-                             onClick={() => window.open('https://www.youtube.com/watch?v=honOJloqesA', '_blank')}
-            >
-              <div className="relative w-80 h-48 rounded-2xl overflow-hidden shadow-2xl shadow-primary/25 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 group-hover:scale-105">
-                                 <iframe
-                   src="https://www.youtube.com/embed/honOJloqesA?autoplay=1&mute=1&loop=1&playlist=honOJloqesA&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0"
-                   title="Pakistan Online Introduction"
+            <div className="relative group cursor-pointer" onClick={() => window.open('https://www.youtube.com/watch?v=honOJloqesA', '_blank')}>
+              <div className="relative w-64 h-40 rounded-2xl overflow-hidden shadow-2xl shadow-primary/25 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 group-hover:scale-105">
+                <iframe
+                  src="https://www.youtube.com/embed/honOJloqesA?autoplay=1&mute=1&loop=1&playlist=honOJloqesA&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0"
+                  title="Pakistan Online Introduction"
                   className="w-full h-full"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -91,15 +73,15 @@ export function HeroSection() {
                 />
                 {/* Play Button Overlay */}
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors duration-300">
-                    <i className="fas fa-play text-primary text-xl ml-1"></i>
+                  <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors duration-300">
+                    <i className="fas fa-play text-primary text-lg ml-1"></i>
                   </div>
                 </div>
               </div>
-              <p className="text-center text-sm text-muted-foreground mt-2 font-medium">
+              <p className="text-center text-xs text-muted-foreground mt-2 font-medium">
                 Watch Our Story
               </p>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </motion.div>
