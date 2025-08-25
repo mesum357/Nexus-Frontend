@@ -488,7 +488,7 @@ export default function HospitalDashboard() {
       setSelectedApplication(null)
       setApplicationNotes('')
       
-      const statusText = status === 'accepted' ? 'approved' : status === 'rejected' ? 'rejected' : status
+      const statusText = status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : status
       toast({ 
         title: 'Success', 
         description: `Patient application ${statusText} successfully!` 
@@ -845,17 +845,17 @@ export default function HospitalDashboard() {
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
                                     <h4 className="font-bold text-foreground text-base sm:text-lg truncate">{app.patientName}</h4>
-                                    <p className="text-sm sm:text-base text-primary font-medium truncate">{app.department}</p>
+                                    <p className="text-sm sm:text-base text-primary font-medium truncate">{app.treatmentType || app.department}</p>
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-2">
                                       <Badge 
                                         variant={
-                                          app.status === 'accepted' ? 'default' : 
+                                          app.status === 'approved' ? 'default' : 
                                           app.status === 'rejected' ? 'destructive' : 
-                                          app.status === 'review' ? 'secondary' : 'outline'
+                                          app.status === 'pending' ? 'secondary' : 'outline'
                                         }
                                         className="text-xs capitalize w-fit"
                                       >
-                                        {app.status}
+                                        {app.status === 'pending' ? 'pending' : app.status}
                                       </Badge>
                                       <span className="text-xs text-muted-foreground">
                                         Applied: {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : ''}
@@ -878,6 +878,9 @@ export default function HospitalDashboard() {
                                   <p className="text-sm text-muted-foreground">
                                     <span className="font-medium text-foreground">City:</span> {app.city}
                                   </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    <span className="font-medium text-foreground">Gender:</span> {app.patientGender || app.gender}
+                                  </p>
                                   {app.notes && (
                                     <p className="text-sm text-muted-foreground">
                                       <span className="font-medium text-foreground">Notes:</span> {app.notes}
@@ -887,7 +890,7 @@ export default function HospitalDashboard() {
                               </div>
 
                               {/* Action Buttons */}
-                              {app.status === 'submitted' && (
+                              {app.status === 'pending' && (
                                 <div className="flex flex-col sm:flex-row gap-2">
                                   <Button 
                                     size="sm" 
@@ -899,11 +902,11 @@ export default function HospitalDashboard() {
                                 </div>
                               )}
                               
-                              {app.status === 'review' && (
+                              {app.status === 'pending' && (
                                 <div className="flex flex-col sm:flex-row gap-2">
                                   <Button 
                                     size="sm" 
-                                    onClick={() => handleApplicationStatusUpdate(app._id, 'accepted')}
+                                    onClick={() => handleApplicationStatusUpdate(app._id, 'approved')}
                                     className="flex-1 bg-green-600 hover:bg-green-700"
                                   >
                                     <Check className="h-4 w-4 mr-2" />
@@ -921,7 +924,7 @@ export default function HospitalDashboard() {
                                 </div>
                               )}
 
-                              {app.status === 'accepted' && (
+                              {app.status === 'approved' && (
                                 <div className="flex items-center gap-2 text-green-600 p-3 bg-green-50 rounded-lg">
                                   <Check className="h-4 w-4" />
                                   <span className="text-sm font-medium">Application Approved</span>
@@ -1159,7 +1162,7 @@ export default function HospitalDashboard() {
               {/* Action Buttons */}
               <div className="flex flex-col gap-2 pt-2">
                 <Button 
-                  onClick={() => handleApplicationStatusUpdate(selectedApplication._id, 'accepted')}
+                  onClick={() => handleApplicationStatusUpdate(selectedApplication._id, 'approved')}
                   className="w-full bg-green-600 hover:bg-green-700"
                   size="sm"
                 >

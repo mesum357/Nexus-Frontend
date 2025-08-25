@@ -85,6 +85,10 @@ export default function CreateHospital() {
     // This function is called after successful payment submission
     setPaymentCompleted(true);
     console.log('Payment completed:', paymentData);
+    // If the entity was successfully created in PaymentSection, store it for confirmation
+    if (paymentData?.entity && paymentData?.entityType === 'hospital') {
+      setCreatedHospital(paymentData.entity)
+    }
     
     toast({ 
       title: 'Payment Submitted Successfully', 
@@ -147,12 +151,15 @@ export default function CreateHospital() {
   const handleCloseBannerCropper = () => { setShowBannerCropper(false); setTempBannerFile(null) }
 
   const handleSubmit = async () => {
-    // Hospital is already created in handlePaymentComplete, just navigate to success
+    if (!paymentCompleted || !createdHospital) {
+      toast({ title: 'Not Ready', description: 'Please complete the payment and ensure the hospital is created before submitting.', variant: 'destructive' })
+      return
+    }
     toast({ 
       title: 'Hospital Creation Complete!', 
-      description: 'Your hospital has been created successfully and payment submitted. It is now pending admin approval!' 
+      description: 'Your hospital has been created and is pending admin approval.' 
     });
-    navigate('/hospital');
+    navigate(`/hospital/${createdHospital._id}`);
   }
 
   const renderStepContent = () => {

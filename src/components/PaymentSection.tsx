@@ -15,6 +15,7 @@ import {
   X,
   User
 } from 'lucide-react'
+import { API_BASE_URL } from '@/lib/config'
 
 /**
  * PaymentSection Component
@@ -201,9 +202,9 @@ export default function PaymentSection({
       paymentFormData.append('transactionScreenshot', paymentData.transactionScreenshot);
       paymentFormData.append('amount', paymentAmount.toString());
 
-      console.log('📤 Sending payment request to:', `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`);
+      console.log('📤 Sending payment request to:', `${API_BASE_URL}/api/payment/create`);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/create`, {
+      const response = await fetch(`${API_BASE_URL}/api/payment/create`, {
         method: 'POST',
         credentials: 'include',
         body: paymentFormData
@@ -225,10 +226,11 @@ export default function PaymentSection({
       const paymentResponse = await response.json();
       console.log('💰 Payment response received:', paymentResponse);
       
-      const transactionId = paymentResponse.paymentRequest?._id || paymentResponse._id;
+      const transactionId = paymentResponse.paymentRequest?.transactionId || paymentResponse.transactionId;
       console.log('🆔 Transaction ID extracted:', transactionId);
 
       // After successful payment, create the entity with pending approval status
+      let createdEntity: any = null
       try {
         console.log(`🏗️ Creating ${entityType} after successful payment...`);
         console.log('📦 Entity data received:', shopData);
@@ -470,6 +472,14 @@ export default function PaymentSection({
               console.error('🏥 Error processing hospital images:', error);
             }
             
+            // Ensure departments are in the correct shape for backend schema
+            const rawDepartments = Array.isArray(shopData.departments) ? shopData.departments : []
+            const mappedDepartments = rawDepartments.map((d: any) => {
+              if (typeof d === 'string') { return { name: d } }
+              if (d && typeof d.name === 'string') { return d }
+              return { name: String(d || '') }
+            }).filter((d: any) => d.name && d.name.trim() !== '')
+
             entityCreationData = {
               name: shopData.name || shopData.hospitalName,
               type: shopData.type || shopData.hospitalType,
@@ -486,11 +496,11 @@ export default function PaymentSection({
               instagram: shopData.instagram,
               twitter: shopData.twitter,
               linkedin: shopData.linkedin,
-              departments: shopData.departments || [],
+              departments: mappedDepartments,
               doctors: shopData.doctors || [],
               totalPatients: shopData.totalPatients,
               totalDoctors: shopData.totalDoctors,
-              admissionStatus: shopData.admissionStatus,
+              admissionStatus: shopData.admissionStatus || 'Open',
               establishedYear: shopData.establishedYear,
               accreditation: shopData.accreditation || [],
               facilities: shopData.facilities || [],
@@ -555,12 +565,12 @@ export default function PaymentSection({
             console.warn('⚠️ Unknown entity type:', entityType);
             break;
         }
-        
-                if (entityCreationData && entityEndpoint) {
-          console.log(`📝 ${entityName} creation data:`, entityCreationData);
-          console.log(`🌐 Making API call to: ${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${entityEndpoint}`);
 
-          const entityResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${entityEndpoint}`, {
+        if (entityCreationData && entityEndpoint) {
+          console.log(`📝 ${entityName} creation data:`, entityCreationData);
+          console.log(`🌐 Making API call to: ${API_BASE_URL}${entityEndpoint}`);
+
+          const entityResponse = await fetch(`${API_BASE_URL}${entityEndpoint}`, {
             method: 'POST',
             credentials: 'include',
             headers: {
@@ -574,19 +584,20 @@ export default function PaymentSection({
 
           if (entityResponse.ok) {
             const entityResult = await entityResponse.json();
+            createdEntity = entityResult[entityName.toLowerCase()] || entityResult.entity || entityResult
             console.log(`✅ ${entityName} created successfully:`, entityResult);
             
             // Link payment request to created entity
             try {
               console.log(`🔗 Linking payment request to created ${entityName.toLowerCase()}...`);
-              const updatePaymentResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/${transactionId}/link-entity`, {
+              const updatePaymentResponse = await fetch(`${API_BASE_URL}/api/payment/${transactionId}/link-entity`, {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                  entityId: entityResult[entityName.toLowerCase()]?._id || entityResult.entity?._id || entityResult._id,
+                  entityId: createdEntity?._id,
                   entityType: entityType
                 })
               });
@@ -600,7 +611,7 @@ export default function PaymentSection({
               console.warn(`⚠️ Error linking payment to ${entityName.toLowerCase()}:`, linkError);
             }
 
-      toast({ 
+            toast({ 
               title: `Payment & ${entityName} Setup Complete!`, 
               description: `Your payment has been submitted and ${entityName.toLowerCase()} has been created. It is now pending admin approval.` 
             });
@@ -646,7 +657,12 @@ export default function PaymentSection({
 
       // Call the callback if provided (for any additional handling)
       if (onPaymentComplete) {
-        onPaymentComplete(paymentData)
+        onPaymentComplete({
+          transactionId,
+          entityType,
+          entity: createdEntity,
+          payment: paymentResponse.paymentRequest || paymentResponse
+        })
       }
 
       // Reset form after successful submission

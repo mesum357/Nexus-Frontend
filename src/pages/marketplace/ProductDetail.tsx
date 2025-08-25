@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Heart, Share2, MapPin, Clock, Eye, Star, ShieldCheck, MessageCircle, Phone } from 'lucide-react'
+import { ArrowLeft, Heart, Share2, MapPin, Clock, Eye, Star, ShieldCheck, MessageCircle, Phone, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,7 @@ import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import { getProfileImageUrl } from '@/lib/utils'
 import { RichTextDisplay } from '@/components/ui/rich-text-display'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 
 export default function ProductDetail() {
@@ -23,6 +24,13 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [isFavorited, setIsFavorited] = useState(false)
   const [sharing, setSharing] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryExisting, setGalleryExisting] = useState<string[]>([])
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([])
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([])
+  const [gallerySaving, setGallerySaving] = useState(false)
 
   // Fetch product data
   const fetchProduct = async () => {
@@ -66,6 +74,20 @@ export default function ProductDetail() {
     }
   }, [productId])
 
+  // Fetch current user for ownership checks
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          setCurrentUser(data.user)
+        }
+      } catch {}
+    }
+    fetchMe()
+  }, [])
+
   // Format price for display
   const formatPrice = (price) => {
     if (price === 0) return 'Free'
@@ -107,6 +129,83 @@ export default function ProductDetail() {
     }
   }
 
+  const isOwner = () => {
+    if (!currentUser || !product) return false
+    const ownerId = typeof product.owner === 'string' ? product.owner : product.owner?._id
+    return String(ownerId) === String(currentUser._id)
+  }
+
+  const handleDelete = async () => {
+    if (!product?._id) return
+    const confirmed = window.confirm('Are you sure you want to delete this product? This action cannot be undone.')
+    if (!confirmed) return
+    try {
+      setDeleting(true)
+      const res = await fetch(`${API_BASE_URL}/api/marketplace/${product._id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Failed to delete product')
+      toast({ title: 'Deleted', description: 'Product deleted successfully' })
+      navigate('/marketplace')
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to delete product', variant: 'destructive' })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const openGallery = () => {
+    setGalleryExisting(product?.images || [])
+    setGalleryFiles([])
+    setGalleryPreviews([])
+    setGalleryOpen(true)
+  }
+
+  const onSelectGalleryFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []) as File[]
+    if (!files.length) return
+    const newPreviews = files.map(f => URL.createObjectURL(f))
+    setGalleryFiles(prev => [...prev, ...files])
+    setGalleryPreviews(prev => [...prev, ...newPreviews])
+    // reset input value to allow re-selecting same file
+    e.currentTarget.value = ''
+  }
+
+  const removeExistingImage = (index: number) => {
+    setGalleryExisting(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const removeNewImage = (index: number) => {
+    setGalleryFiles(prev => prev.filter((_, i) => i !== index))
+    setGalleryPreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const saveGallery = async () => {
+    if (!product?._id) return
+    try {
+      setGallerySaving(true)
+      const form = new FormData()
+      form.append('existingImages', JSON.stringify(galleryExisting))
+      galleryFiles.forEach(file => form.append('images', file))
+      const res = await fetch(`${API_BASE_URL}/api/marketplace/${product._id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: form
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update gallery')
+      setProduct(data.product)
+      toast({ title: 'Gallery updated', description: 'Your product images have been updated.' })
+      setGalleryOpen(false)
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to update gallery', variant: 'destructive' })
+    } finally {
+      setGallerySaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -116,6 +215,39 @@ export default function ProductDetail() {
             <div className="text-center">Loading product...</div>
           </div>
         </div>
+        {/* Product Gallery */}
+        {product.images && product.images.length > 0 && (
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="mt-8"
+          >
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold text-foreground mb-4">Gallery</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {product.images.map((img, idx) => (
+                    <button
+                      key={`gallery-${idx}`}
+                      type="button"
+                      onClick={() => setSelectedImage(idx)}
+                      className="relative group rounded-lg overflow-hidden border hover:shadow transition"
+                      title="View this image"
+                    >
+                      <img
+                        src={img}
+                        alt={`Gallery ${idx + 1}`}
+                        className="w-full h-36 object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
     )
   }
@@ -225,6 +357,29 @@ export default function ProductDetail() {
               {/* Price & Title */}
               <Card>
                 <CardContent className="p-6">
+                  {isOwner() && (
+                    <div className="flex items-center justify-end gap-2 mb-4">
+                      <Button
+                        variant="outline"
+                        onClick={openGallery}
+                      >
+                        Manage Gallery
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate(`/marketplace/edit/${product._id}`)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" /> Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={deleting}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> {deleting ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mb-3">
                     <Badge variant="outline">{product.category}</Badge>
                     <Badge variant="outline">{product.condition}</Badge>
@@ -384,6 +539,65 @@ export default function ProductDetail() {
           </motion.div>
         </div>
       </div>
+      <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Manage Gallery</DialogTitle>
+            <DialogDescription>Add or remove images for your product.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Current Images</h4>
+              {galleryExisting.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No images yet.</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {galleryExisting.map((img, idx) => (
+                    <div key={`${img}-${idx}`} className="relative">
+                      <img src={img} alt={`Existing ${idx + 1}`} className="w-full h-24 object-cover rounded" />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-1 right-1 h-6 px-2"
+                        onClick={() => removeExistingImage(idx)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Add New Images</h4>
+              <input type="file" accept="image/*" multiple onChange={onSelectGalleryFiles} />
+              {galleryPreviews.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  {galleryPreviews.map((src, idx) => (
+                    <div key={`new-${idx}`} className="relative">
+                      <img src={src} alt={`New ${idx + 1}`} className="w-full h-24 object-cover rounded" />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-1 right-1 h-6 px-2"
+                        onClick={() => removeNewImage(idx)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setGalleryOpen(false)}>Cancel</Button>
+              <Button onClick={saveGallery} disabled={gallerySaving}>{gallerySaving ? 'Saving...' : 'Save Changes'}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

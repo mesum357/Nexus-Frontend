@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Navbar from '@/components/Navbar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import { Input } from '@/components/ui/input'
@@ -25,9 +25,11 @@ interface PatientRegistration {
     type?: string;
   };
   patientName: string;
-  department: string;
-  visitType?: string;
-  status: 'submitted' | 'review' | 'accepted' | 'rejected';
+  treatmentType?: string;
+  preferredDate?: string;
+  symptoms?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'submitted' | 'review' | 'accepted';
+  patientDecision?: 'accepted' | 'declined' | 'none';
   createdAt: string;
 }
 
@@ -49,6 +51,7 @@ interface Message {
 export default function PatientDashboard() {
   const location = useLocation() as any
   const navigate = useNavigate()
+  const { id: routeHospitalId } = useParams()
   const appliedData = location.state || null
   const patient = appliedData?.patient
   const selectedDepartment = appliedData?.department
@@ -67,6 +70,8 @@ export default function PatientDashboard() {
   const [newProfileImage, setNewProfileImage] = useState<File | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const { toast } = useToast()
+  const [hospitalInfo, setHospitalInfo] = useState<any>(null)
+  const [myHospitalRegistration, setMyHospitalRegistration] = useState<PatientRegistration | null>(null)
   const [editForm, setEditForm] = useState({
     fullName: '',
     email: '',
@@ -87,17 +92,23 @@ export default function PatientDashboard() {
         });
         if (response.ok) {
           const data = await response.json();
-          // Map institute applications to patient registrations shape
+          // Map hospital patient applications
           const mapped = (data.applications || []).map((a: any) => ({
             _id: a._id,
-            hospital: { _id: a.institute?._id, name: a.institute?.name, logo: a.institute?.logo, city: a.institute?.city, type: a.institute?.type },
-            patientName: a.patientName || a.studentName,
-            department: a.departmentName || a.courseName,
-            visitType: a.visitType || a.courseDuration,
+            hospital: { _id: a.hospital?._id || a.hospital, name: a.hospital?.name, logo: a.hospital?.logo, city: a.hospital?.city, type: a.hospital?.type },
+            patientName: a.patientName,
+            treatmentType: a.treatmentType,
+            preferredDate: a.preferredDate,
+            symptoms: a.symptoms,
             status: a.status,
+            patientDecision: a.patientDecision || 'none',
             createdAt: a.createdAt,
-          }))
+          })) as PatientRegistration[]
           setRegistrations(mapped);
+          if (routeHospitalId) {
+            const found = (mapped as PatientRegistration[]).find(r => String(r.hospital?._id) === String(routeHospitalId)) || null
+            setMyHospitalRegistration(found || null)
+          }
         }
       } catch (error) {
       } finally {
@@ -105,7 +116,7 @@ export default function PatientDashboard() {
       }
     };
     fetchRegistrations();
-  }, []);
+  }, [routeHospitalId]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
@@ -115,12 +126,13 @@ export default function PatientDashboard() {
   }, [])
 
   useEffect(() => {
-    if (hospital?.id) {
-      fetch(`${API_BASE_URL}/api/hospital/${hospital.id}/notifications`)
+    const targetHospitalId = routeHospitalId || hospital?.id
+    if (targetHospitalId) {
+      fetch(`${API_BASE_URL}/api/hospital/${targetHospitalId}/notifications`)
         .then(res => res.json())
         .then(data => setNotifications((data.notifications || []).map((n: any) => ({ id: String(n._id || ''), message: n.message, time: new Date(n.createdAt).toLocaleString(), type: n.title || 'notice' }))))
         .catch(() => {})
-      fetch(`${API_BASE_URL}/api/hospital/${hospital.id}/messages`)
+      fetch(`${API_BASE_URL}/api/hospital/${targetHospitalId}/messages`)
         .then(res => res.json())
         .then(data => {
           const mapped = (data.messages || []).map((m: any) => ({ id: String(m._id || ''), from: m.senderName, subject: m.message, time: new Date(m.createdAt).toLocaleString(), unread: true }));
@@ -137,24 +149,32 @@ export default function PatientDashboard() {
         })
         .catch(() => {})
     }
-  }, [hospital?.id])
+  }, [routeHospitalId, hospital?.id])
 
   useEffect(() => {
+    if (routeHospitalId) return
     if (registrations.length === 0) { setNotifications([]); return }
-    // Limit to healthcare domain
-          fetch(`${API_BASE_URL}/api/hospital/notifications/my`, { credentials: 'include' })
+    fetch(`${API_BASE_URL}/api/hospital/notifications/my`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => setNotifications((data.notifications || []).map((n: any) => ({ id: String(n._id || ''), message: n.message, time: new Date(n.createdAt).toLocaleString(), type: n.title || (n.hospital?.name ? `Notice - ${n.hospital.name}` : 'notice') }))))
       .catch(() => {})
-  }, [registrations])
+  }, [registrations, routeHospitalId])
 
   useEffect(() => {
-    if (hospital?.id) {
-      fetch(`${API_BASE_URL}/api/hospital/${hospital.id}/tasks`)
+    const targetHospitalId = routeHospitalId || hospital?.id
+    if (targetHospitalId) {
+      fetch(`${API_BASE_URL}/api/hospital/${targetHospitalId}/tasks`, { credentials: 'include' })
         .then(res => res.json())
         .then(data => {
-          const items = (data.tasks || []).map((t: any) => ({ id: String(t._id || ''), title: t.title, description: t.description, type: t.type, hospitalName: hospital?.name, time: new Date(t.createdAt).toLocaleTimeString() }));
-          setTodayTasks(items);
+          const items = (data.tasks || []).map((t: any) => ({ id: String(t._id || ''), title: t.title, description: t.description, type: t.type, hospitalName: hospitalInfo?.name, time: new Date(t.createdAt).toLocaleTimeString() }));
+          if (items.length > 0) { setTodayTasks(items); return }
+          // Fallback to today's tasks if hospital-specific list is empty
+          return fetch(`${API_BASE_URL}/api/hospital/tasks/my/today`, { credentials: 'include' })
+            .then(r => r.json())
+            .then(d => {
+              const fallback = (d.tasks || []).map((t: any) => ({ id: String(t._id || ''), title: t.title, description: t.description, type: t.type, hospitalName: t.hospital?.name, time: new Date(t.createdAt).toLocaleTimeString() }));
+              setTodayTasks(fallback)
+            })
         })
         .catch(() => setTodayTasks([]));
       return;
@@ -167,16 +187,25 @@ export default function PatientDashboard() {
         setTodayTasks(items);
       })
       .catch(() => setTodayTasks([]));
-  }, [hospital?.id]);
+  }, [routeHospitalId, hospital?.id, hospitalInfo?.name]);
+
+  // Fetch hospital info for header/tasks labeling
+  useEffect(() => {
+    if (!routeHospitalId) return
+    fetch(`${API_BASE_URL}/api/hospital/${routeHospitalId}`)
+      .then(res => res.json())
+      .then(data => setHospitalInfo(data.hospital || null))
+      .catch(() => setHospitalInfo(null))
+  }, [routeHospitalId])
 
   const totalRegistrations = registrations.length;
-  const acceptedRegistrations = registrations.filter(r => r.status === 'accepted').length;
-  const pendingRegistrations = registrations.filter(r => r.status === 'submitted' || r.status === 'review').length;
+  const acceptedRegistrations = registrations.filter(r => r.status === 'approved' || r.status === 'accepted').length;
+  const pendingRegistrations = registrations.filter(r => r.status === 'pending' || r.status === 'submitted' || r.status === 'review').length;
   const avgProgress = totalRegistrations > 0 ? Math.round((acceptedRegistrations / totalRegistrations) * 100) : 0;
 
   const upcomingVisits = registrations
-    .filter(r => r.status === 'accepted')
-    .map((r, index) => ({ id: r._id, title: r.department, time: `${9 + index}:00 AM - ${10 + index}:30 AM`, instructor: r.hospital.name, type: index % 2 === 0 ? 'live' : 'recorded' }));
+    .filter(r => r.status === 'approved' || r.status === 'accepted')
+    .map((r, index) => ({ id: r._id, title: r.treatmentType || 'Visit', time: `${9 + index}:00 AM - ${10 + index}:30 AM`, instructor: r.hospital.name, type: index % 2 === 0 ? 'live' : 'recorded' }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -186,9 +215,11 @@ export default function PatientDashboard() {
           <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }} className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Welcome{patient?.name ? `, ${patient.name}` : ' back'}!</h1>
+                <h1 className="text-3xl font-bold text-foreground">Welcome{currentUser?.fullName || currentUser?.username ? `, ${currentUser.fullName || currentUser.username}` : ' back'}!</h1>
                 <p className="text-muted-foreground">
-                  {selectedDepartment?.name ? `You registered for ${selectedDepartment.name}` : 'Track your hospital registrations'}
+                  {myHospitalRegistration?.treatmentType && (hospitalInfo?.name || myHospitalRegistration.hospital?.name)
+                    ? `You registered for ${myHospitalRegistration.treatmentType} at ${hospitalInfo?.name || myHospitalRegistration.hospital?.name}`
+                    : 'Track your hospital registrations'}
                 </p>
               </div>
               <div className="flex items-center gap-4">
@@ -265,6 +296,52 @@ export default function PatientDashboard() {
                 </motion.div>
               )}
 
+              {/* Treatment Details for this Hospital */}
+              {myHospitalRegistration && (
+                <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Stethoscope className="h-5 w-5" />
+                        Treatment Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Hospital</span>
+                        <span className="font-medium">{hospitalInfo?.name || myHospitalRegistration.hospital?.name}</span>
+                      </div>
+                      {myHospitalRegistration.treatmentType && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Treatment</span>
+                          <span className="font-medium">{myHospitalRegistration.treatmentType}</span>
+                        </div>
+                      )}
+                      {myHospitalRegistration.preferredDate && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Preferred Date</span>
+                          <span className="font-medium">{new Date(myHospitalRegistration.preferredDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      {myHospitalRegistration.symptoms && (
+                        <div>
+                          <span className="text-muted-foreground">Symptoms</span>
+                          <p className="mt-1">{myHospitalRegistration.symptoms}</p>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Status</span>
+                        <Badge variant="outline" className="capitalize">{myHospitalRegistration.status}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Your Decision</span>
+                        <Badge variant="secondary" className="capitalize">{myHospitalRegistration.patientDecision || 'none'}</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
               <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35, duration: 0.6 }}>
                 <Card>
                   <CardHeader>
@@ -308,11 +385,11 @@ export default function PatientDashboard() {
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={patient?.profileImage} />
-                        <AvatarFallback>{patient?.name?.charAt(0) || 'P'}</AvatarFallback>
+                        <AvatarImage src={currentUser?.profileImage || undefined} />
+                        <AvatarFallback>{(currentUser?.fullName || currentUser?.username || 'P')?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <h4 className="font-medium">{patient?.name || 'Patient'}</h4>
+                        <h4 className="font-medium">{currentUser?.fullName || currentUser?.username || 'Patient'}</h4>
                         <p className="text-sm text-muted-foreground">{registrations.length} registration{registrations.length !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
