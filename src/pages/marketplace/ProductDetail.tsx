@@ -215,39 +215,7 @@ export default function ProductDetail() {
             <div className="text-center">Loading product...</div>
           </div>
         </div>
-        {/* Product Gallery */}
-        {product.images && product.images.length > 0 && (
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="mt-8"
-          >
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold text-foreground mb-4">Gallery</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {product.images.map((img, idx) => (
-                    <button
-                      key={`gallery-${idx}`}
-                      type="button"
-                      onClick={() => setSelectedImage(idx)}
-                      className="relative group rounded-lg overflow-hidden border hover:shadow transition"
-                      title="View this image"
-                    >
-                      <img
-                        src={img}
-                        alt={`Gallery ${idx + 1}`}
-                        className="w-full h-36 object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+        
       </div>
     )
   }
@@ -492,6 +460,40 @@ export default function ProductDetail() {
               </Card>
             </motion.div>
           </div>
+
+          {/* Product Gallery */}
+          {product.images?.length > 0 && (
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="mt-8"
+            >
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold text-foreground mb-4">Gallery</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {product.images.map((img, idx) => (
+                      <button
+                        key={`gallery-${idx}`}
+                        type="button"
+                        onClick={() => setSelectedImage(idx)}
+                        className="relative group rounded-lg overflow-hidden border hover:shadow transition"
+                        title="View this image"
+                      >
+                        <img
+                          src={img}
+                          alt={`Gallery ${idx + 1}`}
+                          className="w-full h-36 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
           {/* Product Details */}
           <motion.div
