@@ -56,7 +56,7 @@ export default function PaymentSection({
   entityType, 
   onPaymentComplete, 
   isRequired = true,
-  isSubmitting = false,
+  isSubmitting: externalIsSubmitting = false,
   shopData
 }: PaymentSectionProps) {
   const { toast } = useToast()
@@ -65,6 +65,10 @@ export default function PaymentSection({
     agentId: ''
   })
   const [loading, setLoading] = useState(true)
+  const [internalIsSubmitting, setInternalIsSubmitting] = useState(false)
+  
+  // Use internal state if external state is not provided
+  const isSubmitting = externalIsSubmitting || internalIsSubmitting
   const [bankDetails, setBankDetails] = useState({
     bankName: '',
     accountTitle: '',
@@ -181,6 +185,9 @@ export default function PaymentSection({
 
     // Agent ID is optional - no validation needed
 
+    // Set internal submitting state to true to show loader
+    setInternalIsSubmitting(true)
+
     // Submit payment directly without creating entity
     try {
       const paymentAmount = getPaymentAmount();
@@ -232,6 +239,8 @@ export default function PaymentSection({
         console.log('📦 Entity data received:', shopData);
         console.log('🔍 Entity data type:', typeof shopData);
         console.log('🔍 Entity data keys:', Object.keys(shopData || {}));
+        console.log('📦 Original products data:', shopData?.products);
+        console.log('📦 Number of original products:', shopData?.products?.length || 0);
 
         let entityCreationData = {};
         let entityEndpoint = '';
@@ -284,6 +293,70 @@ export default function PaymentSection({
               console.error('Error processing shop images:', error);
             }
             
+            // Process products to convert blob URLs to Cloudinary URLs
+            const processedProducts = shopData?.products ? await Promise.all(shopData.products.map(async (product: any) => {
+              console.log(`📦 Processing product "${product.name}":`, {
+                hasImagePreviews: !!product.imagePreviews,
+                imagePreviewsLength: product.imagePreviews?.length || 0,
+                firstImagePreview: product.imagePreviews?.[0] || 'N/A',
+                hasImage: !!product.image,
+                image: product.image || 'N/A'
+              });
+              
+              let productImage = 'https://picsum.photos/150/150?random=4'; // Default placeholder
+              
+              // If product has imagePreviews array, process the first one
+              if (product.imagePreviews && Array.isArray(product.imagePreviews) && product.imagePreviews.length > 0) {
+                const firstImagePreview = product.imagePreviews[0];
+                console.log(`📦 Product "${product.name}" first image preview:`, firstImagePreview);
+                
+                if (firstImagePreview.startsWith('blob:')) {
+                  try {
+                    const imageFile = await convertBlobUrlToFile(firstImagePreview);
+                    productImage = await safeImageUpload(imageFile, 'https://picsum.photos/150/150?random=4');
+                    console.log(`📦 Product "${product.name}" image uploaded to Cloudinary:`, productImage);
+                  } catch (error) {
+                    console.error(`📦 Error uploading product "${product.name}" image:`, error);
+                  }
+                } else if (firstImagePreview.startsWith('https://res.cloudinary.com')) {
+                  // Already a Cloudinary URL
+                  productImage = firstImagePreview;
+                  console.log(`📦 Product "${product.name}" already has Cloudinary URL:`, productImage);
+                } else if (firstImagePreview.startsWith('http')) {
+                  // Some other URL
+                  productImage = firstImagePreview;
+                  console.log(`📦 Product "${product.name}" using existing URL:`, productImage);
+                } else {
+                  console.log(`📦 Product "${product.name}" invalid image preview format:`, firstImagePreview);
+                }
+              }
+              // If product has single imagePreview, process it
+              else if (product.imagePreview && product.imagePreview.startsWith('blob:')) {
+                try {
+                  const imageFile = await convertBlobUrlToFile(product.imagePreview);
+                  productImage = await safeImageUpload(imageFile, 'https://picsum.photos/150/150?random=4');
+                  console.log(`📦 Product "${product.name}" image uploaded to Cloudinary:`, productImage);
+                } catch (error) {
+                  console.error(`📦 Error uploading product "${product.name}" image:`, error);
+                }
+              }
+              // If product has existing image field that's a Cloudinary URL
+              else if (product.image && product.image.startsWith('https://res.cloudinary.com')) {
+                productImage = product.image;
+                console.log(`📦 Product "${product.name}" using existing Cloudinary image:`, productImage);
+              }
+              
+              console.log(`📦 Product "${product.name}" final image:`, productImage);
+              
+              return {
+                ...product,
+                image: productImage
+              };
+            })) : [];
+            
+            console.log('📦 Final processed products:', processedProducts);
+            console.log('📦 Number of processed products:', processedProducts.length);
+            
             entityCreationData = {
               shopName: shopData?.shopName || 'My Shop',
               city: shopData?.city || 'Unknown City',
@@ -297,19 +370,7 @@ export default function PaymentSection({
               instagramHandle: shopData?.instagramHandle || '',
               whatsappNumber: shopData?.whatsappNumber || '',
               websiteUrl: shopData?.websiteUrl || '',
-              products: shopData?.products?.map(product => {
-                const processedProduct = {
-                  id: product.id,
-                  name: product.name,
-                  description: product.description,
-                  price: product.price,
-                  discountPercentage: product.discountPercentage,
-                  category: product.category,
-                  image: (product.imagePreviews && product.imagePreviews.length > 0) ? product.imagePreviews[0] : 'https://picsum.photos/150/150?random=4'
-                };
-                
-                return processedProduct;
-              }) || [],
+              products: processedProducts,
               agentId: paymentData.agentId.trim() || '',
               approvalStatus: 'pending'
             };
@@ -637,6 +698,9 @@ export default function PaymentSection({
         description: error.message || 'Failed to submit payment. Please try again.',
         variant: 'destructive'
       });
+    } finally {
+      // Reset internal submitting state
+      setInternalIsSubmitting(false)
     }
   }
 
