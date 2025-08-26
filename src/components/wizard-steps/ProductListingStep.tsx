@@ -51,12 +51,12 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
     setProductForm({
       id: '',
       name: '',
-      images: [],
-      imagePreviews: [],
       description: '',
       price: 0,
       discountPercentage: 0,
-      category: ''
+      category: '',
+      images: [],
+      imagePreviews: []
     });
     setIsAddingProduct(false);
     setEditingProductId(null);
@@ -65,51 +65,21 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
   const handleImagesUpload = async (files: FileList | null) => {
     if (!files) return;
     const newFiles: File[] = Array.from(files);
-    const newPreviews: string[] = [];
     
+    // Immediately create previews using URL.createObjectURL for instant feedback
     for (let i = 0; i < newFiles.length; i++) {
       const file = newFiles[i];
       if (file.type.startsWith('image/')) {
-        try {
-          const formData = new FormData();
-          formData.append('image', file);
-          
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
-            method: 'POST',
-            credentials: 'include',
-            body: formData
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            newPreviews.push(result.imageUrl);
-          } else {
-            // Fallback to data URL
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const dataUrl = e.target?.result as string;
-              newPreviews.push(dataUrl);
-            };
-            reader.readAsDataURL(file);
-          }
-        } catch (error) {
-          // Fallback to data URL on error
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const dataUrl = e.target?.result as string;
-            newPreviews.push(dataUrl);
-          };
-          reader.readAsDataURL(file);
-        }
+        const previewUrl = URL.createObjectURL(file);
+        
+        // Update form immediately with preview
+        setProductForm(prev => ({
+          ...prev,
+          images: [...prev.images, file],
+          imagePreviews: [...prev.imagePreviews, previewUrl]
+        }));
       }
     }
-    
-    const updatedForm = {
-      ...productForm,
-      images: [...productForm.images, ...newFiles],
-      imagePreviews: [...productForm.imagePreviews, ...newPreviews]
-    };
-    setProductForm(updatedForm);
   };
 
   const removeImage = (index: number) => {
@@ -162,7 +132,7 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
       discountPercentage: productForm.discountPercentage,
       category: productForm.category
     };
-    
+
     if (editingProductId) {
       // Update existing product
       const updatedProducts = data.products.map(p => 
