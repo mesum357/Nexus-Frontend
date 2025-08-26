@@ -119,26 +119,23 @@ export default function PaymentSection({
       const formData = new FormData();
       formData.append('image', file);
       
-      console.log('☁️ Uploading image to Cloudinary:', file.name);
-      
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('☁️ Image uploaded to Cloudinary successfully:', result.imageUrl);
-        return result.imageUrl;
-      } else {
-        console.error('☁️ Failed to upload image to Cloudinary:', response.status);
-        throw new Error('Failed to upload image to Cloudinary');
+              const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          return result.imageUrl;
+        } else {
+          console.error('Failed to upload image to Cloudinary:', response.status);
+          throw new Error('Failed to upload image to Cloudinary');
+        }
+      } catch (error) {
+        console.error('Error uploading image to Cloudinary:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('☁️ Error uploading image to Cloudinary:', error);
-      throw error;
-    }
   }
 
   // Function to safely upload image with fallback
@@ -160,10 +157,9 @@ export default function PaymentSection({
         const response = await fetch(blobUrl);
         const blob = await response.blob();
         
-        // Create a File object from the blob
-        const file = new File([blob], `image-${Date.now()}.jpg`, { type: blob.type });
-        console.log('📁 Converted blob URL to File object:', file.name, file.size);
-        return file;
+                  // Create a File object from the blob
+          const file = new File([blob], `image-${Date.now()}.jpg`, { type: blob.type });
+          return file;
       }
       return null; // Not a blob URL
     } catch (error) {
@@ -246,11 +242,6 @@ export default function PaymentSection({
             entityName = 'Shop';
             entityEndpoint = '/api/shop-wizard/create-from-wizard';
             
-            console.log('🏪 Processing shop data for entity creation...');
-            console.log('   - shopData.logoPreview:', shopData?.logoPreview);
-            console.log('   - shopData.bannerPreview:', shopData?.bannerPreview);
-            console.log('   - shopData.ownerProfilePreview:', shopData?.ownerProfilePreview);
-            
             // Convert blob URLs to Cloudinary URLs for shop images
             let shopLogoUrl = 'https://picsum.photos/200/200?random=1';
             let shopBannerUrl = 'https://picsum.photos/800/400?random=2';
@@ -258,57 +249,39 @@ export default function PaymentSection({
             
             try {
               if (shopData?.logoPreview) {
-                console.log('   - Processing logo preview:', shopData.logoPreview);
                 if (shopData.logoPreview.startsWith('blob:')) {
                   const logoFile = await convertBlobUrlToFile(shopData.logoPreview);
                   shopLogoUrl = await safeImageUpload(logoFile, 'https://picsum.photos/200/200?random=1');
-                  console.log('   - ✅ Logo blob converted and uploaded to Cloudinary:', shopLogoUrl);
                 } else if (shopData.logoPreview.startsWith('https://res.cloudinary.com')) {
                   shopLogoUrl = shopData.logoPreview;
-                  console.log('   - ✅ Logo already Cloudinary URL:', shopLogoUrl);
                 } else {
                   shopLogoUrl = shopData.logoPreview;
-                  console.log('   - ⚠️ Logo using fallback URL:', shopLogoUrl);
                 }
-              } else {
-                console.log('   - ❌ No logo preview found, using placeholder');
               }
               
               if (shopData?.bannerPreview) {
-                console.log('   - Processing banner preview:', shopData.bannerPreview);
                 if (shopData.bannerPreview.startsWith('blob:')) {
                   const bannerFile = await convertBlobUrlToFile(shopData.bannerPreview);
                   shopBannerUrl = await safeImageUpload(bannerFile, 'https://picsum.photos/800/400?random=2');
-                  console.log('   - ✅ Banner blob converted and uploaded to Cloudinary:', shopBannerUrl);
                 } else if (shopData.bannerPreview.startsWith('https://res.cloudinary.com')) {
                   shopBannerUrl = shopData.bannerPreview;
-                  console.log('   - ✅ Banner already Cloudinary URL:', shopBannerUrl);
                 } else {
                   shopBannerUrl = shopData.bannerPreview;
-                  console.log('   - ⚠️ Banner using fallback URL:', shopBannerUrl);
                 }
-              } else {
-                console.log('   - ❌ No banner preview found, using placeholder');
               }
               
               if (shopData?.ownerProfilePreview) {
-                console.log('   - Processing owner profile preview:', shopData.ownerProfilePreview);
                 if (shopData.ownerProfilePreview.startsWith('blob:')) {
                   const profileFile = await convertBlobUrlToFile(shopData.ownerProfilePreview);
                   ownerProfileUrl = await safeImageUpload(profileFile, 'https://picsum.photos/100/100?random=3');
-                  console.log('   - ✅ Owner profile blob converted and uploaded to Cloudinary:', ownerProfileUrl);
                 } else if (shopData.ownerProfilePreview.startsWith('https://res.cloudinary.com')) {
                   ownerProfileUrl = shopData.ownerProfilePreview;
-                  console.log('   - ✅ Owner profile already Cloudinary URL:', ownerProfileUrl);
                 } else {
                   ownerProfileUrl = shopData.ownerProfilePreview;
-                  console.log('   - ⚠️ Owner profile using fallback URL:', ownerProfileUrl);
                 }
-              } else {
-                console.log('   - ❌ No owner profile preview found, using placeholder');
               }
             } catch (error) {
-              console.error('🏪 Error processing shop images:', error);
+              console.error('Error processing shop images:', error);
             }
             
             entityCreationData = {
@@ -325,10 +298,6 @@ export default function PaymentSection({
               whatsappNumber: shopData?.whatsappNumber || '',
               websiteUrl: shopData?.websiteUrl || '',
               products: shopData?.products?.map(product => {
-                console.log('   - Processing product:', product.name);
-                console.log('     - imagePreviews:', product.imagePreviews);
-                console.log('     - image:', product.image);
-                
                 const processedProduct = {
                   id: product.id,
                   name: product.name,
@@ -339,7 +308,6 @@ export default function PaymentSection({
                   image: (product.imagePreviews && product.imagePreviews.length > 0) ? product.imagePreviews[0] : 'https://picsum.photos/150/150?random=4'
                 };
                 
-                console.log('     - Final processed product image:', processedProduct.image);
                 return processedProduct;
               }) || [],
               agentId: paymentData.agentId.trim() || '',
@@ -350,15 +318,6 @@ export default function PaymentSection({
           case 'institute':
             entityName = 'Institute';
             entityEndpoint = '/api/institute-wizard/create-from-wizard';
-            console.log('🎓 Processing institute data...');
-            console.log('🎓 shopData.name:', shopData?.name);
-            console.log('🎓 shopData.type:', shopData?.type);
-            console.log('🎓 shopData.city:', shopData?.city);
-            console.log('🎓 shopData.province:', shopData?.province);
-            console.log('🎓 shopData.description:', shopData?.description);
-            console.log('🎓 shopData.courses:', shopData?.courses);
-            console.log('🎓 shopData.logoPreview:', shopData?.logoPreview);
-            console.log('🎓 shopData.bannerPreview:', shopData?.bannerPreview);
             
             // Convert blob URLs to base64 if needed
             let logoUrl = 'https://picsum.photos/200/200?random=1';

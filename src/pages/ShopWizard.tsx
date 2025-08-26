@@ -58,28 +58,8 @@ const ShopWizard: React.FC = () => {
   const { toast } = useToast();
 
   const updateShopData = (updates: Partial<ShopData>) => {
-    console.log('🔄 ShopWizard - updateShopData called with:', updates);
-    if (updates.products) {
-      console.log('🔄 ShopWizard - Products update details:');
-      console.log('   - Current products in state:', shopData.products);
-      console.log('   - New products being set:', updates.products);
-      console.log('   - New products length:', updates.products.length);
-      if (updates.products.length > 0) {
-        updates.products.forEach((product, index) => {
-          console.log(`   - Product ${index + 1} "${product.name}":`);
-          console.log(`     - imagePreviews: ${product.imagePreviews ? JSON.stringify(product.imagePreviews) : 'NOT SET'}`);
-          console.log(`     - imagePreviews length: ${product.imagePreviews?.length || 0}`);
-        });
-      }
-    }
-    
     setShopData(prev => {
       const newData = { ...prev, ...updates };
-      console.log('🔄 ShopWizard - New shopData after update:', newData);
-      if (updates.products) {
-        console.log('🔄 ShopWizard - Products being updated:', updates.products);
-        console.log('🔄 ShopWizard - Total products after update:', newData.products.length);
-      }
       return newData;
     });
   };
@@ -88,7 +68,6 @@ const ShopWizard: React.FC = () => {
     // Payment is now handled directly in PaymentSection component
     // This function is called after successful payment submission
     setPaymentCompleted(true);
-    console.log('Payment completed:', paymentData);
     
     toast({ 
       title: 'Payment Submitted Successfully', 
@@ -118,11 +97,7 @@ const ShopWizard: React.FC = () => {
   };
 
   const handleNext = () => {
-    console.log('handleNext called, currentStep:', currentStep);
-    console.log('shopData:', shopData);
-    
     if (!validateStep(currentStep)) {
-      console.log('Validation failed for step:', currentStep);
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before proceeding.",
@@ -131,13 +106,8 @@ const ShopWizard: React.FC = () => {
       return;
     }
 
-    console.log('Validation passed, proceeding to next step');
     if (currentStep < STEPS.length - 1) {
-      setCurrentStep(prev => {
-        const newStep = prev + 1;
-        console.log('Setting currentStep from', prev, 'to', newStep);
-        return newStep;
-      });
+      setCurrentStep(prev => prev + 1);
     }
   };
 
@@ -166,29 +136,19 @@ const ShopWizard: React.FC = () => {
   };
 
   const renderStepContent = () => {
-    console.log('renderStepContent called with currentStep:', currentStep);
     
     switch (currentStep) {
       case 0:
-        console.log('Rendering ShopInformationStep');
         return <ShopInformationStep data={shopData} updateData={updateShopData} />;
       case 1:
-        console.log('Rendering BusinessCategoriesStep');
         return <BusinessCategoriesStep data={shopData} updateData={updateShopData} />;
       case 2:
-        console.log('Rendering ShopMediaStep');
         return <ShopMediaStep data={shopData} updateData={updateShopData} />;
       case 3:
-        console.log('Rendering SocialContactStep');
         return <SocialContactStep data={shopData} updateData={updateShopData} />;
       case 4:
-        console.log('Rendering ProductListingStep');
         return <ProductListingStep data={shopData} updateData={updateShopData} />;
       case 5:
-        console.log('Rendering PaymentSection');
-        console.log('🛍️ ShopWizard - shopData being passed to PaymentSection:', shopData);
-        console.log('🛍️ ShopWizard - Products in shopData:', shopData.products);
-        console.log('🛍️ ShopWizard - Number of products:', shopData.products.length);
         return (
           <PaymentSection 
             entityType="shop"
@@ -199,10 +159,8 @@ const ShopWizard: React.FC = () => {
           />
         );
       case 6:
-        console.log('Rendering ReviewSubmitStep');
         return <ReviewSubmitStep data={shopData} updateData={updateShopData} />;
       default:
-        console.log('Rendering null (default case)');
         return null;
     }
   };

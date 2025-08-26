@@ -29,7 +29,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
     type: 'logo' | 'banner' | 'ownerProfile'
   ) => {
     if (file && file.type.startsWith('image/')) {
-      console.log('handleFileUpload:', type, file.name, file.size);
       if (type === 'logo') {
         setTempLogoFile(file);
         setShowLogoCropper(true);
@@ -48,15 +47,11 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
   // Handle cropped logo
   const handleLogoCropComplete = async (croppedFile: File) => {
     try {
-      console.log('🖼️ Processing logo crop completion...');
-      console.log('   - File:', croppedFile.name, croppedFile.size, croppedFile.type);
-      
       // Upload to Cloudinary
       const formData = new FormData();
       formData.append('image', croppedFile);
       
       const uploadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`;
-      console.log('   - Upload URL:', uploadUrl);
       
       const response = await fetch(uploadUrl, {
         method: 'POST',
@@ -66,16 +61,12 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
       
       if (response.ok) {
         const result = await response.json();
-        console.log('   - ✅ Cloudinary upload successful:', result);
-        console.log('   - Cloudinary URL:', result.imageUrl);
         
         // Store both the File object and Cloudinary URL
         updateData({
           shopLogo: croppedFile,
           logoPreview: result.imageUrl // Store Cloudinary URL
         });
-        
-        console.log('   - ✅ Logo data updated with Cloudinary URL');
       } else {
         console.error('❌ Failed to upload logo to Cloudinary:', response.status, response.statusText);
         const errorText = await response.text();
@@ -85,7 +76,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const result = e.target?.result as string;
-          console.log('   - 🔄 Using fallback data URL for logo');
           updateData({
             shopLogo: croppedFile,
             logoPreview: result
@@ -99,7 +89,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        console.log('   - 🔄 Using fallback data URL for logo due to error');
         updateData({
           shopLogo: croppedFile,
           logoPreview: result
@@ -115,15 +104,11 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
   // Handle cropped banner
   const handleBannerCropComplete = async (croppedFile: File) => {
     try {
-      console.log('🖼️ Processing banner crop completion...');
-      console.log('   - File:', croppedFile.name, croppedFile.size, croppedFile.type);
-      
       // Upload to Cloudinary
       const formData = new FormData();
       formData.append('image', croppedFile);
       
       const uploadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`;
-      console.log('   - Upload URL:', uploadUrl);
       
       const response = await fetch(uploadUrl, {
         method: 'POST',
@@ -133,16 +118,12 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
       
       if (response.ok) {
         const result = await response.json();
-        console.log('   - ✅ Cloudinary upload successful:', result);
-        console.log('   - Cloudinary URL:', result.imageUrl);
         
         // Store both the File object and Cloudinary URL
         updateData({
           shopBanner: croppedFile,
           bannerPreview: result.imageUrl // Store Cloudinary URL
         });
-        
-        console.log('   - ✅ Banner data updated with Cloudinary URL');
       } else {
         console.error('❌ Failed to upload banner to Cloudinary:', response.status, response.statusText);
         const errorText = await response.text();
@@ -152,7 +133,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const result = e.target?.result as string;
-          console.log('   - 🔄 Using fallback data URL for banner');
           updateData({
             shopBanner: croppedFile,
             bannerPreview: result
@@ -166,7 +146,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        console.log('   - 🔄 Using fallback data URL for banner due to error');
         updateData({
           shopBanner: croppedFile,
           bannerPreview: result
@@ -182,15 +161,11 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
   // Handle cropped owner profile
   const handleOwnerProfileCropComplete = async (croppedFile: File) => {
     try {
-      console.log('🖼️ Processing owner profile crop completion...');
-      console.log('   - File:', croppedFile.name, croppedFile.size, croppedFile.type);
-      
       // Upload to Cloudinary
       const formData = new FormData();
       formData.append('image', croppedFile);
       
       const uploadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`;
-      console.log('   - Upload URL:', uploadUrl);
       
       const response = await fetch(uploadUrl, {
         method: 'POST',
@@ -200,16 +175,12 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
       
       if (response.ok) {
         const result = await response.json();
-        console.log('   - ✅ Cloudinary upload successful:', result);
-        console.log('   - Cloudinary URL:', result.imageUrl);
         
         // Store both the File object and Cloudinary URL
         updateData({
           ownerProfilePhoto: croppedFile,
           ownerProfilePreview: result.imageUrl // Store Cloudinary URL
         });
-        
-        console.log('   - ✅ Owner profile data updated with Cloudinary URL');
       } else {
         console.error('❌ Failed to upload owner profile to Cloudinary:', response.status, response.statusText);
         const errorText = await response.text();
@@ -219,7 +190,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const result = e.target?.result as string;
-          console.log('   - 🔄 Using fallback data URL for owner profile');
           updateData({
             ownerProfilePhoto: croppedFile,
             ownerProfilePreview: result
@@ -233,7 +203,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        console.log('   - 🔄 Using fallback data URL for owner profile due to error');
         updateData({
           ownerProfilePhoto: croppedFile,
           ownerProfilePreview: result
@@ -249,7 +218,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
   // Handle editing existing images
   const handleEditLogo = () => {
     if (data.shopLogo && data.shopLogo instanceof File) {
-      console.log('handleEditLogo:', data.shopLogo.name, data.shopLogo.size);
       setTempLogoFile(data.shopLogo);
       setShowLogoCropper(true);
     } else {
@@ -259,7 +227,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
 
   const handleEditBanner = () => {
     if (data.shopBanner && data.shopBanner instanceof File) {
-      console.log('handleEditBanner:', data.shopBanner.name, data.shopBanner.size);
       setTempBannerFile(data.shopBanner);
       setShowBannerCropper(true);
     } else {
@@ -269,7 +236,6 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
 
   const handleEditOwnerProfile = () => {
     if (data.ownerProfilePhoto && data.ownerProfilePhoto instanceof File) {
-      console.log('handleEditOwnerProfile:', data.ownerProfilePhoto.name, data.ownerProfilePhoto.size);
       setTempOwnerProfileFile(data.ownerProfilePhoto);
       setShowOwnerProfileCropper(true);
     } else {

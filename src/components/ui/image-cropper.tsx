@@ -121,13 +121,6 @@ export function ImageCropper({
           width: cropWidth,
           height: cropHeight
         });
-        
-        console.log('Crop area initialized:', {
-          imageSize: { width: newWidth, height: newHeight },
-          imagePosition: { x: imageX, y: imageY },
-          cropArea: { x: cropX, y: cropY, width: cropWidth, height: cropHeight },
-          aspectRatio
-        });
       }
     };
   }, [imageUrl, aspectRatio, isOpen]);

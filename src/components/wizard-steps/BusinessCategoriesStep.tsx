@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { X, Loader2 } from 'lucide-react';
 import { ShopData } from '@/types/shop';
 import { useCategories } from '@/hooks/use-categories';
+import { Button } from '@/components/ui/button';
+import { Category } from '@/types/category';
 
 interface BusinessCategoriesStepProps {
   data: ShopData;
@@ -12,45 +14,58 @@ interface BusinessCategoriesStepProps {
 }
 
 const BusinessCategoriesStep: React.FC<BusinessCategoriesStepProps> = ({ data, updateData }) => {
-  const { categories, loading, error } = useCategories();
-
-  // Debug logging
-  console.log('BusinessCategoriesStep render:', { 
-    categories: categories.length, 
-    loading, 
-    error, 
-    selectedCategories: data.categories 
-  });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCategoryToggle = (categoryValue: string) => {
-    console.log('handleCategoryToggle called with:', categoryValue);
     const currentCategories = data.categories || [];
     const isSelected = currentCategories.includes(categoryValue);
     
+    let newCategories: string[];
     if (isSelected) {
-      updateData({
-        categories: currentCategories.filter(value => value !== categoryValue)
-      });
+      newCategories = currentCategories.filter(cat => cat !== categoryValue);
     } else {
-      updateData({
-        categories: [...currentCategories, categoryValue]
-      });
+      newCategories = [...currentCategories, categoryValue];
     }
+    
+    updateData({ categories: newCategories });
   };
 
   const removeCategory = (categoryValue: string) => {
-    console.log('removeCategory called with:', categoryValue);
-    updateData({
-      categories: data.categories.filter(value => value !== categoryValue)
-    });
+    const currentCategories = data.categories || [];
+    const newCategories = currentCategories.filter(cat => cat !== categoryValue);
+    updateData({ categories: newCategories });
   };
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/categories`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        
+        const data = await response.json();
+        setCategories(data.categories || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load categories');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   if (loading) {
-    console.log('BusinessCategoriesStep: Loading state');
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading categories...</p>
         </div>
       </div>
@@ -58,34 +73,25 @@ const BusinessCategoriesStep: React.FC<BusinessCategoriesStepProps> = ({ data, u
   }
 
   if (error) {
-    console.log('BusinessCategoriesStep: Error state:', error);
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <p className="text-destructive">Error loading categories: {error}</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Please refresh the page or try again later.
-          </p>
+          <p className="text-destructive mb-4">Error loading categories: {error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
         </div>
       </div>
     );
   }
 
   if (!categories || categories.length === 0) {
-    console.log('BusinessCategoriesStep: No categories available');
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <p className="text-muted-foreground">No categories available.</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Please contact support if this issue persists.
-          </p>
+          <p className="text-muted-foreground">No categories available</p>
         </div>
       </div>
     );
   }
-
-  console.log('BusinessCategoriesStep: Rendering with categories:', categories.length);
 
   return (
     <div className="space-y-6 animate-fade-in">
