@@ -23,7 +23,7 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
   const [tempLogoFile, setTempLogoFile] = useState<File | null>(null);
   const [tempBannerFile, setTempBannerFile] = useState<File | null>(null);
   const [tempOwnerProfileFile, setTempOwnerProfileFile] = useState<File | null>(null);
-  
+
   const handleFileUpload = (
     file: File,
     type: 'logo' | 'banner' | 'ownerProfile'
@@ -46,8 +46,8 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
 
   // Handle cropped logo
   const handleLogoCropComplete = (croppedFile: File) => {
-    updateData({
-      shopLogo: croppedFile,
+        updateData({
+          shopLogo: croppedFile,
       logoPreview: URL.createObjectURL(croppedFile)
     });
     setTempLogoFile(null);
@@ -56,8 +56,8 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
 
   // Handle cropped banner
   const handleBannerCropComplete = (croppedFile: File) => {
-    updateData({
-      shopBanner: croppedFile,
+        updateData({
+          shopBanner: croppedFile,
       bannerPreview: URL.createObjectURL(croppedFile)
     });
     setTempBannerFile(null);
@@ -66,8 +66,8 @@ const ShopMediaStep: React.FC<ShopMediaStepProps> = ({ data, updateData }) => {
 
   // Handle cropped owner profile
   const handleOwnerProfileCropComplete = (croppedFile: File) => {
-    updateData({
-      ownerProfilePhoto: croppedFile,
+        updateData({
+          ownerProfilePhoto: croppedFile,
       ownerProfilePreview: URL.createObjectURL(croppedFile)
     });
     setTempOwnerProfileFile(null);

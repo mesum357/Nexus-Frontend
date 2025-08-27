@@ -79,7 +79,7 @@ export function HeroSection() {
                 </div>
               </div>
               <p className="text-center text-xs text-muted-foreground mt-2 font-medium">
-                How to create a store
+                How to create a shop
               </p>
             </div>
           </motion.div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { Shop as ShopType } from './Store'
-import heroStoreImage from '@/assets/hero-store.jpg'
+
 import { motion } from 'framer-motion'
 import { ArrowLeft, Star, MapPin, Badge, Phone, Mail, Facebook, Instagram, MessageCircle, Plus, Trash2, Package, ImageIcon, Edit, Settings, Share2, Wrench, Eye, X } from 'lucide-react'
 import Navbar from '@/components/Navbar'
@@ -104,7 +104,7 @@ export default function Shop() {
             ...data.shop,
             id: data.shop._id,
             name: data.shop.shopName,
-            shopImage: data.shop.shopBanner || data.shop.shopLogo || heroStoreImage,
+
             categories: data.shop.categories || [],
             rating: data.shop.rating || 4.5,
             totalReviews: data.shop.totalReviews || 0,
@@ -282,7 +282,7 @@ export default function Shop() {
       } else if (productForm.imagePreviews[0]) {
         // If no File but we have Cloudinary URL, we need to handle this differently
         console.log('📦 Shop - No image file but have Cloudinary URL:', productForm.imagePreviews[0]);
-        // For now, we'll still send the File if available, otherwise the backend will use placeholder
+        // For now, we'll still send the File if available, otherwise the backend will handle missing images
       }
       
       const response = await fetch(`${API_BASE_URL}/api/shop/${shopId}/add-product`, {
@@ -631,11 +631,20 @@ export default function Shop() {
             transition={{ duration: 0.6 }}
             className="relative h-64 rounded-2xl overflow-hidden mb-8"
           >
-            <img
-              src={shop.shopBanner || shop.shopLogo || heroStoreImage}
-              alt={shop.shopName}
-              className="w-full h-full object-cover"
-            />
+            {shop.shopBanner || shop.shopLogo ? (
+              <img
+                src={shop.shopBanner || shop.shopLogo}
+                alt={shop.shopName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">No shop image available</p>
+                </div>
+              </div>
+            )}
             <div className="absolute inset-0 bg-black/40 flex items-end">
               <div className="p-8 text-white w-full">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -917,16 +926,21 @@ export default function Shop() {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {(shop.products as ProductType[]).map((product, idx) => {
-                        // Use the product.image if available, otherwise use a fallback image
-                        const imageUrl = product.image || heroStoreImage;
                         return (
                           <div key={idx} className="rounded-xl border bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
                             <div className="relative w-full h-48 bg-muted flex items-center justify-center">
-                              <img
-                                src={imageUrl}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
+                              {product.image ? (
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="text-center text-muted-foreground">
+                                  <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                  <p className="text-sm">No image</p>
+                                </div>
+                              )}
                               {product.discountPercentage && product.discountPercentage > 0 && (
                                 <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                                   -{product.discountPercentage}%
@@ -1353,11 +1367,18 @@ export default function Shop() {
                   </button>
                 </div>
                 <div className="flex-1 p-4 flex items-center justify-center">
-                  <img
-                    src={previewProduct.image || heroStoreImage}
-                    alt={previewProduct.name}
-                    className="max-h-full max-w-full object-contain"
-                  />
+                  {previewProduct.image ? (
+                    <img
+                      src={previewProduct.image}
+                      alt={previewProduct.name}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg">No image available</p>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 border-t">
                   <p className="text-muted-foreground text-sm mb-2">Description:</p>
