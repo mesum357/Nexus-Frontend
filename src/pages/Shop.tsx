@@ -100,6 +100,7 @@ export default function Shop() {
       .then(res => res.json())
       .then(data => {
         if (data.shop) {
+          
           setShop({
             ...data.shop,
             id: data.shop._id,
