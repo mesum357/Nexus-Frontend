@@ -12,3 +12,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# PWA files
+Allow: /manifest.json
+Allow: /sw.js
+Allow: /icons/
+
+Sitemap: https://yourdomain.com/sitemap.xml
