@@ -17,6 +17,7 @@ export interface ShopData {
     description: string;
     images: File[];
     imagePreviews: string[];
+    uploadingImages: boolean[];
     category: string;
     discountPercentage: number;
   }>;

@@ -6,8 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Edit3, Package, ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Edit3, Package, ImageIcon, Loader2, CheckCircle } from 'lucide-react';
 import { ShopData } from '@/types/shop';
+
+// API base URL configuration
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://nexus-backend-k6j4.onrender.com' 
+  : 'http://localhost:5000';
 
 interface ProductListingStepProps {
   data: ShopData;
@@ -25,6 +30,7 @@ interface ProductForm {
   name: string;
   images: File[];
   imagePreviews: string[];
+  uploadingImages: boolean[];
   description: string;
   price: number;
   discountPercentage: number;
@@ -39,6 +45,7 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
     name: '',
     images: [],
     imagePreviews: [],
+    uploadingImages: [],
     description: '',
     price: 0,
     discountPercentage: 0,
@@ -56,7 +63,8 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
       discountPercentage: 0,
       category: '',
       images: [],
-      imagePreviews: []
+      imagePreviews: [],
+      uploadingImages: []
     });
     setIsAddingProduct(false);
     setEditingProductId(null);
@@ -66,18 +74,89 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
     if (!files) return;
     const newFiles: File[] = Array.from(files);
     
-    // Immediately create previews using URL.createObjectURL for instant feedback
+    console.log('📸 Product - Starting image upload for', newFiles.length, 'files');
+    
+    // Process each file
     for (let i = 0; i < newFiles.length; i++) {
       const file = newFiles[i];
       if (file.type.startsWith('image/')) {
+        // Immediately create preview using URL.createObjectURL for instant feedback
         const previewUrl = URL.createObjectURL(file);
+        console.log(`📸 Product - File ${i + 1} preview created:`, file.name);
         
-        // Update form immediately with preview
+        // Update form immediately with preview and uploading state
         setProductForm(prev => ({
           ...prev,
           images: [...prev.images, file],
-          imagePreviews: [...prev.imagePreviews, previewUrl]
+          imagePreviews: [...prev.imagePreviews, previewUrl],
+          uploadingImages: [...prev.uploadingImages, true]
         }));
+        
+        // Upload to Cloudinary in background for faster final submission
+        try {
+          const formData = new FormData();
+          formData.append('image', file);
+          
+          console.log(`📸 Product - Uploading file ${i + 1} to Cloudinary:`, file.name);
+          
+          const response = await fetch(`${API_BASE_URL}/api/upload/image`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            console.log(`📸 Product - File ${i + 1} uploaded successfully:`, result.imageUrl);
+            
+            // Update the preview with Cloudinary URL and clear uploading state
+            setProductForm(prev => {
+              const currentIndex = prev.imagePreviews.indexOf(previewUrl);
+              if (currentIndex !== -1) {
+                const newPreviews = [...prev.imagePreviews];
+                const newUploadingStates = [...prev.uploadingImages];
+                newPreviews[currentIndex] = result.imageUrl;
+                newUploadingStates[currentIndex] = false;
+                return {
+                  ...prev,
+                  imagePreviews: newPreviews,
+                  uploadingImages: newUploadingStates
+                };
+              }
+              return prev;
+            });
+          } else {
+            console.warn(`📸 Product - Failed to upload file ${i + 1} to Cloudinary, keeping local preview:`, response.status);
+            // Clear uploading state on failure
+            setProductForm(prev => {
+              const currentIndex = prev.imagePreviews.indexOf(previewUrl);
+              if (currentIndex !== -1) {
+                const newUploadingStates = [...prev.uploadingImages];
+                newUploadingStates[currentIndex] = false;
+                return {
+                  ...prev,
+                  uploadingImages: newUploadingStates
+                };
+              }
+              return prev;
+            });
+          }
+        } catch (error) {
+          console.warn(`📸 Product - Error uploading file ${i + 1} to Cloudinary, keeping local preview:`, error);
+          // Clear uploading state on error
+          setProductForm(prev => {
+            const currentIndex = prev.imagePreviews.indexOf(previewUrl);
+            if (currentIndex !== -1) {
+              const newUploadingStates = [...prev.uploadingImages];
+              newUploadingStates[currentIndex] = false;
+              return {
+                ...prev,
+                uploadingImages: newUploadingStates
+              };
+            }
+            return prev;
+          });
+        }
       }
     }
   };
@@ -86,7 +165,8 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
     setProductForm(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
-      imagePreviews: prev.imagePreviews.filter((_, i) => i !== index)
+      imagePreviews: prev.imagePreviews.filter((_, i) => i !== index),
+      uploadingImages: prev.uploadingImages.filter((_, i) => i !== index)
     }));
   };
 
@@ -107,6 +187,7 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
         name: product.name,
         images: product.images || [],
         imagePreviews: product.imagePreviews || [],
+        uploadingImages: new Array((product.imagePreviews || []).length).fill(false),
         description: product.description,
         price: product.price,
         discountPercentage: product.discountPercentage,
@@ -127,6 +208,7 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
       name: productForm.name,
       images: productForm.images,
       imagePreviews: productForm.imagePreviews,
+      uploadingImages: productForm.uploadingImages,
       description: productForm.description,
       price: productForm.price,
       discountPercentage: productForm.discountPercentage,
@@ -263,10 +345,23 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
                       alt={`Product preview ${idx + 1}`}
                       className="w-full h-full object-cover rounded-lg mb-1"
                     />
+                    
+                    {/* Upload status indicator */}
+                    {productForm.uploadingImages[idx] ? (
+                      <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                      </div>
+                    ) : preview.startsWith('http') && (
+                      <div className="absolute bottom-1 right-1 bg-green-500 text-white rounded-full p-1">
+                        <CheckCircle className="w-3 h-3" />
+                      </div>
+                    )}
+                    
                     <button
                       type="button"
                       className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs opacity-80 hover:opacity-100"
                       onClick={(e) => { e.stopPropagation(); removeImage(idx); }}
+                      disabled={productForm.uploadingImages[idx]}
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
