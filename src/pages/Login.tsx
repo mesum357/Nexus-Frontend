@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,45 @@ export default function Login() {
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [needsVerification, setNeedsVerification] = useState(false)
   const navigate = useNavigate()
-  const { toast } = useToast();
+  const { toast } = useToast()
+  const [searchParams] = useSearchParams()
+
+  // Handle URL parameters for success/error messages
+  useEffect(() => {
+    const error = searchParams.get('error')
+    const success = searchParams.get('success')
+    const message = searchParams.get('message')
+    
+    if (error) {
+      toast({ 
+        title: 'Error', 
+        description: error, 
+        variant: 'destructive' 
+      })
+    }
+    
+    if (success) {
+      toast({ 
+        title: 'Success', 
+        description: success,
+        duration: 5000
+      })
+    }
+    
+    if (message) {
+      toast({ 
+        title: 'Info', 
+        description: decodeURIComponent(message),
+        duration: 5000
+      })
+    }
+    
+    // Clear URL parameters after showing the message
+    if (error || success || message) {
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [searchParams, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,16 +69,18 @@ export default function Login() {
       })
       const data = await response.json()
       
-      if (response.ok) {
+            if (response.ok) {
         toast({ title: 'Login successful', description: 'Welcome back!' })
         navigate('/')
       } else {
         if (data.needsVerification) {
           setNeedsVerification(true)
+          setEmail(data.email || email) // Set email for resend verification
           toast({ 
-            title: 'Email verification required', 
-            description: 'Please verify your email before logging in.',
-            variant: 'destructive'
+            title: 'Email verification required',
+            description: 'Please verify your email before logging in. Check your inbox for the verification link, or click "Resend" below.',
+            variant: 'destructive',
+            duration: 7000
           })
         } else {
           toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })

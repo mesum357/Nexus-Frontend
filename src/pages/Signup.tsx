@@ -74,8 +74,12 @@ export default function Signup() {
       })
       const data = await response.json()
       if (response.ok) {
-        toast({ title: 'Registration successful', description: 'Please check your email to verify your account.' })
-        navigate('/login')
+        toast({ 
+          title: 'Registration successful!', 
+          description: 'Please check your email and click the verification link to complete your registration. You will be automatically logged in after verification.',
+          duration: 7000
+        })
+        navigate('/login?message=Please verify your email to complete registration')
       } else {
         toast({ title: 'Signup failed', description: data.error || 'Signup failed', variant: 'destructive' })
       }
