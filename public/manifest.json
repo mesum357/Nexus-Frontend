@@ -1,6 +1,6 @@
 {
-  "name": "Pakistan Online - Nexus",
-  "short_name": "Nexus",
+  "name": "Pakistan Online",
+  "short_name": "Pakistan Online",
   "description": "Pakistan's premier marketplace for shops, institutes, hospitals, and products",
   "start_url": "/",
   "display": "standalone",
