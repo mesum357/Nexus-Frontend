@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Missing PWA Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .generate-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .generate-btn:hover {
+            background: #1d4ed8;
+        }
+        .icon-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        .icon-preview canvas {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .success { background: #d1f2eb; color: #0d6935; border: 1px solid #52c41a; }
+        .info { background: #e6f3ff; color: #1890ff; border: 1px solid #1890ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Generate Missing PWA Icons</h1>
+        <p>This tool will generate all the missing PWA icons for Pakistan Online.</p>
+        
+        <div id="status" class="status info">
+            Ready to generate icons. Click the button below to start.
+        </div>
+        
+        <button class="generate-btn" onclick="generateAllMissingIcons()">
+            🚀 Generate All Missing Icons
+        </button>
+        
+        <button class="generate-btn" onclick="downloadAll()">
+            📥 Download All Icons
+        </button>
+        
+        <div id="icons-container">
+            <!-- Generated icons will appear here -->
+        </div>
+    </div>
+
+    <script>
+        const requiredSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const existingSizes = [72, 96]; // Sizes that already exist
+        const missingSizes = requiredSizes.filter(size => !existingSizes.includes(size));
+        
+        let generatedIcons = new Map();
+
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Enable high-quality rendering
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // Green gradient background (Pakistan flag inspired)
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#0f5132');
+            gradient.addColorStop(1, '#1e7e34');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // White elements (crescent and star)
+            ctx.fillStyle = '#ffffff';
+            
+            const centerX = size * 0.5;
+            const centerY = size * 0.5;
+            
+            // Draw crescent moon
+            const moonRadius = size * 0.25;
+            const moonOffsetX = size * 0.08;
+            
+            ctx.beginPath();
+            ctx.arc(centerX - moonOffsetX, centerY, moonRadius, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Create crescent by cutting out a smaller circle
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(centerX - moonOffsetX + size * 0.1, centerY, moonRadius * 0.8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Draw 5-pointed star
+            const starCenterX = centerX + size * 0.15;
+            const starCenterY = centerY - size * 0.05;
+            const starRadius = size * 0.12;
+            
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                const x = starCenterX + Math.cos(angle) * starRadius;
+                const y = starCenterY + Math.sin(angle) * starRadius;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                
+                // Inner point
+                const innerAngle = ((i * 4 + 2) * Math.PI) / 5 - Math.PI / 2;
+                const innerX = starCenterX + Math.cos(innerAngle) * starRadius * 0.4;
+                const innerY = starCenterY + Math.sin(innerAngle) * starRadius * 0.4;
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add "PK" text for larger icons
+            if (size >= 192) {
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = `bold ${size * 0.08}px Arial`;
+                ctx.fillText('PK', centerX, size * 0.85);
+            }
+            
+            return canvas;
+        }
+
+        function generateAllMissingIcons() {
+            const container = document.getElementById('icons-container');
+            const statusDiv = document.getElementById('status');
+            
+            statusDiv.className = 'status info';
+            statusDiv.textContent = `Generating ${missingSizes.length} missing icons...`;
+            
+            container.innerHTML = '';
+            
+            missingSizes.forEach(size => {
+                const canvas = createIcon(size);
+                generatedIcons.set(size, canvas);
+                
+                // Create preview
+                const preview = document.createElement('div');
+                preview.className = 'icon-preview';
+                preview.innerHTML = `
+                    <canvas width="64" height="64"></canvas>
+                    <div>${size}x${size}</div>
+                    <button onclick="downloadIcon(${size})" style="margin-top: 5px; padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Download</button>
+                `;
+                
+                // Draw smaller preview
+                const previewCanvas = preview.querySelector('canvas');
+                const previewCtx = previewCanvas.getContext('2d');
+                previewCtx.drawImage(canvas, 0, 0, 64, 64);
+                
+                container.appendChild(preview);
+            });
+            
+            statusDiv.className = 'status success';
+            statusDiv.textContent = `✅ Generated ${missingSizes.length} icons successfully! Click download buttons to save them.`;
+        }
+
+        function downloadIcon(size) {
+            const canvas = generatedIcons.get(size);
+            if (!canvas) return;
+            
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadAll() {
+            if (generatedIcons.size === 0) {
+                alert('Please generate icons first!');
+                return;
+            }
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Downloading all icons...';
+            
+            let downloaded = 0;
+            const total = generatedIcons.size;
+            
+            generatedIcons.forEach((canvas, size) => {
+                setTimeout(() => {
+                    downloadIcon(size);
+                    downloaded++;
+                    
+                    if (downloaded === total) {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = `✅ Downloaded all ${total} icons! Save them to the /public/icons/ folder.`;
+                    }
+                }, downloaded * 200); // Stagger downloads
+            });
+        }
+
+        // Auto-generate on page load
+        window.addEventListener('load', () => {
+            setTimeout(generateAllMissingIcons, 500);
+        });
+    </script>
+</body>
+</html>
