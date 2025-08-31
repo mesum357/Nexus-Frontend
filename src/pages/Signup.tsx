@@ -109,14 +109,14 @@ export default function Signup() {
       if (response.ok) {
         const totalTime = Date.now() - startTime
         console.log('✅ Frontend: Registration successful in', totalTime, 'ms')
-        console.log('📧 Frontend: Email configured on backend:', data.debug?.emailConfigured)
+        console.log('🚫 Frontend: Email verification disabled for testing')
         
         toast({ 
           title: 'Registration successful!', 
-          description: 'Please check your email and click the verification link to complete your registration. You will be automatically logged in after verification.',
-          duration: 7000
+          description: 'Your account has been created and verified. You can now log in.',
+          duration: 5000
         })
-        navigate('/login?message=Please verify your email to complete registration')
+        navigate('/login?message=Registration successful! You can now log in.')
       } else {
         const totalTime = Date.now() - startTime
         console.log('❌ Frontend: Registration failed in', totalTime, 'ms')

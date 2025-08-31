@@ -15,7 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
-  const [needsVerification, setNeedsVerification] = useState(false)
+  const [needsVerification, setNeedsVerification] = useState(false) // DISABLED FOR TESTING
   const [isOfflineMode, setIsOfflineMode] = useState(!isOnline())
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -93,6 +93,8 @@ export default function Login() {
         toast({ title: 'Login successful', description: 'Welcome back!' })
         navigate('/')
       } else {
+        // DISABLED FOR TESTING: Email verification
+        /*
         if (data.needsVerification) {
           setNeedsVerification(true)
           setEmail(data.email || email) // Set email for resend verification
@@ -102,6 +104,8 @@ export default function Login() {
             variant: 'destructive',
             duration: 7000
           })
+        */
+        if (false) { // Never show verification requirement for testing
         } else {
           toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })
         }
@@ -239,7 +243,8 @@ export default function Login() {
         </form>
 
         {/* Email Verification Section */}
-        {needsVerification && (
+        {/* Email Verification Section - DISABLED FOR TESTING */}
+        {false && needsVerification && (
           <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center">
             <p className="text-sm text-yellow-200 mb-3">
               Your email needs to be verified before you can log in.
