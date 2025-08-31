@@ -144,6 +144,18 @@ export default function Shop() {
       .catch(() => setCurrentUser(null));
   }, []);
 
+  // Cleanup object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      productForm.imagePreviews.forEach(preview => {
+        if (preview.startsWith('blob:')) {
+          URL.revokeObjectURL(preview);
+          console.log('📸 Shop - Cleaned up object URL on unmount:', preview);
+        }
+      });
+    };
+  }, [productForm.imagePreviews]);
+
   const handleShare = async () => {
     setSharing(true);
     
@@ -167,78 +179,51 @@ export default function Shop() {
     }
   };
 
-  const handleProductImageUpload = async (files: FileList | null) => {
+  const handleProductImageUpload = (files: FileList | null) => {
     if (!files) return;
     const newFiles: File[] = Array.from(files);
     const newPreviews: string[] = [];
     
-    console.log('📸 Shop - Starting image upload for', newFiles.length, 'files');
+    console.log('📸 Shop - Starting instant preview for', newFiles.length, 'files');
     
-    // Upload each image to Cloudinary (matching wizard flow)
-    for (let i = 0; i < newFiles.length; i++) {
-      const file = newFiles[i];
+    // Create instant previews using URL.createObjectURL (like ShopMediaStep)
+    newFiles.forEach((file, i) => {
       if (file.type.startsWith('image/')) {
-        try {
-          const formData = new FormData();
-          formData.append('image', file);
-          
-          console.log(`📸 Shop - Uploading file ${i + 1}:`, file.name);
-          
-          const response = await fetch(`${API_BASE_URL}/api/upload/image`, {
-            method: 'POST',
-            credentials: 'include',
-            body: formData
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            console.log(`📸 Shop - File ${i + 1} uploaded successfully:`, result.imageUrl);
-            newPreviews.push(result.imageUrl); // Use Cloudinary URL
-          } else {
-            console.error(`📸 Shop - Failed to upload file ${i + 1} to Cloudinary:`, response.status);
-            // Fallback to data URL if upload fails
-        const reader = new FileReader();
-            const dataUrl = await new Promise<string>((resolve) => {
-              reader.onload = (e) => resolve(e.target?.result as string);
-              reader.readAsDataURL(file);
-            });
-            console.log(`📸 Shop - File ${i + 1} fallback to data URL:`, dataUrl.substring(0, 50) + '...');
-            newPreviews.push(dataUrl);
-          }
-        } catch (error) {
-          console.error(`📸 Shop - Error uploading file ${i + 1}:`, error);
-          // Fallback to data URL if upload fails
-          const reader = new FileReader();
-          const dataUrl = await new Promise<string>((resolve) => {
-            reader.onload = (e) => resolve(e.target?.result as string);
-            reader.readAsDataURL(file);
-          });
-          console.log(`📸 Shop - File ${i + 1} error fallback to data URL:`, dataUrl.substring(0, 50) + '...');
-          newPreviews.push(dataUrl);
-        }
+        const previewUrl = URL.createObjectURL(file);
+        newPreviews.push(previewUrl);
+        console.log(`📸 Shop - File ${i + 1} instant preview created:`, file.name);
       }
-    }
+    });
     
-    console.log('📸 Shop - All uploads completed. newPreviews:', newPreviews);
+    console.log('📸 Shop - All instant previews created. newPreviews:', newPreviews.length);
     
-    // Update the form with uploaded images
+    // Update the form with files and instant previews
     setProductForm(prev => {
       const updatedForm = {
-              ...prev,
-              images: [...prev.images, ...newFiles],
-              imagePreviews: [...prev.imagePreviews, ...newPreviews]
-        };
-      console.log('📸 Shop - Updated form imagePreviews:', updatedForm.imagePreviews);
+        ...prev,
+        images: [...prev.images, ...newFiles],
+        imagePreviews: [...prev.imagePreviews, ...newPreviews]
+      };
+      console.log('📸 Shop - Updated form with instant previews:', updatedForm.imagePreviews.length, 'total images');
       return updatedForm;
     });
   };
 
   const removeProductImage = (index: number) => {
-    setProductForm(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-      imagePreviews: prev.imagePreviews.filter((_, i) => i !== index)
-    }));
+    setProductForm(prev => {
+      // Clean up object URL to prevent memory leaks
+      const previewToRemove = prev.imagePreviews[index];
+      if (previewToRemove && previewToRemove.startsWith('blob:')) {
+        URL.revokeObjectURL(previewToRemove);
+        console.log('📸 Shop - Cleaned up object URL:', previewToRemove);
+      }
+      
+      return {
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index),
+        imagePreviews: prev.imagePreviews.filter((_, i) => i !== index)
+      };
+    });
   };
 
   const validateProductForm = () => {
@@ -296,6 +281,15 @@ export default function Shop() {
         console.log('📦 Shop - Product added successfully:', result);
         setShop(result.shop);
         setShowAddProduct(false);
+        
+        // Clean up object URLs before resetting form
+        productForm.imagePreviews.forEach(preview => {
+          if (preview.startsWith('blob:')) {
+            URL.revokeObjectURL(preview);
+            console.log('📸 Shop - Cleaned up object URL after submit:', preview);
+          }
+        });
+        
         setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
         toast({ title: 'Product Added', description: 'Your product was added successfully!', variant: 'default' });
       } else {
@@ -308,6 +302,38 @@ export default function Shop() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Function to handle canceling/closing add product form
+  const handleCancelAddProduct = () => {
+    // Clean up object URLs when canceling
+    productForm.imagePreviews.forEach(preview => {
+      if (preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+        console.log('📸 Shop - Cleaned up object URL on cancel add:', preview);
+      }
+    });
+    
+    // Reset form and close
+    setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
+    setFormErrors({});
+    setShowAddProduct(false);
+  };
+
+  // Function to handle canceling/closing edit product form
+  const handleCancelEditProduct = () => {
+    // Clean up object URLs when canceling
+    productForm.imagePreviews.forEach(preview => {
+      if (preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+        console.log('📸 Shop - Cleaned up object URL on cancel edit:', preview);
+      }
+    });
+    
+    // Reset form and close
+    setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
+    setFormErrors({});
+    setEditProductIndex(null);
   };
 
   // Drag-and-drop handlers
@@ -382,6 +408,15 @@ export default function Shop() {
         console.log('📦 Shop - Product updated successfully:', result);
         setShop(result.shop);
         setEditProductIndex(null);
+        
+        // Clean up object URLs before resetting form
+        productForm.imagePreviews.forEach(preview => {
+          if (preview.startsWith('blob:')) {
+            URL.revokeObjectURL(preview);
+            console.log('📸 Shop - Cleaned up object URL after update:', preview);
+          }
+        });
+        
         setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
         toast({ title: 'Product Updated', description: 'Your product was updated successfully!', variant: 'default' });
       } else {
@@ -1130,7 +1165,13 @@ export default function Shop() {
           </div>
           <div className="mb-8">
             {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
-            <Button onClick={() => setShowAddProduct((v) => !v)}>
+            <Button onClick={() => {
+              if (showAddProduct) {
+                handleCancelAddProduct();
+              } else {
+                setShowAddProduct(true);
+              }
+            }}>
               {showAddProduct ? 'Cancel' : 'Add Product'}
             </Button>
             )}
@@ -1177,7 +1218,7 @@ export default function Shop() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="block mb-1 font-medium">Product Image <span className="text-red-500">*</span></label>
+                    <label className="block mb-1 font-medium">Product Images <span className="text-red-500">*</span></label>
                     <div className="flex gap-4 items-start flex-wrap">
                       {productForm.imagePreviews.map((preview, idx) => (
                         <div key={idx} className="relative group w-24 h-24 flex flex-col items-center justify-center">
@@ -1188,9 +1229,9 @@ export default function Shop() {
                       <div className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors relative" onClick={() => imageInputRef.current?.click()}>
                         <div className="text-center">
                           <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-xs text-muted-foreground">Click to upload</p>
+                          <p className="text-xs text-muted-foreground">Add images</p>
                         </div>
-                        <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files && e.target.files[0]) { handleProductImageUpload(e.target.files); e.target.value = ''; } }} />
+                        <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => { if (e.target.files && e.target.files.length > 0) { handleProductImageUpload(e.target.files); e.target.value = ''; } }} />
                       </div>
                     </div>
                     {formErrors.images && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.images}</div>}
@@ -1251,7 +1292,7 @@ export default function Shop() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="block mb-1 font-medium">Product Image</label>
+                    <label className="block mb-1 font-medium">Product Images</label>
                     <div className="flex gap-4 items-start flex-wrap">
                       {productForm.imagePreviews.map((preview, idx) => (
                         <div key={idx} className="relative group w-24 h-24 flex flex-col items-center justify-center">
@@ -1262,9 +1303,9 @@ export default function Shop() {
                       <div className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors relative" onClick={() => imageInputRef.current?.click()}>
                         <div className="text-center">
                           <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-xs text-muted-foreground">Click to upload</p>
+                          <p className="text-xs text-muted-foreground">Add images</p>
                         </div>
-                        <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files && e.target.files[0]) { handleProductImageUpload(e.target.files); e.target.value = ''; } }} />
+                        <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => { if (e.target.files && e.target.files.length > 0) { handleProductImageUpload(e.target.files); e.target.value = ''; } }} />
                       </div>
                     </div>
                     {formErrors.images && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.images}</div>}
@@ -1278,7 +1319,7 @@ export default function Shop() {
                     <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
                       {isSubmitting && <Loader2 className="animate-spin w-4 h-4" />} {isSubmitting ? 'Updating...' : 'Update Product'}
                     </Button>
-                    <Button type="button" variant="outline" className="ml-2" onClick={() => { setEditProductIndex(null); setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] }); }}>
+                    <Button type="button" variant="outline" className="ml-2" onClick={handleCancelEditProduct}>
                       Cancel
                     </Button>
                   </div>
