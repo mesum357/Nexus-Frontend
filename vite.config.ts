@@ -22,8 +22,8 @@ export default defineConfig(({ mode }) => ({
     //   registerType: 'autoUpdate',
     //   includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
     //   manifest: {
-    //     name: 'Pakistan Online - Nexus',
-    //     short_name: 'Nexus',
+    //     name: 'Pakistan Online',
+    //     short_name: 'Pakistan Online',
     //     description: "Pakistan's premier marketplace for shops, institutes, hospitals, and products",
     //     theme_color: '#2563eb',
     //     background_color: '#ffffff',

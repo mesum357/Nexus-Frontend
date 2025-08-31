@@ -12,30 +12,71 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResendingVerification, setIsResendingVerification] = useState(false)
+  const [needsVerification, setNeedsVerification] = useState(false)
   const navigate = useNavigate()
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setNeedsVerification(false)
+    
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ username: email, password }),
       })
       const data = await response.json()
+      
       if (response.ok) {
         toast({ title: 'Login successful', description: 'Welcome back!' })
         navigate('/')
       } else {
-        toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })
+        if (data.needsVerification) {
+          setNeedsVerification(true)
+          toast({ 
+            title: 'Email verification required', 
+            description: 'Please verify your email before logging in.',
+            variant: 'destructive'
+          })
+        } else {
+          toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })
+        }
       }
     } catch (err) {
       toast({ title: 'Network error', description: 'Could not connect to server', variant: 'destructive' })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleResendVerification = async () => {
+    if (!email) {
+      toast({ title: 'Email required', description: 'Please enter your email address first', variant: 'destructive' })
+      return
+    }
+
+    setIsResendingVerification(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await response.json()
+
+      if (response.ok) {
+        toast({ title: 'Email sent!', description: data.message })
+      } else {
+        toast({ title: 'Failed to send email', description: data.error, variant: 'destructive' })
+      }
+    } catch (err) {
+      toast({ title: 'Network error', description: 'Could not connect to server', variant: 'destructive' })
+    } finally {
+      setIsResendingVerification(false)
     }
   }
 
@@ -94,6 +135,22 @@ export default function Login() {
             {isSubmitting ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
+
+        {/* Email Verification Section */}
+        {needsVerification && (
+          <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center">
+            <p className="text-sm text-yellow-200 mb-3">
+              Your email needs to be verified before you can log in.
+            </p>
+            <Button
+              onClick={handleResendVerification}
+              disabled={isResendingVerification}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded"
+            >
+              {isResendingVerification ? 'Sending...' : 'Resend Verification Email'}
+            </Button>
+          </div>
+        )}
 
         {/* Bottom Links */}
         <div className="mt-6 text-center text-sm">
