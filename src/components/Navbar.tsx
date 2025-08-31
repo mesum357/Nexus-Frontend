@@ -1,8 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { User, Menu, X } from 'lucide-react'
+import { User, Menu, X, Wifi, WifiOff } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../lib/config'
+import { checkAuthStatus, isOnline, addNetworkListeners, isPWA } from '../lib/pwa-auth'
 import Logo from '../assets/Logo.png'
 
 const navigationLinks = [
@@ -25,18 +26,39 @@ export default function Navbar() {
   const [showInstitutes, setShowInstitutes] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
   const [user, setUser] = useState(null);
+  const [isOffline, setIsOffline] = useState(!isOnline());
+  const [isPWAMode, setIsPWAMode] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => {
-        setIsLoggedIn(!!data.user);
-        setUser(data.user || null);
-      })
-      .catch(() => {
+    // Check if running as PWA
+    setIsPWAMode(isPWA());
+    
+    // Enhanced authentication check with PWA support
+    const checkAuth = async () => {
+      try {
+        const authState = await checkAuthStatus();
+        setIsLoggedIn(authState.isAuthenticated);
+        setUser(authState.user);
+        setIsOffline(authState.isOffline);
+      } catch (error) {
+        console.error('Auth check failed:', error);
         setIsLoggedIn(false);
         setUser(null);
-      });
+      }
+    };
+
+    checkAuth();
+
+    // Add network status listeners
+    const cleanup = addNetworkListeners(
+      () => {
+        setIsOffline(false);
+        checkAuth(); // Re-check auth when coming online
+      },
+      () => setIsOffline(true)
+    );
+
+    return cleanup;
   }, []);
 
   const handleProfileClick = async () => {
@@ -185,8 +207,28 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right side - Profile & Mobile Menu */}
+          {/* Right side - Network Status, Profile & Mobile Menu */}
           <div className="flex items-center space-x-4 relative">
+            {/* Network Status Indicator (PWA mode only) */}
+            {isPWAMode && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-full text-xs font-medium ${
+                  isOffline 
+                    ? 'bg-red-100 text-red-700' 
+                    : 'bg-green-100 text-green-700'
+                }`}
+              >
+                {isOffline ? (
+                  <WifiOff className="h-3 w-3" />
+                ) : (
+                  <Wifi className="h-3 w-3" />
+                )}
+                <span>{isOffline ? 'Offline' : 'Online'}</span>
+              </motion.div>
+            )}
+            
             {/* Profile button and menu */}
             <motion.button
               onClick={handleProfileClick}

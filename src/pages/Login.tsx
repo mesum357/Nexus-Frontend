@@ -7,6 +7,8 @@ import bgImage from '@/assets/hero-home.jpg'
 import logo from '@/assets/Logo.png'
 import { useToast } from '@/components/ui/use-toast'
 import { API_BASE_URL } from '@/lib/config'
+import { pwaFetch, handleAuthError, setCachedAuthState, isOnline } from '@/lib/pwa-auth'
+import { Wifi, WifiOff } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -14,6 +16,7 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [needsVerification, setNeedsVerification] = useState(false)
+  const [isOfflineMode, setIsOfflineMode] = useState(!isOnline())
   const navigate = useNavigate()
   const { toast } = useToast()
   const [searchParams] = useSearchParams()
@@ -61,15 +64,32 @@ export default function Login() {
     setNeedsVerification(false)
     
     try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      // Check if offline
+      if (!isOnline()) {
+        toast({ 
+          title: 'Offline mode', 
+          description: 'Authentication requires an internet connection. Please check your connection and try again.',
+          variant: 'destructive',
+          duration: 7000
+        })
+        return
+      }
+
+      const response = await pwaFetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ username: email, password }),
       })
       const data = await response.json()
       
-            if (response.ok) {
+      if (response.ok) {
+        // Cache successful authentication
+        setCachedAuthState({
+          isAuthenticated: true,
+          user: data.user,
+          isOffline: false
+        })
+        
         toast({ title: 'Login successful', description: 'Welcome back!' })
         navigate('/')
       } else {
@@ -87,7 +107,13 @@ export default function Login() {
         }
       }
     } catch (err) {
-      toast({ title: 'Network error', description: 'Could not connect to server', variant: 'destructive' })
+      const errorInfo = handleAuthError(err)
+      toast({ 
+        title: errorInfo.needsOnline ? 'Connection required' : 'Login failed', 
+        description: errorInfo.message, 
+        variant: 'destructive',
+        duration: errorInfo.needsOnline ? 7000 : 5000
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -99,9 +125,18 @@ export default function Login() {
       return
     }
 
+    if (!isOnline()) {
+      toast({ 
+        title: 'Offline mode', 
+        description: 'Email verification requires an internet connection.',
+        variant: 'destructive'
+      })
+      return
+    }
+
     setIsResendingVerification(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/resend-verification`, {
+      const response = await pwaFetch(`${API_BASE_URL}/resend-verification`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -114,11 +149,30 @@ export default function Login() {
         toast({ title: 'Failed to send email', description: data.error, variant: 'destructive' })
       }
     } catch (err) {
-      toast({ title: 'Network error', description: 'Could not connect to server', variant: 'destructive' })
+      const errorInfo = handleAuthError(err)
+      toast({ 
+        title: errorInfo.needsOnline ? 'Connection required' : 'Failed to send email', 
+        description: errorInfo.message, 
+        variant: 'destructive' 
+      })
     } finally {
       setIsResendingVerification(false)
     }
   }
+
+  // Add network status listener
+  useEffect(() => {
+    const handleOnline = () => setIsOfflineMode(false)
+    const handleOffline = () => setIsOfflineMode(true)
+    
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   return (
     <div
@@ -132,6 +186,14 @@ export default function Login() {
             <img src={logo} alt="Pakistan Online Logo" className="h-16 w-auto mx-auto" />
           </div>
           <h2 className="text-2xl font-semibold">Welcome</h2>
+          
+          {/* Offline Indicator */}
+          {isOfflineMode && (
+            <div className="mt-3 flex items-center justify-center space-x-2 bg-red-500/20 border border-red-500/30 rounded-lg px-3 py-2">
+              <WifiOff className="h-4 w-4 text-red-300" />
+              <span className="text-sm text-red-300">Offline - Login requires internet connection</span>
+            </div>
+          )}
         </div>
 
         {/* Form */}

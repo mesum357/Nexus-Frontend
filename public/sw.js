@@ -1,7 +1,7 @@
 // Pakistan Online PWA Service Worker
-const CACHE_NAME = 'nexus-pwa-v1';
-const STATIC_CACHE_NAME = 'nexus-static-v1';
-const DYNAMIC_CACHE_NAME = 'nexus-dynamic-v1';
+const CACHE_NAME = 'nexus-pwa-v2';
+const STATIC_CACHE_NAME = 'nexus-static-v2';
+const DYNAMIC_CACHE_NAME = 'nexus-dynamic-v2';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -131,27 +131,52 @@ async function handleNavigationRequest(request) {
 }
 
 async function handleApiRequest(request) {
+  const url = new URL(request.url);
+  
   try {
     // For API requests, try network first
     const networkResponse = await fetch(request);
     
-    // Cache successful GET responses
-    if (networkResponse.ok && request.method === 'GET') {
+    // Don't cache authentication-related requests
+    const authEndpoints = ['/login', '/register', '/logout', '/me', '/verify-email', '/resend-verification'];
+    const isAuthRequest = authEndpoints.some(endpoint => url.pathname.includes(endpoint));
+    
+    // Cache successful GET responses (except auth requests)
+    if (networkResponse.ok && request.method === 'GET' && !isAuthRequest) {
       const cache = await caches.open(DYNAMIC_CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }
     
     return networkResponse;
   } catch (error) {
-    // Network failed, try cache for GET requests
-    if (request.method === 'GET') {
+    // Network failed, try cache for GET requests (except auth requests)
+    const authEndpoints = ['/login', '/register', '/logout', '/me', '/verify-email', '/resend-verification'];
+    const isAuthRequest = authEndpoints.some(endpoint => url.pathname.includes(endpoint));
+    
+    if (request.method === 'GET' && !isAuthRequest) {
       const cachedResponse = await caches.match(request);
       if (cachedResponse) {
         return cachedResponse;
       }
     }
     
-    // Return error response for failed API requests
+    // For authentication requests that fail, return a specific error
+    if (isAuthRequest) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Authentication unavailable offline', 
+          offline: true,
+          needsOnline: true 
+        }),
+        {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    // Return error response for other failed API requests
     return new Response(
       JSON.stringify({ error: 'Network unavailable', offline: true }),
       {

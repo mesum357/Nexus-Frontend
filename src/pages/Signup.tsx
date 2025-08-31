@@ -51,29 +51,66 @@ export default function Signup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const startTime = Date.now()
+    console.log('🚀 Frontend: Registration form submitted at', new Date().toISOString())
+    
     if (password !== confirmPassword) {
+      console.log('❌ Frontend: Password mismatch validation failed')
       toast({ title: 'Error', description: 'Passwords do not match', variant: 'destructive' })
       return
     }
+    
+    console.log('✅ Frontend: Client-side validation passed')
     setIsSubmitting(true)
+    
     try {
+      console.log('⏱️ Frontend: Preparing form data...')
       const formData = new FormData()
       formData.append('fullName', fullName)
       formData.append('email', email)
       formData.append('mobile', mobile)
       formData.append('password', password)
       formData.append('confirmPassword', confirmPassword)
+      
       if (profileImage) {
+        console.log('📸 Frontend: Adding profile image to form data:', {
+          name: profileImage.name,
+          size: profileImage.size,
+          type: profileImage.type
+        })
         formData.append('profileImage', profileImage)
+      } else {
+        console.log('📸 Frontend: No profile image selected')
       }
 
+      console.log('📤 Frontend: Sending registration request to:', `${API_BASE_URL}/register`)
+      console.log('📤 Frontend: Form data contains:', {
+        fullName,
+        email,
+        mobile,
+        passwordLength: password.length,
+        hasProfileImage: !!profileImage
+      })
+
+      const requestStartTime = Date.now()
       const response = await fetch(`${API_BASE_URL}/register`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
       })
+      const requestEndTime = Date.now()
+      
+      console.log('📨 Frontend: Registration response received in', requestEndTime - requestStartTime, 'ms')
+      console.log('📨 Frontend: Response status:', response.status, response.statusText)
+      
       const data = await response.json()
+      console.log('📨 Frontend: Response data:', data)
+      
       if (response.ok) {
+        const totalTime = Date.now() - startTime
+        console.log('✅ Frontend: Registration successful in', totalTime, 'ms')
+        console.log('📧 Frontend: Email configured on backend:', data.debug?.emailConfigured)
+        
         toast({ 
           title: 'Registration successful!', 
           description: 'Please check your email and click the verification link to complete your registration. You will be automatically logged in after verification.',
@@ -81,12 +118,28 @@ export default function Signup() {
         })
         navigate('/login?message=Please verify your email to complete registration')
       } else {
-        toast({ title: 'Signup failed', description: data.error || 'Signup failed', variant: 'destructive' })
+        const totalTime = Date.now() - startTime
+        console.log('❌ Frontend: Registration failed in', totalTime, 'ms')
+        console.log('❌ Frontend: Error response:', data)
+        
+        toast({ 
+          title: 'Signup failed', 
+          description: data.error || 'Signup failed', 
+          variant: 'destructive' 
+        })
       }
     } catch (err) {
-      toast({ title: 'Network error', description: 'Could not connect to server', variant: 'destructive' })
+      const totalTime = Date.now() - startTime
+      console.error('❌ Frontend: Network error after', totalTime, 'ms:', err)
+      
+      toast({ 
+        title: 'Network error', 
+        description: 'Could not connect to server. Please check your internet connection.', 
+        variant: 'destructive' 
+      })
     } finally {
       setIsSubmitting(false)
+      console.log('🏁 Frontend: Registration process completed')
     }
   }
 

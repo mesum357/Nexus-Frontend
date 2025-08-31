@@ -26,6 +26,18 @@
   ],
   "shortcuts": [
     {
+      "name": "Login",
+      "short_name": "Login",
+      "description": "Sign in to your account",
+      "url": "/login",
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
       "name": "Marketplace",
       "short_name": "Marketplace",
       "description": "Browse products in the marketplace",
