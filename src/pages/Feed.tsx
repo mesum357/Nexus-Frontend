@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { API_BASE_URL } from '@/lib/config'
 import { getProfileImageUrl } from '@/lib/utils'
+import { checkAuthStatus } from '@/lib/pwa-auth'
 
 interface PostType {
   _id: string;
@@ -327,20 +328,17 @@ export default function Feed() {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/me`, { 
-          credentials: 'include'
-        });
+        const authState = await checkAuthStatus();
         
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Current user data received:', data);
-          setCurrentUser(data.user || data || null);
+        if (authState.isAuthenticated && authState.user) {
+          console.log('Current user data received via checkAuthStatus:', authState.user);
+          setCurrentUser(authState.user);
         } else {
-          console.log('User not authenticated, response status:', response.status);
+          console.log('User not authenticated via checkAuthStatus');
           setCurrentUser(null);
         }
       } catch (error) {
-        console.log('Error fetching current user:', error);
+        console.log('Error checking auth status:', error);
         setCurrentUser(null);
       }
     };

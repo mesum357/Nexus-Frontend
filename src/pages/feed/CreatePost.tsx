@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast'
 import Navbar from '@/components/Navbar'
 import { API_BASE_URL } from '@/lib/config'
 import { getProfileImageUrl } from '@/lib/utils'
+import { checkAuthStatus } from '@/lib/pwa-auth'
 
 const cities = [
   'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad',
@@ -65,24 +66,22 @@ export default function CreatePost() {
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([])
   const [citySearch, setCitySearch] = useState('')
 
-  // Fetch current user
+  // Fetch current user using shared auth function
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/me`, {
-          credentials: 'include'
-        });
+        const authState = await checkAuthStatus();
         
-        if (response.ok) {
-          const data = await response.json();
-          setCurrentUser(data.user || data || null);
+        if (authState.isAuthenticated && authState.user) {
+          console.log('User authenticated via checkAuthStatus:', authState.user);
+          setCurrentUser(authState.user);
         } else {
           console.log('User not authenticated, redirecting to login');
           navigate('/login');
           return;
         }
       } catch (error) {
-        console.log('Error fetching current user:', error);
+        console.log('Error checking auth status:', error);
         navigate('/login');
         return;
       } finally {

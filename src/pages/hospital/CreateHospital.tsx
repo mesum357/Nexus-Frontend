@@ -12,6 +12,7 @@ import { SearchableSelect } from '@/components/ui/searchable-select'
 import Navbar from '@/components/Navbar'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
+import { checkAuthStatus } from '@/lib/pwa-auth'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import PaymentSection from '@/components/PaymentSection'
@@ -54,9 +55,21 @@ export default function CreateHospital() {
   const [tempBannerFile, setTempBannerFile] = useState<File | null>(null)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .catch(() => navigate('/login'))
+    const checkAuth = async () => {
+      try {
+        const authState = await checkAuthStatus();
+        if (!authState.isAuthenticated) {
+          navigate('/login');
+          return;
+        }
+      } catch (error) {
+        console.log('Error checking auth status:', error);
+        navigate('/login');
+        return;
+      }
+    };
+    
+    checkAuth();
     // Set defaults similar to institute create when creating a new hospital
     if (!id) {
       setForm((prev: any) => ({

@@ -15,6 +15,7 @@ import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
+import { checkAuthStatus } from '@/lib/pwa-auth'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import PaymentSection from '@/components/PaymentSection'
@@ -63,10 +64,22 @@ export default function CreateInstitute() {
 
   // Fetch institute data if editing
   useEffect(() => {
-    // Check authentication
-    fetch(`${API_BASE_URL}/me`, { credentials: 'include' })
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .catch(() => navigate('/login'));
+    // Check authentication using shared auth function
+    const checkAuth = async () => {
+      try {
+        const authState = await checkAuthStatus();
+        if (!authState.isAuthenticated) {
+          navigate('/login');
+          return;
+        }
+      } catch (error) {
+        console.log('Error checking auth status:', error);
+        navigate('/login');
+        return;
+      }
+    };
+    
+    checkAuth();
       if (id) {
       fetch(`${API_BASE_URL}/api/institute/${id}`)
         .then(res => res.json())
