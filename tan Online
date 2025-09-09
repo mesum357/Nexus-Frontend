@@ -1,0 +1,58 @@
+[1mdiff --git a/src/pages/Feed.tsx b/src/pages/Feed.tsx[m
+[1mindex bced4f3..69f7fb2 100644[m
+[1m--- a/src/pages/Feed.tsx[m
+[1m+++ b/src/pages/Feed.tsx[m
+[36m@@ -327,11 +327,8 @@[m [mexport default function Feed() {[m
+   useEffect(() => {[m
+     const fetchCurrentUser = async () => {[m
+       try {[m
+[31m-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, { [m
+[31m-          credentials: 'include',[m
+[31m-          headers: {[m
+[31m-            'Content-Type': 'application/json'[m
+[31m-          }[m
+[32m+[m[32m        const response = await fetch(`${API_BASE_URL}/me`, {[m[41m [m
+[32m+[m[32m          credentials: 'include'[m
+         });[m
+         [m
+         if (response.ok) {[m
+[1mdiff --git a/src/pages/feed/CreatePost.tsx b/src/pages/feed/CreatePost.tsx[m
+[1mindex df5edf2..86b2ea8 100644[m
+[1m--- a/src/pages/feed/CreatePost.tsx[m
+[1m+++ b/src/pages/feed/CreatePost.tsx[m
+[36m@@ -69,11 +69,8 @@[m [mexport default function CreatePost() {[m
+   useEffect(() => {[m
+     const fetchCurrentUser = async () => {[m
+       try {[m
+[31m-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {[m
+[31m-          credentials: 'include',[m
+[31m-          headers: {[m
+[31m-            'Content-Type': 'application/json'[m
+[31m-          }[m
+[32m+[m[32m        const response = await fetch(`${API_BASE_URL}/me`, {[m
+[32m+[m[32m          credentials: 'include'[m
+         });[m
+         [m
+         if (response.ok) {[m
+[1mdiff --git a/src/pages/feed/Profile.tsx b/src/pages/feed/Profile.tsx[m
+[1mindex 138cbb7..fbc77d9 100644[m
+[1m--- a/src/pages/feed/Profile.tsx[m
+[1m+++ b/src/pages/feed/Profile.tsx[m
+[36m@@ -40,13 +40,10 @@[m [mconst Profile = () => {[m
+   useEffect(() => {[m
+     const fetchCurrentUser = async () => {[m
+       try {[m
+[31m-        // Try the new endpoint first[m
+[31m-        console.log('Profile - Trying new endpoint:', `${API_BASE_URL}/api/auth/me`);[m
+[31m-        let response = await fetch(`${API_BASE_URL}/api/auth/me`, {[m
+[31m-          credentials: 'include',[m
+[31m-          headers: {[m
+[31m-            'Content-Type': 'application/json'[m
+[31m-          }[m
+[32m+[m[32m        // Try the working endpoint first[m
+[32m+[m[32m        console.log('Profile - Trying endpoint:', `${API_BASE_URL}/me`);[m
+[32m+[m[32m        let response = await fetch(`${API_BASE_URL}/me`, {[m
+[32m+[m[32m          credentials: 'include'[m
+         });[m
+         [m
+         console.log('Profile - New endpoint response status:', response.status);[m
