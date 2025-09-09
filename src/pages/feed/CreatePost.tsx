@@ -69,11 +69,8 @@ export default function CreatePost() {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+        const response = await fetch(`${API_BASE_URL}/me`, {
+          credentials: 'include'
         });
         
         if (response.ok) {

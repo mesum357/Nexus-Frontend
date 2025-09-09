@@ -40,13 +40,10 @@ const Profile = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        // Try the new endpoint first
-        console.log('Profile - Trying new endpoint:', `${API_BASE_URL}/api/auth/me`);
-        let response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+        // Try the working endpoint first
+        console.log('Profile - Trying endpoint:', `${API_BASE_URL}/me`);
+        let response = await fetch(`${API_BASE_URL}/me`, {
+          credentials: 'include'
         });
         
         console.log('Profile - New endpoint response status:', response.status);
