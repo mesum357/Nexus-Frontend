@@ -15,7 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
-  const [needsVerification, setNeedsVerification] = useState(false) // DISABLED FOR TESTING
+  const [needsVerification, setNeedsVerification] = useState(false)
   const [isOfflineMode, setIsOfflineMode] = useState(!isOnline())
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -93,9 +93,8 @@ export default function Login() {
         toast({ title: 'Login successful', description: 'Welcome back!' })
         navigate('/')
       } else {
-        // DISABLED FOR TESTING: Email verification
-        /*
-        if (data.needsVerification) {
+        // Check if email verification is required
+        if (data.needsVerification || data.error?.includes('verification') || data.error?.includes('verify')) {
           setNeedsVerification(true)
           setEmail(data.email || email) // Set email for resend verification
           toast({ 
@@ -104,8 +103,6 @@ export default function Login() {
             variant: 'destructive',
             duration: 7000
           })
-        */
-        if (false) { // Never show verification requirement for testing
         } else {
           toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })
         }

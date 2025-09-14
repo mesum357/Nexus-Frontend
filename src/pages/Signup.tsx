@@ -109,22 +109,43 @@ export default function Signup() {
       if (response.ok) {
         const totalTime = Date.now() - startTime
         console.log('✅ Frontend: Registration successful in', totalTime, 'ms')
-        console.log('🚫 Frontend: Email verification disabled for testing')
+        console.log('📊 Frontend: Response data:', data)
         
-        toast({ 
-          title: 'Registration successful!', 
-          description: 'Your account has been created and verified. You can now log in.',
-          duration: 5000
-        })
-        navigate('/login?message=Registration successful! You can now log in.')
+        // Check if user needs email verification
+        if (data.user && !data.user.verified) {
+          console.log('📧 Frontend: User needs email verification')
+          toast({ 
+            title: 'Registration successful!', 
+            description: 'Please check your email and click the verification link to activate your account.',
+            duration: 8000
+          })
+          navigate('/login?message=Registration successful! Please check your email to verify your account.')
+        } else if (data.user && data.user.verified) {
+          console.log('✅ Frontend: User is auto-verified')
+          toast({ 
+            title: 'Registration successful!', 
+            description: 'Your account has been created and verified. You can now log in.',
+            duration: 5000
+          })
+          navigate('/login?message=Registration successful! You can now log in.')
+        } else {
+          // Fallback for any other success case
+          console.log('✅ Frontend: Registration completed')
+          toast({ 
+            title: 'Registration successful!', 
+            description: data.message || 'Your account has been created successfully.',
+            duration: 5000
+          })
+          navigate('/login?message=Registration successful!')
+        }
       } else {
         const totalTime = Date.now() - startTime
         console.log('❌ Frontend: Registration failed in', totalTime, 'ms')
         console.log('❌ Frontend: Error response:', data)
         
         toast({ 
-          title: 'Signup failed', 
-          description: data.error || 'Signup failed', 
+          title: 'Registration failed', 
+          description: data.error || 'Registration failed. Please try again.', 
           variant: 'destructive' 
         })
       }
