@@ -93,19 +93,7 @@ export default function Login() {
         toast({ title: 'Login successful', description: 'Welcome back!' })
         navigate('/')
       } else {
-        // Check if email verification is required
-        if (data.needsVerification || data.error?.includes('verification') || data.error?.includes('verify')) {
-          setNeedsVerification(true)
-          setEmail(data.email || email) // Set email for resend verification
-          toast({ 
-            title: 'Email verification required',
-            description: 'Please verify your email before logging in. Check your inbox for the verification link, or click "Resend" below.',
-            variant: 'destructive',
-            duration: 7000
-          })
-        } else {
-          toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })
-        }
+        toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })
       }
     } catch (err) {
       const errorInfo = handleAuthError(err)
@@ -145,7 +133,7 @@ export default function Login() {
       const data = await response.json()
 
       if (response.ok) {
-        toast({ title: 'Email sent!', description: data.message })
+        toast({ title: 'Verification disabled', description: data.message })
       } else {
         toast({ title: 'Failed to send email', description: data.error, variant: 'destructive' })
       }
@@ -239,8 +227,7 @@ export default function Login() {
           </Button>
         </form>
 
-        {/* Email Verification Section */}
-        {/* Email Verification Section - DISABLED FOR TESTING */}
+        {/* Email Verification Section - Disabled */}
         {false && needsVerification && (
           <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center">
             <p className="text-sm text-yellow-200 mb-3">
