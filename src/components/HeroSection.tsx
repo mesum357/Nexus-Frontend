@@ -44,7 +44,7 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.3 }}
             className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent mb-8 leading-tight"
           >
-            Welcome to E دنیا 
+            Welcome to E Dunia 
           </motion.h1>
           <motion.p 
             initial={{ y: 60, opacity: 0 }}
