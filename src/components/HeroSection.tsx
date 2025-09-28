@@ -44,7 +44,7 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.3 }}
             className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent mb-8 leading-tight"
           >
-            Welcome to Pakistan Online 
+            Welcome to E دنیا 
           </motion.h1>
           <motion.p 
             initial={{ y: 60, opacity: 0 }}
@@ -52,7 +52,7 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.5 }}
             className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
           >
-            Your city's all‑in‑one digital hub for shopping, learning, and community engagement across Pakistan Online.
+            Your city's all‑in‑one digital hub for shopping, learning, and community engagement across Pakistan.
           </motion.p>
           {/* Video positioned at bottom right */}
           <motion.div
