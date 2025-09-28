@@ -152,10 +152,10 @@ export function Footer() {
               className="text-slate-400 text-center"
             >
               <p className="font-medium">
-                © 2024 Pakistan Online. All rights reserved.
+                © 2024 E Dunia. All rights reserved.
               </p>
               <p className="text-sm mt-1">
-                Built with ❤️ for Pakistan Online
+                Built with for E Dunia 
               </p>
             </motion.div>
           </div>
