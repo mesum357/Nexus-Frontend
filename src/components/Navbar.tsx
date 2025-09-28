@@ -180,7 +180,7 @@ export default function Navbar() {
               <img 
                 src={Logo} 
                 alt="E Duniya Logo" 
-                className="h-20 w-auto"
+                className="h-12 w-auto"
               />
             </Link>
           </motion.div>
