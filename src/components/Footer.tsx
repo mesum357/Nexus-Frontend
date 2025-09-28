@@ -61,7 +61,7 @@ export function Footer() {
                 <div className="p-2 bg-blue-500/20 rounded-lg">
                   <Mail className="h-4 w-4 text-blue-400" />
                 </div>
-                <span>info@pakistanonline.com</span>
+                <span>infoedunia@gmail.com</span>
               </motion.div>
               <motion.div 
                 whileHover={{ x: 5 }}
