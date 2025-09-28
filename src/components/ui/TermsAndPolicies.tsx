@@ -272,7 +272,7 @@ export default function TermsAndPolicies({
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Mail className="h-4 w-4 text-pink-600" />
-                    <span className="font-medium">pakistanonline299@gmail.com</span>
+                    <span className="font-medium">infoedunia@gmail.com</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4 text-pink-600" />
