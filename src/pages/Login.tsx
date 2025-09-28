@@ -172,7 +172,7 @@ export default function Login() {
         {/* Logo and Title */}
         <div className="text-center mb-6">
           <div className="mb-2">
-            <img src={logo} alt="Pakistan Online Logo" className="h-16 w-auto mx-auto" />
+            <img src={logo} alt="E Duniya Logo" className="h-16 w-auto mx-auto" />
           </div>
           <h2 className="text-2xl font-semibold">Welcome</h2>
           

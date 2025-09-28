@@ -38,7 +38,7 @@ export default function TermsPopup({ isOpen, onClose }: TermsPopupProps) {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Terms & Policies</h2>
-                  <p className="text-gray-600">Pakistan Online Platform Terms of Service</p>
+                  <p className="text-gray-600">E Duniya Platform Terms of Service</p>
                 </div>
               </div>
               <Button
@@ -66,7 +66,7 @@ export default function TermsPopup({ isOpen, onClose }: TermsPopupProps) {
                 <div className="space-y-3">
                   <h4 className="font-semibold text-gray-900">1. Acceptance of Terms</h4>
                   <p className="text-gray-700 text-sm leading-relaxed">
-                    By accessing and using Pakistan Online platform, you accept and agree to be bound by the terms and provision of this agreement.
+                    By accessing and using E Duniya platform, you accept and agree to be bound by the terms and provision of this agreement.
                   </p>
                   
                   <h4 className="font-semibold text-gray-900">2. Platform Usage</h4>

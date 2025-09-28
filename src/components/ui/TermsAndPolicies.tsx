@@ -29,7 +29,7 @@ export default function TermsAndPolicies({
             Privacy Policy & Terms of Service
           </DialogTitle>
           <p className="text-center text-muted-foreground mb-6">
-            Pakistan Online
+            E Duniya
           </p>
           
           {/* Close Button */}
@@ -47,8 +47,8 @@ export default function TermsAndPolicies({
           {/* Introduction */}
           <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-blue-900 dark:text-blue-100">
-              Welcome to Pakistan Online, your city's all-in-one digital hub for shopping, learning, healthcare, and community engagement. 
-              By creating a store, education center, hospital profile, or any other service on Pakistan Online, you agree to the following terms and policies.
+              Welcome to E Duniya, your city's all-in-one digital hub for shopping, learning, healthcare, and community engagement. 
+              By creating a store, education center, hospital profile, or any other service on E Duniya, you agree to the following terms and policies.
             </p>
           </div>
 
@@ -111,7 +111,7 @@ export default function TermsAndPolicies({
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-600 dark:text-green-400">•</span>
-                    <span>By registering, the user agrees that they will not hold Pakistan Online liable for any disputes, losses, or damages.</span>
+                    <span>By registering, the user agrees that they will not hold E Duniya liable for any disputes, losses, or damages.</span>
                   </li>
                 </ul>
               </div>
@@ -132,7 +132,7 @@ export default function TermsAndPolicies({
                 <ul className="space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-red-600 dark:text-red-400">•</span>
-                    <span>All payments made for creating stores, education hubs, hospitals, or any other services on Pakistan Online are <strong className="text-foreground">non-refundable</strong>.</span>
+                    <span>All payments made for creating stores, education hubs, hospitals, or any other services on E Duniya are <strong className="text-foreground">non-refundable</strong>.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-red-600 dark:text-red-400">•</span>
@@ -140,7 +140,7 @@ export default function TermsAndPolicies({
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-red-600 dark:text-red-400">•</span>
-                    <span>Users also agree that they cannot pursue any legal action against Pakistan Online regarding refunds, payments, or service termination.</span>
+                    <span>Users also agree that they cannot pursue any legal action against E Duniya regarding refunds, payments, or service termination.</span>
                   </li>
                 </ul>
               </div>
@@ -190,11 +190,11 @@ export default function TermsAndPolicies({
                 <ul className="space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-purple-600 dark:text-purple-400">•</span>
-                    <span>Pakistan Online uses standard security measures to protect user data.</span>
+                    <span>E Duniya uses standard security measures to protect user data.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-purple-600 dark:text-purple-400">•</span>
-                    <span>However, Pakistan Online cannot guarantee 100% security against unauthorized access, and users share data at their own risk.</span>
+                    <span>However, E Duniya cannot guarantee 100% security against unauthorized access, and users share data at their own risk.</span>
                   </li>
                 </ul>
               </div>
@@ -215,7 +215,7 @@ export default function TermsAndPolicies({
                 <ul className="space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-indigo-600 dark:text-indigo-400">•</span>
-                    <span>Pakistan Online provides only a digital platform. We are not responsible for the quality, accuracy, or delivery of goods, services, or courses offered by third-party vendors or individuals.</span>
+                    <span>E Duniya provides only a digital platform. We are not responsible for the quality, accuracy, or delivery of goods, services, or courses offered by third-party vendors or individuals.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-indigo-600 dark:text-indigo-400">•</span>
@@ -223,7 +223,7 @@ export default function TermsAndPolicies({
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-indigo-600 dark:text-indigo-400">•</span>
-                    <span>Pakistan Online shall not be liable for any loss, damage, fraud, or dispute arising between buyers, sellers, students, or service providers.</span>
+                    <span>E Duniya shall not be liable for any loss, damage, fraud, or dispute arising between buyers, sellers, students, or service providers.</span>
                   </li>
                 </ul>
               </div>
@@ -244,7 +244,7 @@ export default function TermsAndPolicies({
                 <ul className="space-y-2 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-teal-600 dark:text-teal-400">•</span>
-                    <span>Pakistan Online reserves the right to update or modify these terms at any time without prior notice.</span>
+                    <span>E Duniya reserves the right to update or modify these terms at any time without prior notice.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-teal-600 dark:text-teal-400">•</span>
@@ -287,7 +287,7 @@ export default function TermsAndPolicies({
           <div className="pt-6 border-t border-border">
             <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
               <Copyright className="h-4 w-4" />
-              <span>2025 Pakistan Online. All rights reserved.</span>
+              <span>2025 E Duniya. All rights reserved.</span>
             </div>
           </div>
         </div>

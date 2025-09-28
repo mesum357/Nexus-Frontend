@@ -1,4 +1,4 @@
-// Pakistan Online PWA Service Worker
+// E Duniya PWA Service Worker
 const CACHE_NAME = 'nexus-pwa-v2';
 const STATIC_CACHE_NAME = 'nexus-static-v2';
 const DYNAMIC_CACHE_NAME = 'nexus-dynamic-v2';
@@ -235,7 +235,7 @@ function getOfflinePage() {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>Pakistan Online - Offline</title>
+      <title>E Duniya - Offline</title>
       <style>
         body {
           font-family: Arial, sans-serif;
@@ -277,7 +277,7 @@ function getOfflinePage() {
     <body>
       <div class="container">
         <h1>📱 You're Offline</h1>
-        <p>Don't worry! Pakistan Online works offline too. Some features may be limited, but you can still browse cached content.</p>
+        <p>Don't worry! E Duniya works offline too. Some features may be limited, but you can still browse cached content.</p>
         <button class="retry-btn" onclick="window.location.reload()">Try Again</button>
       </div>
     </body>

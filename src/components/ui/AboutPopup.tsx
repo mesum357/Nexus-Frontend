@@ -14,7 +14,7 @@ export default function AboutPopup({ isOpen, onClose }: AboutPopupProps) {
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="relative">
           <DialogTitle className="text-2xl font-bold text-center text-primary mb-2">
-            About Pakistan Online
+            About E Duniya
           </DialogTitle>
           
           {/* Close Button */}
@@ -32,7 +32,7 @@ export default function AboutPopup({ isOpen, onClose }: AboutPopupProps) {
           {/* Introduction */}
           <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-blue-900 dark:text-blue-100 text-center">
-              Pakistan Online is your city's all-in-one digital hub — connecting people, businesses, and communities on a single platform.
+              E Duniya is your city's all-in-one digital hub — connecting people, businesses, and communities on a single platform.
             </p>
           </div>
 
@@ -134,7 +134,7 @@ export default function AboutPopup({ isOpen, onClose }: AboutPopupProps) {
               <div>
                 <h3 className="font-semibold text-foreground mb-2">Our Vision</h3>
                 <p className="text-muted-foreground">
-                  With Pakistan Online, everything your city offers is just a click away.
+                  With E Duniya, everything your city offers is just a click away.
                 </p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function AboutPopup({ isOpen, onClose }: AboutPopupProps) {
           {/* Key Benefits */}
           <section className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground text-center">
-              Why Choose Pakistan Online?
+              Why Choose E Duniya?
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

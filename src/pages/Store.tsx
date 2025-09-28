@@ -116,7 +116,7 @@ export default function Store() {
           >
             <img 
               src={heroStoreImage} 
-              alt="Pakistan Online Store Marketplace" 
+              alt="E Duniya Store Marketplace" 
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/95" />
@@ -140,7 +140,7 @@ export default function Store() {
               transition={{ duration: 1, delay: 0.4 }}
               className="text-lg sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-4"
             >
-              Connect with local businesses across Pakistan Online. Shop products or find services from trusted vendors in your city.
+              Connect with local businesses across E Duniya. Shop products or find services from trusted vendors in your city.
             </motion.p>
             <motion.div
               initial={{ y: 40, opacity: 0 }}

@@ -10,7 +10,7 @@ export default function Dashboard() {
             Welcome to your Dashboard
           </h1>
           <p className="text-text-blue-gray mb-8">
-            You've successfully logged in to Pakistan Online!
+            You've successfully logged in to E Duniya!
           </p>
           
           <div className="space-y-4">
