@@ -38,7 +38,7 @@ export function MockupCarousel() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-semibold text-text-blue-dark mb-4">
-            Experience Pakistan Online 
+            Experience E Dunia 
           </h2>
           <p className="text-xl text-text-blue-gray max-w-2xl mx-auto">
             Available on all your devices with a seamless experience
