@@ -47,8 +47,8 @@ export default function TermsAndPolicies({
           {/* Introduction */}
           <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-blue-900 dark:text-blue-100">
-              Welcome to Pakistan Online, your city's all-in-one digital hub for shopping, learning, healthcare, and community engagement. 
-              By creating a store, education center, hospital profile, or any other service on Pakistan Online, you agree to the following terms and policies.
+              Welcome to E دنیا, your city's all-in-one digital hub for shopping, learning, healthcare, and community engagement.
+By creating a store, education center, hospital profile, or any other service on E دنیا, you agree to the following terms and policies.
             </p>
           </div>
 
