@@ -47,10 +47,10 @@ export function Footer() {
               whileHover={{ scale: 1.05 }}
               className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4"
             >
-              Pakistan Online
+              E Dunia
             </motion.h3>
             <p className="text-slate-300 mb-6 text-lg leading-relaxed max-w-md">
-              Connecting communities, empowering businesses, and creating opportunities across Pakistan Online through innovative digital solutions.
+              Connecting communities, empowering businesses, and creating opportunities across E Dunia through innovative digital solutions.
             </p>
             {/* Contact Info */}
             <div className="space-y-3">
@@ -70,7 +70,7 @@ export function Footer() {
                 <div className="p-2 bg-blue-500/20 rounded-lg">
                   <MapPin className="h-4 w-4 text-blue-400" />
                 </div>
-                <span>Manchester Tower, Lahore</span>
+                <span>Manchester Tower,2nd Floor Lahore</span>
               </motion.div>
             </div>
           </motion.div>
