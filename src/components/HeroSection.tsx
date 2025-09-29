@@ -64,7 +64,7 @@ export function HeroSection() {
             <div className="relative group cursor-pointer" onClick={() => window.open('https://youtu.be/TL55MvDnNWE?si=o9zpPZTyNGscdK58', '_blank')}>
               <div className="relative w-64 h-40 rounded-2xl overflow-hidden shadow-2xl shadow-primary/25 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 group-hover:scale-105">
                 <iframe
-                  src="https://www.youtube.com/embed/TL55MvDnNWE?autoplay=1&mute=1&loop=1&playlist=TL55MvDnNWE&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&fs=0"
+                  src=""
                   title="How to Create a Shop"
                   className="w-full h-full"
                   frameBorder="0"
