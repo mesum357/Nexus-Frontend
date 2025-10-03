@@ -9,7 +9,7 @@ import HospitalCard from '@/components/hospital/HospitalCard'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
-import Logo from '@/assets/sdf.jpg'
+import Logo from '@/assets/sdf.png'
 import bgImage from '@/assets/hospital.avif' // Hospital background image
 
 interface HospitalType {
