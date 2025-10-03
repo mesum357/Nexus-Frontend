@@ -9,7 +9,7 @@ import InstituteCard from '@/components/education/InstituteCard'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
-import Logo from '@/assets/Logo.png'
+import Logo from '@/assets/sdf.jpg'
 import bgImage from '@/assets/colege.avif'
 
 // Define Institute type
