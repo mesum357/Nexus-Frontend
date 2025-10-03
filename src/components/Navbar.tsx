@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../lib/config'
 import { checkAuthStatus, isOnline, addNetworkListeners, isPWA } from '../lib/pwa-auth'
-import Logo from '../assets/sdf.jpg'
+import Logo from '@/assets/sdf.jpg'
 
 const navigationLinks = [
   { name: 'Store', href: '/store' },
