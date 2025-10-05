@@ -66,6 +66,8 @@ export default function PaymentSection({
   })
   const [loading, setLoading] = useState(true)
   const [internalIsSubmitting, setInternalIsSubmitting] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [currentStep, setCurrentStep] = useState('')
   
   // Use internal state if external state is not provided
   const isSubmitting = externalIsSubmitting || internalIsSubmitting
@@ -117,41 +119,76 @@ export default function PaymentSection({
     setPaymentData(prev => ({ ...prev, agentId: value }))
   }
 
-  // Function to upload image to Cloudinary
-  const uploadImageToCloudinary = async (file: File): Promise<string> => {
+  // Function to upload image to Cloudinary with timeout and retry
+  const uploadImageToCloudinary = async (file: File, timeoutMs: number = 30000): Promise<string> => {
     try {
       const formData = new FormData();
       formData.append('image', file);
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
         method: 'POST',
         credentials: 'include',
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const result = await response.json();
         return result.imageUrl;
       } else {
-          console.error('Failed to upload image to Cloudinary:', response.status);
+        console.error('Failed to upload image to Cloudinary:', response.status);
         throw new Error('Failed to upload image to Cloudinary');
       }
     } catch (error) {
-        console.error('Error uploading image to Cloudinary:', error);
+      if (error.name === 'AbortError') {
+        console.error('Image upload timed out:', error);
+        throw new Error('Image upload timed out');
+      }
+      console.error('Error uploading image to Cloudinary:', error);
       throw error;
     }
   }
 
-  // Function to safely upload image with fallback
-  const safeImageUpload = async (file: File | null, fallbackUrl: string): Promise<string> => {
+  // Function to safely upload image with fallback and retry logic
+  const safeImageUpload = async (file: File | null, fallbackUrl: string, retries: number = 2): Promise<string> => {
     if (!file) return fallbackUrl;
     
-    try {
-      return await uploadImageToCloudinary(file);
-    } catch (error) {
-      console.warn('⚠️ Using fallback image due to upload failure:', error);
-      return fallbackUrl;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const url = await uploadImageToCloudinary(file);
+        if (url) return url;
+        
+        if (attempt < retries) {
+          console.log(`Image upload attempt ${attempt + 1} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
+        }
+      } catch (error) {
+        console.error(`Safe image upload attempt ${attempt + 1} failed:`, error);
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
+      }
     }
+    
+    console.warn('⚠️ Using fallback image due to upload failure');
+    return fallbackUrl;
+  }
+
+  // Batch upload multiple images in parallel
+  const batchUploadImages = async (files: File[], fallbackUrl: string = '') => {
+    const uploadPromises = files.map(file => safeImageUpload(file, fallbackUrl));
+    const results = await Promise.allSettled(uploadPromises);
+    
+    return results.map((result, index) => ({
+      index,
+      url: result.status === 'fulfilled' ? result.value : fallbackUrl,
+      success: result.status === 'fulfilled' && !!result.value
+    }));
   }
 
   // Function to convert blob URL to File object
@@ -187,6 +224,8 @@ export default function PaymentSection({
 
     // Set internal submitting state to true to show loader
     setInternalIsSubmitting(true)
+    setUploadProgress(0)
+    setCurrentStep('Submitting payment...')
 
     // Submit payment directly without creating entity
     try {
@@ -232,6 +271,9 @@ export default function PaymentSection({
       const transactionId = paymentResponse.paymentRequest?.transactionId || paymentResponse.transactionId;
       console.log('🆔 Transaction ID extracted:', transactionId);
 
+      setUploadProgress(20)
+      setCurrentStep('Processing images...')
+
       // After successful payment, create the entity with pending approval status
       let createdEntity: any = null
       try {
@@ -251,6 +293,9 @@ export default function PaymentSection({
             entityName = 'Shop';
             entityEndpoint = '/api/shop-wizard/create-from-wizard';
             
+            setCurrentStep('Uploading shop images...')
+            setUploadProgress(30)
+            
             // Convert blob URLs to Cloudinary URLs for shop images
             let shopLogoUrl = '';
             let shopBannerUrl = '';
@@ -260,7 +305,7 @@ export default function PaymentSection({
               if (shopData?.logoPreview) {
                 if (shopData.logoPreview.startsWith('blob:')) {
                   const logoFile = await convertBlobUrlToFile(shopData.logoPreview);
-                  shopLogoUrl = await safeImageUpload(logoFile, '');
+                  shopLogoUrl = await safeImageUpload(logoFile, '', 1);
                 } else if (shopData.logoPreview.startsWith('https://res.cloudinary.com')) {
                   shopLogoUrl = shopData.logoPreview;
                 } else {
@@ -271,7 +316,7 @@ export default function PaymentSection({
               if (shopData?.bannerPreview) {
                 if (shopData.bannerPreview.startsWith('blob:')) {
                   const bannerFile = await convertBlobUrlToFile(shopData.bannerPreview);
-                  shopBannerUrl = await safeImageUpload(bannerFile, '');
+                  shopBannerUrl = await safeImageUpload(bannerFile, '', 1);
                 } else if (shopData.bannerPreview.startsWith('https://res.cloudinary.com')) {
                   shopBannerUrl = shopData.bannerPreview;
                 } else {
@@ -282,7 +327,7 @@ export default function PaymentSection({
               if (shopData?.ownerProfilePreview) {
                 if (shopData.ownerProfilePreview.startsWith('blob:')) {
                   const profileFile = await convertBlobUrlToFile(shopData.ownerProfilePreview);
-                  ownerProfileUrl = await safeImageUpload(profileFile, '');
+                  ownerProfileUrl = await safeImageUpload(profileFile, '', 1);
                 } else if (shopData.ownerProfilePreview.startsWith('https://res.cloudinary.com')) {
                   ownerProfileUrl = shopData.ownerProfilePreview;
                 } else {
@@ -293,7 +338,8 @@ export default function PaymentSection({
               console.error('Error processing shop images:', error);
             }
             
-            // Process products to convert blob URLs to Cloudinary URLs
+            setCurrentStep('Processing product images...')
+            setUploadProgress(50)
             const processedProducts = shopData?.products ? await Promise.all(shopData.products.map(async (product: any) => {
               console.log(`📦 Processing product "${product.name}":`, {
                 hasImagePreviews: !!product.imagePreviews,
@@ -313,7 +359,7 @@ export default function PaymentSection({
                 if (firstImagePreview.startsWith('blob:')) {
                   try {
                     const imageFile = await convertBlobUrlToFile(firstImagePreview);
-                    productImage = await safeImageUpload(imageFile, '');
+                    productImage = await safeImageUpload(imageFile, '', 1); // Reduced retries for products
                     console.log(`📦 Product "${product.name}" image uploaded to Cloudinary:`, productImage);
                   } catch (error) {
                     console.error(`📦 Error uploading product "${product.name}" image:`, error);
@@ -326,7 +372,7 @@ export default function PaymentSection({
                   // Some other URL
                   productImage = firstImagePreview;
                   console.log(`📦 Product "${product.name}" using existing URL:`, productImage);
-              } else {
+                } else {
                   console.log(`📦 Product "${product.name}" invalid image preview format:`, firstImagePreview);
                 }
               }
@@ -334,9 +380,9 @@ export default function PaymentSection({
               else if (product.imagePreview && product.imagePreview.startsWith('blob:')) {
                 try {
                   const imageFile = await convertBlobUrlToFile(product.imagePreview);
-                  productImage = await safeImageUpload(imageFile, '');
+                  productImage = await safeImageUpload(imageFile, '', 1); // Reduced retries for products
                   console.log(`📦 Product "${product.name}" image uploaded to Cloudinary:`, productImage);
-            } catch (error) {
+                } catch (error) {
                   console.error(`📦 Error uploading product "${product.name}" image:`, error);
                 }
               }
@@ -380,6 +426,9 @@ export default function PaymentSection({
             entityName = 'Institute';
             entityEndpoint = '/api/institute-wizard/create-from-wizard';
             
+            setCurrentStep('Uploading institute images...')
+            setUploadProgress(40)
+            
             // Convert blob URLs to base64 if needed
             let logoUrl = '';
             let bannerUrl = '';
@@ -388,30 +437,29 @@ export default function PaymentSection({
             try {
               if (shopData?.logoPreview) {
                 const logoFile = await convertBlobUrlToFile(shopData.logoPreview);
-                logoUrl = await safeImageUpload(logoFile, '');
+                logoUrl = await safeImageUpload(logoFile, '', 1);
                 console.log('🎓 Logo processed:', logoUrl.startsWith('https://res.cloudinary.com') ? 'Cloudinary URL' : 'Fallback URL');
               }
               if (shopData?.bannerPreview) {
                 const bannerFile = await convertBlobUrlToFile(shopData.bannerPreview);
-                bannerUrl = await safeImageUpload(bannerFile, '');
+                bannerUrl = await safeImageUpload(bannerFile, '', 1);
                 console.log('🎓 Banner processed:', bannerUrl.startsWith('https://res.cloudinary.com') ? 'Cloudinary URL' : 'Fallback URL');
               }
               
-              // Handle gallery images
+              // Handle gallery images in parallel
               if (shopData?.galleryPreviews && Array.isArray(shopData.galleryPreviews)) {
-                const uploadedGalleryUrls = [];
+                const galleryFiles = [];
                 for (const galleryPreview of shopData.galleryPreviews) {
                   if (galleryPreview.startsWith('blob:')) {
                     const galleryFile = await convertBlobUrlToFile(galleryPreview);
-                    const cloudinaryUrl = await safeImageUpload(galleryFile, '');
-                    uploadedGalleryUrls.push(cloudinaryUrl);
-                    console.log('🎓 Gallery image processed:', cloudinaryUrl.startsWith('https://res.cloudinary.com') ? 'Cloudinary URL' : 'Fallback URL');
-                  } else {
-                    uploadedGalleryUrls.push(galleryPreview);
+                    if (galleryFile) galleryFiles.push(galleryFile);
                   }
                 }
-                if (uploadedGalleryUrls.length > 0) {
-                  galleryUrls = uploadedGalleryUrls;
+                
+                if (galleryFiles.length > 0) {
+                  const uploadResults = await batchUploadImages(galleryFiles);
+                  galleryUrls = uploadResults.map(result => result.url).filter(url => url);
+                  console.log('🎓 Gallery images processed in parallel:', galleryUrls.length, 'successful uploads');
                 }
               }
             } catch (error) {
@@ -456,6 +504,9 @@ export default function PaymentSection({
             entityName = 'Hospital';
             entityEndpoint = '/api/hospital-wizard/create-from-wizard';
             
+            setCurrentStep('Uploading hospital images...')
+            setUploadProgress(40)
+            
             // Convert blob URLs to Cloudinary URLs for hospital images
             let hospitalLogoUrl = '';
             let hospitalBannerUrl = '';
@@ -464,28 +515,27 @@ export default function PaymentSection({
             try {
               if (shopData?.logoPreview) {
                 const logoFile = await convertBlobUrlToFile(shopData.logoPreview);
-                hospitalLogoUrl = await safeImageUpload(logoFile, '');
+                hospitalLogoUrl = await safeImageUpload(logoFile, '', 1);
                 console.log('🏥 Hospital logo processed:', hospitalLogoUrl.startsWith('https://res.cloudinary.com') ? 'Cloudinary URL' : 'Fallback URL');
               }
               if (shopData?.bannerPreview) {
                 const bannerFile = await convertBlobUrlToFile(shopData.bannerPreview);
-                hospitalBannerUrl = await safeImageUpload(bannerFile, '');
+                hospitalBannerUrl = await safeImageUpload(bannerFile, '', 1);
                 console.log('🏥 Hospital banner processed:', hospitalBannerUrl.startsWith('https://res.cloudinary.com') ? 'Cloudinary URL' : 'Fallback URL');
               }
               if (shopData?.galleryPreviews && Array.isArray(shopData.galleryPreviews)) {
-                const uploadedGalleryUrls = [];
+                const galleryFiles = [];
                 for (const galleryPreview of shopData.galleryPreviews) {
                   if (galleryPreview.startsWith('blob:')) {
                     const galleryFile = await convertBlobUrlToFile(galleryPreview);
-                    const cloudinaryUrl = await safeImageUpload(galleryFile, '');
-                    uploadedGalleryUrls.push(cloudinaryUrl);
-                    console.log('🏥 Hospital gallery image processed:', cloudinaryUrl.startsWith('https://res.cloudinary.com') ? 'Cloudinary URL' : 'Fallback URL');
-                  } else {
-                    uploadedGalleryUrls.push(galleryPreview);
+                    if (galleryFile) galleryFiles.push(galleryFile);
                   }
                 }
-                if (uploadedGalleryUrls.length > 0) {
-                  hospitalGalleryUrls = uploadedGalleryUrls;
+                
+                if (galleryFiles.length > 0) {
+                  const uploadResults = await batchUploadImages(galleryFiles);
+                  hospitalGalleryUrls = uploadResults.map(result => result.url).filter(url => url);
+                  console.log('🏥 Hospital gallery images processed in parallel:', hospitalGalleryUrls.length, 'successful uploads');
                 }
               }
             } catch (error) {
@@ -539,24 +589,26 @@ export default function PaymentSection({
             entityName = 'Product';
             entityEndpoint = '/api/product-wizard/create-from-wizard';
             
+            setCurrentStep('Uploading product images...')
+            setUploadProgress(40)
+            
             // Convert blob URLs to Cloudinary URLs for product images
             let productImages = [];
             
             try {
               if (shopData?.imagePreviews && Array.isArray(shopData.imagePreviews)) {
-                const uploadedImages = [];
+                const imageFiles = [];
                 for (const imagePreview of shopData.imagePreviews) {
                   if (imagePreview.startsWith('blob:')) {
                     const imageFile = await convertBlobUrlToFile(imagePreview);
-                    const cloudinaryUrl = await safeImageUpload(imageFile, '');
-                    uploadedImages.push(cloudinaryUrl);
-                    console.log('🛍️ Product image processed:', cloudinaryUrl.startsWith('https://res.cloudinary.com') ? 'Cloudinary URL' : 'Fallback URL');
-                  } else {
-                    uploadedImages.push(imagePreview);
+                    if (imageFile) imageFiles.push(imageFile);
                   }
                 }
-                if (uploadedImages.length > 0) {
-                  productImages = uploadedImages;
+                
+                if (imageFiles.length > 0) {
+                  const uploadResults = await batchUploadImages(imageFiles);
+                  productImages = uploadResults.map(result => result.url).filter(url => url);
+                  console.log('🛍️ Product images processed in parallel:', productImages.length, 'successful uploads');
                 }
               }
             } catch (error) {
@@ -590,6 +642,9 @@ export default function PaymentSection({
           console.log(`📝 ${entityName} creation data:`, entityCreationData);
           console.log(`🌐 Making API call to: ${API_BASE_URL}${entityEndpoint}`);
 
+          setCurrentStep(`Creating ${entityName.toLowerCase()}...`)
+          setUploadProgress(70)
+
           const entityResponse = await fetch(`${API_BASE_URL}${entityEndpoint}`, {
             method: 'POST',
             credentials: 'include',
@@ -606,6 +661,9 @@ export default function PaymentSection({
             const entityResult = await entityResponse.json();
             createdEntity = entityResult[entityName.toLowerCase()] || entityResult.entity || entityResult
             console.log(`✅ ${entityName} created successfully:`, entityResult);
+            
+            setCurrentStep('Linking payment...')
+            setUploadProgress(90)
             
             // Link payment request to created entity
             try {
@@ -630,6 +688,9 @@ export default function PaymentSection({
             } catch (linkError) {
               console.warn(`⚠️ Error linking payment to ${entityName.toLowerCase()}:`, linkError);
             }
+
+            setCurrentStep('Complete!')
+            setUploadProgress(100)
 
             toast({ 
               title: `Payment & ${entityName} Setup Complete!`, 
@@ -954,24 +1015,40 @@ export default function PaymentSection({
               </div>
             </div>
 
-                         <Button
-                           type="button"
-                           onClick={handleSubmitPayment}
-                           disabled={isSubmitting || !paymentData.transactionScreenshot}
-                           className="w-full"
-                           size="lg"
-                         >
-                                                           {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Submitting Payment Request...
-                  </>
-                ) : (
-                 <>
-                   <CheckCircle className="h-4 w-4 mr-2" />
-                   Submit Payment Request
-                 </>
-               )}
+            {/* Progress Indicator */}
+            {isSubmitting && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{currentStep}</span>
+                  <span className="font-medium">{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              onClick={handleSubmitPayment}
+              disabled={isSubmitting || !paymentData.transactionScreenshot}
+              className="w-full"
+              size="lg"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {currentStep || 'Processing...'}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Submit Payment Request
+                </>
+              )}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
