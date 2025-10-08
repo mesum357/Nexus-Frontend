@@ -7,13 +7,13 @@ const testimonials = [
     name: "Ahmed Hassan",
     role: "Local Business Owner",
     avatar: avatar1,
-            quote: "E Duniya has transformed how I reach customers. The multi-vendor platform makes it so easy to showcase my products to the entire city."
+            quote: "E - Dunia has transformed how I reach customers. The multi-vendor platform makes it so easy to showcase my products to the entire city."
   },
   {
     name: "Fatima Khan",
     role: "Student & Entrepreneur",
     avatar: avatar2,
-            quote: "From taking online courses to selling handmade items, E Duniya is my go-to platform. It's like having the whole city in one app!"
+            quote: "From taking online courses to selling handmade items, E - Dunia is my go-to platform. It's like having the whole city in one app!"
   }
 ];
 

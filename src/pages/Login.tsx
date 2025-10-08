@@ -168,13 +168,13 @@ export default function Login() {
       className="min-h-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-lg p-10 w-full max-w-md text-white">
+      <div className="backdrop-blur-xl bg-white/95 border border-gray-200 rounded-3xl shadow-lg p-10 w-full max-w-md text-black">
         {/* Logo and Title */}
         <div className="text-center mb-6">
           <div className="mb-2">
-            <img src={logo} alt="E Duniya Logo" className="h-16 w-auto mx-auto" />
+            <img src={logo} alt="E - Dunia Logo" className="h-16 w-auto mx-auto" />
           </div>
-          <h2 className="text-2xl font-semibold">Welcome</h2>
+          <h2 className="text-2xl font-semibold text-black">Welcome</h2>
           
           {/* Offline Indicator */}
           {isOfflineMode && (
@@ -188,7 +188,7 @@ export default function Login() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-black">Email</Label>
             <Input
               id="email"
               type="email"
@@ -196,11 +196,11 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
+              className="mt-1 bg-white border border-gray-300 text-black placeholder-gray-500"
             />
           </div>
           <div>
-            <Label htmlFor="password" className="text-white">Password</Label>
+            <Label htmlFor="password" className="text-black">Password</Label>
             <Input
               id="password"
               type="password"
@@ -208,12 +208,12 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
+              className="mt-1 bg-white border border-gray-300 text-black placeholder-gray-500"
             />
           </div>
 
           <div className="text-right text-sm">
-            <Link to="/forgot-password" className="text-blue-300 hover:underline">
+            <Link to="/forgot-password" className="text-blue-600 hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -247,7 +247,7 @@ export default function Login() {
         <div className="mt-6 text-center text-sm">
           <p>
             Don't have an account?{' '}
-            <Link to="/signup" className="text-blue-300 hover:underline">
+            <Link to="/signup" className="text-blue-600 hover:underline">
               Register
             </Link>
           </p>

@@ -179,7 +179,7 @@ export default function Navbar() {
             <Link to="/" className="flex items-center">
               <img 
                 src={Logo} 
-                alt="E Duniya Logo" 
+                alt="E - Dunia Logo" 
                 className="h-12 w-auto"
               />
             </Link>

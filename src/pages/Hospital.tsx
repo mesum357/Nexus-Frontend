@@ -125,7 +125,7 @@ export default function Hospital() {
               <div className="flex flex-col sm:flex-row items-center justify-center mb-6">
                 <img 
                   src={Logo} 
-                  alt="E Duniya Logo"
+                  alt="E - Dunia Logo"
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
                 />
                 <div className="text-center sm:text-left">

@@ -169,20 +169,20 @@ export default function Signup() {
       className="min-h-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-lg p-10 w-full max-w-md text-white">
+      <div className="backdrop-blur-xl bg-white/95 border border-gray-200 rounded-3xl shadow-lg p-10 w-full max-w-md text-black">
         {/* Logo and Title */}
         <div className="text-center mb-6">
           <div className="mb-2">
-            <img src={logo} alt="E Duniya Logo" className="h-16 w-auto mx-auto" />
+            <img src={logo} alt="E - Dunia Logo" className="h-16 w-auto mx-auto" />
           </div>
-          <h2 className="text-2xl font-semibold">Welcome</h2>
+          <h2 className="text-2xl font-semibold text-black">Welcome</h2>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Profile Image Section */}
           <div className="text-center">
-            <Label className="text-white mb-3 block">Profile Photo</Label>
+            <Label className="text-black mb-3 block">Profile Photo</Label>
             <div className="flex flex-col items-center space-y-3">
               <Avatar className="h-20 w-20">
                 <AvatarImage src={profileImagePreview || undefined} />
@@ -195,7 +195,7 @@ export default function Signup() {
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30"
+                className="bg-gray-100 border border-gray-300 text-black hover:bg-gray-200"
               >
                 <Camera className="mr-2 h-4 w-4" />
                 {profileImagePreview ? 'Change Photo' : 'Upload Photo'}
@@ -208,13 +208,13 @@ export default function Signup() {
                 className="hidden"
               />
               {profileImagePreview && (
-                <p className="text-xs text-green-300">Photo selected ✓</p>
+                <p className="text-xs text-green-600">Photo selected ✓</p>
               )}
             </div>
           </div>
 
           <div>
-            <Label htmlFor="fullName" className="text-white">Full Name</Label>
+            <Label htmlFor="fullName" className="text-black">Full Name</Label>
             <Input
               id="fullName"
               type="text"
@@ -222,11 +222,11 @@ export default function Signup() {
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Enter your full name"
               required
-              className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
+              className="mt-1 bg-white border border-gray-300 text-black placeholder-gray-500"
             />
           </div>
           <div>
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-black">Email</Label>
             <Input
               id="email"
               type="email"
@@ -234,11 +234,11 @@ export default function Signup() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
+              className="mt-1 bg-white border border-gray-300 text-black placeholder-gray-500"
             />
           </div>
           <div>
-            <Label htmlFor="mobile" className="text-white">Mobile Number</Label>
+            <Label htmlFor="mobile" className="text-black">Mobile Number</Label>
             <Input
               id="mobile"
               type="tel"
@@ -246,11 +246,11 @@ export default function Signup() {
               onChange={(e) => setMobile(e.target.value)}
               placeholder="Enter your mobile number"
               required
-              className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
+              className="mt-1 bg-white border border-gray-300 text-black placeholder-gray-500"
             />
           </div>
           <div>
-            <Label htmlFor="password" className="text-white">Password</Label>
+            <Label htmlFor="password" className="text-black">Password</Label>
             <Input
               id="password"
               type="password"
@@ -258,11 +258,11 @@ export default function Signup() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
+              className="mt-1 bg-white border border-gray-300 text-black placeholder-gray-500"
             />
           </div>
           <div>
-            <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+            <Label htmlFor="confirmPassword" className="text-black">Confirm Password</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -270,7 +270,7 @@ export default function Signup() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="mt-1 bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70"
+              className="mt-1 bg-white border border-gray-300 text-black placeholder-gray-500"
             />
           </div>
 
@@ -287,7 +287,7 @@ export default function Signup() {
         <div className="mt-6 text-center text-sm">
           <p>
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-300 hover:underline">
+            <Link to="/login" className="text-blue-600 hover:underline">
               Login
             </Link>
           </p>

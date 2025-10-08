@@ -47,10 +47,10 @@ export function Footer() {
               whileHover={{ scale: 1.05 }}
               className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4"
             >
-              E Duniya
+              E - Dunia
             </motion.h3>
             <p className="text-slate-300 mb-6 text-lg leading-relaxed max-w-md">
-              Connecting communities, empowering businesses, and creating opportunities across E Duniya through innovative digital solutions.
+              Connecting communities, empowering businesses, and creating opportunities across E - Dunia through innovative digital solutions.
             </p>
             {/* Contact Info */}
             <div className="space-y-3">
@@ -152,10 +152,10 @@ export function Footer() {
               className="text-slate-400 text-center"
             >
               <p className="font-medium">
-                © 2024 E Duniya. All rights reserved.
+                © 2024 E - Dunia. All rights reserved.
               </p>
               <p className="text-sm mt-1">
-                Built with ❤️ for E Duniya
+                Built with ❤️ for E - Dunia
               </p>
             </motion.div>
           </div>

@@ -52,7 +52,7 @@ export function HowItWorksSection() {
             How It Works
           </h2>
           <p className="text-xl text-text-blue-gray max-w-2xl mx-auto">
-            Getting started with E Duniya is simple and straightforward
+            Getting started with E - Dunia is simple and straightforward
           </p>
         </motion.div>
         
