@@ -169,7 +169,7 @@ export default function Signup() {
       className="min-h-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="backdrop-blur-xl bg-white/95 border border-gray-200 rounded-3xl shadow-lg p-10 w-full max-w-md text-black">
+      <div className="backdrop-blur-xl bg-white/80 border border-gray-200 rounded-3xl shadow-lg p-10 w-full max-w-md text-black">
         {/* Logo and Title */}
         <div className="text-center mb-6">
           <div className="mb-2">
