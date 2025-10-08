@@ -4,7 +4,82 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../lib/config'
 import { checkAuthStatus, isOnline, addNetworkListeners, isPWA } from '../lib/pwa-auth'
-import Logo from '@/assets/sdf.png'
+// Globe Logo Component
+const GlobeLogo = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 100 100" 
+    className={className}
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Globe outline */}
+    <circle 
+      cx="50" 
+      cy="50" 
+      r="45" 
+      stroke="currentColor" 
+      strokeWidth="2.5"
+      fill="none"
+    />
+    
+    {/* Longitude lines */}
+    <path 
+      d="M 20 50 Q 50 25 80 50 Q 50 75 20 50" 
+      stroke="currentColor" 
+      strokeWidth="1.5" 
+      fill="none"
+    />
+    <path 
+      d="M 20 50 Q 50 75 80 50" 
+      stroke="currentColor" 
+      strokeWidth="1.5" 
+      fill="none"
+    />
+    
+    {/* Latitude lines */}
+    <ellipse 
+      cx="50" 
+      cy="35" 
+      rx="25" 
+      ry="8" 
+      stroke="currentColor" 
+      strokeWidth="1.5" 
+      fill="none"
+    />
+    <ellipse 
+      cx="50" 
+      cy="65" 
+      rx="25" 
+      ry="8" 
+      stroke="currentColor" 
+      strokeWidth="1.5" 
+      fill="none"
+    />
+    
+    {/* Central meridian */}
+    <line 
+      x1="50" 
+      y1="5" 
+      x2="50" 
+      y2="95" 
+      stroke="currentColor" 
+      strokeWidth="1.5"
+    />
+    
+    {/* E - Dunia text */}
+    <text 
+      x="50" 
+      y="90" 
+      textAnchor="middle" 
+      fontSize="8" 
+      fontWeight="bold" 
+      fill="currentColor"
+      fontFamily="Arial, sans-serif"
+    >
+      E - Dunia
+    </text>
+  </svg>
+)
 
 const navigationLinks = [
   { name: 'Store', href: '/store' },
@@ -177,11 +252,7 @@ export default function Navbar() {
             className="flex-shrink-0"
           >
             <Link to="/" className="flex items-center">
-              <img 
-                src={Logo} 
-                alt="E - Dunia Logo" 
-                className="h-12 w-auto"
-              />
+              <GlobeLogo className="h-12 w-12 text-primary" />
             </Link>
           </motion.div>
 
