@@ -61,7 +61,7 @@ export function HeroSection() {
             transition={{ duration: 1, delay: 0.7 }}
             className="absolute bottom-8 right-8 z-20"
           >
-            <div className="relative group cursor-pointer" onClick={() => window.open('', '_blank')}>
+            <div className="relative group cursor-pointer" onClick={() => window.open('https://www.youtube.com/watch?v=xcNcLHXyytY', '_blank')}>
               <div className="relative w-64 h-40 rounded-2xl overflow-hidden shadow-2xl shadow-primary/25 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 group-hover:scale-105">
                 <iframe
                   src=""
