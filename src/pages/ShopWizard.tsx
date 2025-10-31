@@ -37,6 +37,7 @@ const ShopWizard: React.FC = () => {
     city: '',
     shopType: '',
     shopDescription: '',
+    address: '',
     categories: [],
     shopLogo: null,
     shopBanner: null,

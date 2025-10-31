@@ -214,13 +214,13 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
                   {(post.user.fullName || (post.user.username.includes('@') ? post.user.username.split('@')[0] : post.user.username))[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-foreground">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 min-w-0">
+                  <p className="font-semibold text-foreground truncate">
                     {post.user.fullName || (post.user.username.includes('@') ? post.user.username.split('@')[0] : post.user.username)}
                   </p>
                   {post.user.fullName && (
-                    <p className="text-sm text-muted-foreground">@{post.user.username}</p>
+                    <p className="text-sm text-muted-foreground truncate">@{post.user.username}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

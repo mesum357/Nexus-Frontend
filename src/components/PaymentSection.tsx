@@ -94,7 +94,7 @@ export default function PaymentSection({
 
   const fetchPaymentSettings = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/payment/settings`, {
+      const response = await fetch(`${API_BASE_URL}/api/payment/settings`, {
         credentials: 'include'
       })
       
@@ -128,7 +128,7 @@ export default function PaymentSection({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload/image`, {
+      const response = await fetch(`${API_BASE_URL}/api/upload/image`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -408,6 +408,7 @@ export default function PaymentSection({
               city: shopData?.city || 'Unknown City',
               shopType: shopData?.shopType || 'General',
               shopDescription: shopData?.shopDescription || 'Shop description',
+              address: shopData?.address || '',
               categories: shopData?.categories || [],
               shopLogo: shopLogoUrl,
               shopBanner: shopBannerUrl,

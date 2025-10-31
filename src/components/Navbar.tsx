@@ -28,6 +28,7 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [isOffline, setIsOffline] = useState(!isOnline());
   const [isPWAMode, setIsPWAMode] = useState(false);
+  const [stats, setStats] = useState<{ shops: number; hospitals: number; institutes: number; products: number }>({ shops: 0, hospitals: 0, institutes: 0, products: 0 });
 
   useEffect(() => {
     // Check if running as PWA
@@ -60,6 +61,41 @@ export default function Navbar() {
 
     return cleanup;
   }, []);
+
+  // Load global counts for menu badges
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/stats`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setStats({
+          shops: data?.entities?.shops?.total || 0,
+          hospitals: data?.entities?.hospitals?.total || 0,
+          institutes: data?.entities?.institutes?.total || 0,
+          products: data?.entities?.products?.total || 0,
+        });
+      } catch (e) {
+        // silent fail
+      }
+    };
+    loadStats();
+  }, []);
+
+  const getMenuCount = (name: string) => {
+    switch (name) {
+      case 'Store':
+        return stats.shops;
+      case 'Hospital':
+        return stats.hospitals;
+      case 'Education':
+        return stats.institutes;
+      case 'Marketplace':
+        return stats.products;
+      default:
+        return 0;
+    }
+  };
 
   const handleProfileClick = async () => {
     if (isLoggedIn) {
@@ -454,7 +490,7 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block px-4 py-3 text-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium"
                 >
-                  {link.name}
+                  <span className="inline-flex items-center">{link.name}</span>
                 </Link>
               </motion.div>
             ))}

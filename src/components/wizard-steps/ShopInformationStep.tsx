@@ -13,7 +13,7 @@ interface ShopInformationStepProps {
   updateData: (updates: Partial<ShopData>) => void;
 }
 
-const PAKISTAN_CITIES = [
+const PAKISTAN_CITIES = Array.from(new Set([
   'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad',
   'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala',
   'Hyderabad', 'Bahawalpur', 'Sargodha', 'Sukkur', 'Larkana',
@@ -38,7 +38,7 @@ const PAKISTAN_CITIES = [
   'Batagram', 'Shangla', 'Swat', 'Buner', 'Malakand',
   'Dir', 'Chitral', 'Kohistan', 'Torghar', 'Bannu', 'Tank',
   'Kohat', 'Hangu', 'Karak', 'Lakki Marwat', 'Dera Ismail Khan'
-].map(city => ({ value: city, label: city }));
+])).map(city => ({ value: city, label: city }));
 
 const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateData }) => {
   return (
@@ -68,6 +68,19 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
             onValueChange={(value) => updateData({ city: value })}
             placeholder="Select your city"
             options={PAKISTAN_CITIES}
+          />
+        </div>
+        {/* Address */}
+        <div className="space-y-2">
+          <Label htmlFor="address" className="text-sm font-medium">
+            Shop Address
+          </Label>
+          <Input
+            id="address"
+            placeholder="Street address, area, nearby landmark"
+            value={data.address || ''}
+            onChange={(e) => updateData({ address: e.target.value })}
+            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20 h-10 sm:h-10"
           />
         </div>
       </div>

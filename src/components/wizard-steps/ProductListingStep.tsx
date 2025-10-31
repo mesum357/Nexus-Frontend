@@ -8,11 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit3, Package, ImageIcon, Loader2, CheckCircle } from 'lucide-react';
 import { ShopData } from '@/types/shop';
+import { API_BASE_URL } from '@/lib/config';
 
-// API base URL configuration
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://nexus-backend-k6j4.onrender.com' 
-  : 'http://localhost:5000';
+// Use shared API base URL
 
 interface ProductListingStepProps {
   data: ShopData;

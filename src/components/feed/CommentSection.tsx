@@ -533,17 +533,18 @@ const CommentSection = forwardRef(function CommentSection(
       ) : (
         <>
           {renderComments([...optimisticComments, ...comments])}
-          <div className="flex gap-2 mt-4">
+          <div className="flex flex-col sm:flex-row gap-2 mt-4">
             <Textarea
               ref={inputRef}
               value={commentContent}
               onChange={e => setCommentContent(e.target.value)}
               placeholder="Write a comment..."
-              className="min-h-8"
+              className="min-h-8 w-full"
             />
             <Button
               onClick={handleAddComment}
               disabled={submitting || !commentContent.trim()}
+              className="w-full sm:w-auto"
             >
               Comment
             </Button>

@@ -7,6 +7,7 @@ import { ShopData } from '@/types/shop';
 import { useCategories } from '@/hooks/use-categories';
 import { Button } from '@/components/ui/button';
 import { Category } from '@/types/category';
+import { API_BASE_URL } from '@/lib/config';
 
 interface BusinessCategoriesStepProps {
   data: ShopData;
@@ -44,7 +45,7 @@ const BusinessCategoriesStep: React.FC<BusinessCategoriesStepProps> = ({ data, u
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/categories`);
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }
