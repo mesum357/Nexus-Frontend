@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: nexus-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+        # Set this to your backend URL in Render dashboard
+        # Example: https://your-backend.onrender.com
+      - key: VITE_API_URL
+        sync: false
+        # Alternative environment variable name (optional)
+        # If VITE_API_BASE_URL is set, this is not required
+

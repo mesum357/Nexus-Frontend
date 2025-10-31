@@ -7,8 +7,8 @@ const DYNAMIC_CACHE_NAME = 'nexus-dynamic-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png',
   // Add other critical assets here
 ];
 
@@ -29,7 +29,22 @@ self.addEventListener('install', (event) => {
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
+        // Cache assets individually to handle missing files gracefully
+        return Promise.allSettled(
+          STATIC_ASSETS.map(url => 
+            fetch(url)
+              .then(response => {
+                if (response.ok) {
+                  return cache.put(url, response);
+                } else {
+                  console.warn(`Service Worker: Asset not found: ${url}`);
+                }
+              })
+              .catch(error => {
+                console.warn(`Service Worker: Failed to cache ${url}:`, error);
+              })
+          )
+        );
       })
       .catch((error) => {
         console.error('Service Worker: Failed to cache static assets', error);
@@ -309,7 +324,7 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/icons/icon-192x192.png',
+      icon: '/icons/icon-96x96.png',
       badge: '/icons/icon-72x72.png',
       vibrate: [200, 100, 200],
       data: data.data,
