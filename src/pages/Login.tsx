@@ -8,11 +8,12 @@ import logo from '@/assets/globeLogo.png'
 import { useToast } from '@/components/ui/use-toast'
 import { API_BASE_URL } from '@/lib/config'
 import { pwaFetch, handleAuthError, setCachedAuthState, isOnline } from '@/lib/pwa-auth'
-import { Wifi, WifiOff } from 'lucide-react'
+import { Wifi, WifiOff, Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [needsVerification, setNeedsVerification] = useState(false)
@@ -93,7 +94,21 @@ export default function Login() {
         toast({ title: 'Login successful', description: 'Welcome back!' })
         navigate('/')
       } else {
-        toast({ title: 'Login failed', description: data.error || 'Login failed', variant: 'destructive' })
+        // Check if account is frozen (403 status)
+        if (response.status === 403 && data.error) {
+          toast({ 
+            title: 'Account Frozen', 
+            description: data.error || 'This account is frozen. Please contact support.',
+            variant: 'destructive',
+            duration: 7000
+          })
+        } else {
+          toast({ 
+            title: 'Login failed', 
+            description: data.error || 'Login failed', 
+            variant: 'destructive' 
+          })
+        }
       }
     } catch (err) {
       const errorInfo = handleAuthError(err)
@@ -201,15 +216,28 @@ export default function Login() {
           </div>
           <div>
             <Label htmlFor="password" className="text-black">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="mt-1 bg-white border border-gray-300 text-black placeholder-gray-500"
-            />
+            <div className="relative mt-1">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="pr-10 bg-white border border-gray-300 text-black placeholder-gray-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="text-right text-sm">

@@ -106,15 +106,23 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
           />
 
           {/* Location & Category */}
-          <div className="flex items-center gap-3 sm:gap-4 mb-4 text-xs text-muted-foreground">
-            <div className="flex items-center">
-              <MapPin className="h-3 w-3 mr-1" />
-              <span className="line-clamp-1">{shop.city}</span>
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center">
+                <MapPin className="h-3 w-3 mr-1" />
+                <span className="line-clamp-1">{shop.city}</span>
+              </div>
+              <div className="flex items-center">
+                <Badge className="h-3 w-3 mr-1" />
+                <span className="line-clamp-1">{shop.categories?.[0] || 'General'}</span>
+              </div>
             </div>
-            <div className="flex items-center">
-              <Badge className="h-3 w-3 mr-1" />
-              <span className="line-clamp-1">{shop.categories?.[0] || 'General'}</span>
-            </div>
+            {shop.address && (
+              <div className="flex items-start text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
+                <span className="line-clamp-2">{shop.address}</span>
+              </div>
+            )}
           </div>
 
           {/* Visit Shop Button */}

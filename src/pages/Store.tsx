@@ -12,6 +12,7 @@ export interface Shop {
   _id: string;
   shopName: string;
   city: string;
+  address?: string;
   shopType?: 'Product Seller' | 'Service Provider';
   shopDescription?: string;
   categories?: string[];
@@ -200,6 +201,7 @@ export default function Store() {
             businessType: shop.shopType,
             ownerName: shop.ownerName || 'Shop Owner',
             ownerDp: shop.ownerDp || '',
+            address: shop.address || '',
             products: shop.products || [],
           }))} />
         )}

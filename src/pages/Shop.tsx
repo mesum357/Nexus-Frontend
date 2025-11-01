@@ -23,6 +23,7 @@ type ShopWithGallery = ShopType & {
   phone?: string;
   shopDescription?: string;
   description?: string;
+  address?: string;
   email?: string;
   socialLinks?: {
     facebook?: string;
@@ -114,6 +115,7 @@ export default function Shop() {
             shopDescription: data.shop.shopDescription || data.shop.description,
             businessType: data.shop.shopType || data.shop.businessType,
             city: data.shop.city,
+            address: data.shop.address || '',
             phone: data.shop.phone || data.shop.whatsappNumber || '',
             email: data.shop.email || '',
             socialLinks: {
@@ -1094,6 +1096,12 @@ export default function Shop() {
                         <MapPin className="h-3 w-3 mr-1 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">{shop.city}</span>
                       </div>
+                      {shop.address && (
+                        <div className="flex items-start mt-2">
+                          <MapPin className="h-3 w-3 mr-1 text-muted-foreground mt-0.5" />
+                          <span className="text-sm text-muted-foreground">{shop.address}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -1105,14 +1113,34 @@ export default function Shop() {
                   <CardTitle>Contact Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{shop.phone || ''}</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{shop.email || ''}</span>
-                  </div>
+                  {shop.address && (
+                    <div className="flex items-start space-x-3">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Address</p>
+                        <p className="text-sm text-muted-foreground">{shop.address}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{shop.city}</p>
+                      </div>
+                    </div>
+                  )}
+                  {!shop.address && shop.city && (
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{shop.city}</span>
+                    </div>
+                  )}
+                  {shop.phone && (
+                    <div className="flex items-center space-x-3">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{shop.phone}</span>
+                    </div>
+                  )}
+                  {shop.email && (
+                    <div className="flex items-center space-x-3">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{shop.email}</span>
+                    </div>
+                  )}
                   
                   <Separator />
                   
