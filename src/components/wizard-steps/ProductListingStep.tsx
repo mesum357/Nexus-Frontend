@@ -197,7 +197,7 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
   };
 
   const saveProduct = () => {
-    if (!productForm.name || !productForm.category || productForm.price <= 0) {
+    if (!productForm.name || !productForm.description || productForm.price <= 0) {
       return;
     }
 
@@ -278,26 +278,6 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
                 />
               </div>
 
-              {/* Category */}
-              <div className="space-y-2">
-                <Label>Category *</Label>
-                <Select
-                  value={productForm.category}
-                  onValueChange={(value) => setProductForm(prev => ({ ...prev, category: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_CATEGORIES.map(category => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               {/* Price */}
               <div className="space-y-2">
                 <Label htmlFor="productPrice">Price (PKR) *</Label>
@@ -329,6 +309,18 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
                   }))}
                 />
               </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="productDescription">Description *</Label>
+              <Textarea
+                id="productDescription"
+                placeholder="Enter product description"
+                value={productForm.description}
+                onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
+                rows={3}
+              />
             </div>
 
             {/* Product Images */}
@@ -462,9 +454,6 @@ const ProductListingStep: React.FC<ProductListingStepProps> = ({ data, updateDat
                 <CardContent className="p-4">
                   <div className="space-y-2">
                     <h5 className="font-medium line-clamp-1">{product.name}</h5>
-                    <Badge variant="outline" className="text-xs">
-                      {product.category}
-                    </Badge>
                     <div 
                       className="text-sm text-muted-foreground line-clamp-2"
                       dangerouslySetInnerHTML={{ 

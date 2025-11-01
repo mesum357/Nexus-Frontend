@@ -268,49 +268,92 @@ export default function ProductDetail() {
               <Card>
                 <CardContent className="p-6">
                   {/* Main Image */}
-                  <div className="relative mb-4">
-                    <img
-                      src={product.images && product.images.length > 0 ? product.images[selectedImage] : 'https://via.placeholder.com/600x400?text=No+Image'}
-                      alt={product.title}
-                      className="w-full h-96 object-cover rounded-lg"
-                    />
-                                          {product.featured && (
-                        <Badge className="absolute top-4 left-4 bg-orange-500 hover:bg-orange-600">
-                          Featured
-                      </Badge>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsFavorited(!isFavorited)}
-                      className={`absolute top-4 right-4 h-10 w-10 ${
-                        isFavorited ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-white/80 hover:bg-white'
-                      }`}
-                    >
-                      <Heart className={`h-5 w-5 ${isFavorited ? 'fill-current' : ''}`} />
-                    </Button>
-                  </div>
+                  {(() => {
+                    // Filter valid Cloudinary images (exclude placeholders)
+                    const validImages = product.images && Array.isArray(product.images) 
+                      ? product.images.filter(img => 
+                          img && 
+                          typeof img === 'string' && 
+                          img.trim() !== '' &&
+                          (img.startsWith('http://') || img.startsWith('https://')) &&
+                          img.includes('res.cloudinary.com') &&
+                          !img.includes('picsum.photos') &&
+                          !img.includes('via.placeholder'))
+                      : [];
+                    
+                    // Ensure selectedImage is within bounds
+                    const currentImageIndex = Math.min(selectedImage, validImages.length - 1);
+                    
+                    return (
+                      <>
+                        <div className="relative mb-4">
+                          {validImages.length > 0 && validImages[currentImageIndex] ? (
+                            <img
+                              src={validImages[currentImageIndex]}
+                              alt={product.title}
+                              className="w-full h-96 object-cover rounded-lg"
+                              onError={(e) => {
+                                // Hide broken images and show empty state
+                                e.currentTarget.style.display = 'none';
+                                const parent = e.currentTarget.parentElement;
+                                if (parent && !parent.querySelector('.empty-state')) {
+                                  const emptyDiv = document.createElement('div');
+                                  emptyDiv.className = 'w-full h-96 bg-muted flex items-center justify-center empty-state rounded-lg';
+                                  emptyDiv.innerHTML = '<div class="text-center text-muted-foreground"><p>No Image</p></div>';
+                                  parent.appendChild(emptyDiv);
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-96 bg-muted flex items-center justify-center rounded-lg">
+                              <div className="text-center text-muted-foreground">
+                                <p>No Image</p>
+                              </div>
+                            </div>
+                          )}
+                          {product.featured && (
+                            <Badge className="absolute top-4 left-4 bg-orange-500 hover:bg-orange-600">
+                              Featured
+                            </Badge>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsFavorited(!isFavorited)}
+                            className={`absolute top-4 right-4 h-10 w-10 ${
+                              isFavorited ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-white/80 hover:bg-white'
+                            }`}
+                          >
+                            <Heart className={`h-5 w-5 ${isFavorited ? 'fill-current' : ''}`} />
+                          </Button>
+                        </div>
 
-                  {/* Image Thumbnails */}
-                  {product.images && product.images.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto">
-                      {product.images.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                            selectedImage === index ? 'border-orange-500' : 'border-transparent'
-                        }`}
-                      >
-                        <img
-                            src={image}
-                          alt={`View ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                  )}
+                        {/* Image Thumbnails */}
+                        {validImages.length > 1 && (
+                          <div className="flex gap-2 overflow-x-auto">
+                            {validImages.map((image, index) => (
+                              <button
+                                key={index}
+                                onClick={() => setSelectedImage(index)}
+                                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+                                  currentImageIndex === index ? 'border-orange-500' : 'border-transparent'
+                                }`}
+                              >
+                                <img
+                                  src={image}
+                                  alt={`View ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             </motion.div>
@@ -462,38 +505,55 @@ export default function ProductDetail() {
           </div>
 
           {/* Product Gallery */}
-          {product.images?.length > 0 && (
-            <motion.div
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="mt-8"
-            >
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold text-foreground mb-4">Gallery</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {product.images.map((img, idx) => (
-                      <button
-                        key={`gallery-${idx}`}
-                        type="button"
-                        onClick={() => setSelectedImage(idx)}
-                        className="relative group rounded-lg overflow-hidden border hover:shadow transition"
-                        title="View this image"
-                      >
-                        <img
-                          src={img}
-                          alt={`Gallery ${idx + 1}`}
-                          className="w-full h-36 object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
-                      </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+          {(() => {
+            // Filter valid Cloudinary images for gallery
+            const validImages = product.images && Array.isArray(product.images) 
+              ? product.images.filter(img => 
+                  img && 
+                  typeof img === 'string' && 
+                  img.trim() !== '' &&
+                  (img.startsWith('http://') || img.startsWith('https://')) &&
+                  img.includes('res.cloudinary.com') &&
+                  !img.includes('picsum.photos') &&
+                  !img.includes('via.placeholder'))
+              : [];
+            
+            return validImages.length > 0 ? (
+              <motion.div
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="mt-8"
+              >
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-4">Gallery</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {validImages.map((img, idx) => (
+                        <button
+                          key={`gallery-${idx}`}
+                          type="button"
+                          onClick={() => setSelectedImage(idx)}
+                          className="relative group rounded-lg overflow-hidden border hover:shadow transition"
+                          title="View this image"
+                        >
+                          <img
+                            src={img}
+                            alt={`Gallery ${idx + 1}`}
+                            className="w-full h-36 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : null;
+          })()}
 
           {/* Product Details */}
           <motion.div

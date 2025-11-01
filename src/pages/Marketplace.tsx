@@ -113,8 +113,32 @@ export default function Marketplace() {
       if (response.ok || response.status === 401) {
         // Even with 401, we might get public data
         const apiProducts = data.products || []
+        // Log image information for debugging
+        if (apiProducts.length > 0) {
+          console.log('📦 Sample product from API:', {
+            title: apiProducts[0]?.title,
+            images: apiProducts[0]?.images,
+            imagesType: typeof apiProducts[0]?.images,
+            imagesLength: apiProducts[0]?.images?.length || 0,
+            firstImage: apiProducts[0]?.images?.[0],
+            isValid: apiProducts[0]?.images?.[0]?.includes('res.cloudinary.com')
+          })
+          // Log all products' image status
+          apiProducts.forEach((p, idx) => {
+            const validImages = p.images?.filter(img => 
+              img && 
+              typeof img === 'string' && 
+              img.trim() !== '' &&
+              (img.startsWith('http://') || img.startsWith('https://')) &&
+              img.includes('res.cloudinary.com') &&
+              !img.includes('picsum.photos') &&
+              !img.includes('via.placeholder')
+            ) || [];
+            console.log(`📦 Product ${idx + 1} (${p.title}): ${p.images?.length || 0} total images, ${validImages.length} valid Cloudinary images`)
+          })
+        }
         setProducts(apiProducts)
-        console.log('Products set from API:', apiProducts.length)
+        console.log('✅ Products set from API:', apiProducts.length)
       } else {
         console.error('Failed to fetch products:', data.error)
         setProducts([])
@@ -497,11 +521,74 @@ export default function Marketplace() {
                     <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
                       {/* Product Image */}
                       <div className="relative">
-                        <img
-                          src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/300x200?text=No+Image'}
-                          alt={product.title}
-                          className="w-full h-40 sm:h-48 object-cover"
-                        />
+                        {(() => {
+                          // Debug logging for image display
+                          console.log(`🖼️ Rendering image for product: ${product.title}`, {
+                            hasImages: !!product.images,
+                            imagesArray: Array.isArray(product.images),
+                            imagesLength: product.images?.length || 0,
+                            rawImages: product.images
+                          });
+                          
+                          // Filter valid Cloudinary images (exclude placeholders)
+                          if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                            const validImages = product.images.filter(img => {
+                              const isValid = img && 
+                                typeof img === 'string' && 
+                                img.trim() !== '' &&
+                                (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('//')) &&
+                                img.includes('res.cloudinary.com') &&
+                                !img.includes('picsum.photos') &&
+                                !img.includes('via.placeholder');
+                              
+                              if (!isValid && img) {
+                                console.log(`⚠️ Invalid image filtered out for ${product.title}:`, img.substring(0, 80));
+                              }
+                              
+                              return isValid;
+                            });
+                            
+                            console.log(`🖼️ Valid images for ${product.title}:`, validImages.length, validImages);
+                            
+                            // Use first valid Cloudinary image
+                            if (validImages.length > 0) {
+                              const firstImage = validImages[0];
+                              console.log(`✅ Displaying image for ${product.title}:`, firstImage.substring(0, 80));
+                              return (
+                                <img
+                                  src={firstImage}
+                                  alt={product.title}
+                                  className="w-full h-40 sm:h-48 object-cover"
+                                  onError={(e) => {
+                                    console.error(`❌ Image load error for ${product.title}:`, firstImage);
+                                    // Hide image on error and show empty state
+                                    e.currentTarget.style.display = 'none';
+                                    const parent = e.currentTarget.parentElement;
+                                    if (parent && !parent.querySelector('.empty-state')) {
+                                      const emptyDiv = document.createElement('div');
+                                      emptyDiv.className = 'w-full h-40 sm:h-48 bg-muted flex items-center justify-center empty-state';
+                                      emptyDiv.innerHTML = '<div class="text-center text-muted-foreground"><p class="text-sm">No Image</p></div>';
+                                      parent.appendChild(emptyDiv);
+                                    }
+                                  }}
+                                  onLoad={() => {
+                                    console.log(`✅ Image loaded successfully for ${product.title}`);
+                                  }}
+                                />
+                              );
+                            }
+                          }
+                          
+                          console.log(`❌ No valid images for ${product.title}, showing placeholder`);
+                          // No valid image available - show empty state with background
+                          return (
+                            <div className="w-full h-40 sm:h-48 bg-muted flex items-center justify-center">
+                              <div className="text-center text-muted-foreground">
+                                <p className="text-sm">No Image</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
                         {product.featured && (
                           <Badge className="absolute top-2 left-2 bg-orange-500 hover:bg-orange-600 text-xs">
                             Featured

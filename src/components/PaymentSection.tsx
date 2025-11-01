@@ -191,20 +191,29 @@ export default function PaymentSection({
     }));
   }
 
-  // Function to convert blob URL to File object
-  const convertBlobUrlToFile = async (blobUrl: string): Promise<File | null> => {
+  // Function to convert blob URL or data URL to File object
+  const convertBlobUrlToFile = async (url: string): Promise<File | null> => {
     try {
-      if (blobUrl.startsWith('blob:')) {
-        const response = await fetch(blobUrl);
+      if (url.startsWith('blob:')) {
+        const response = await fetch(url);
         const blob = await response.blob();
         
         // Create a File object from the blob
         const file = new File([blob], `image-${Date.now()}.jpg`, { type: blob.type });
         return file;
+      } else if (url.startsWith('data:')) {
+        // Handle data URLs (from image cropper)
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const file = new File([blob], `image-${Date.now()}.jpg`, { type: blob.type });
+        return file;
+      } else if (url.startsWith('http://') || url.startsWith('https://')) {
+        // Already a Cloudinary URL, skip conversion
+        return null;
       }
-      return null; // Not a blob URL
+      return null; // Not a valid URL
     } catch (error) {
-      console.error('❌ Error converting blob URL to File:', error);
+      console.error('❌ Error converting URL to File:', error);
       return null;
     }
   }
@@ -593,27 +602,79 @@ export default function PaymentSection({
             setCurrentStep('Uploading product images...')
             setUploadProgress(40)
             
-            // Convert blob URLs to Cloudinary URLs for product images
+            // Debug logging
+            console.log('🛍️ MARKETPLACE: Starting image processing...');
+            console.log('🛍️ shopData?.imageFiles:', shopData?.imageFiles);
+            console.log('🛍️ shopData?.imageFiles type:', typeof shopData?.imageFiles);
+            console.log('🛍️ shopData?.imageFiles length:', shopData?.imageFiles?.length);
+            console.log('🛍️ shopData?.imagePreviews:', shopData?.imagePreviews);
+            console.log('🛍️ shopData?.imagePreviews type:', typeof shopData?.imagePreviews);
+            console.log('🛍️ shopData?.imagePreviews length:', shopData?.imagePreviews?.length);
+            
+            // Convert blob/data URLs to Cloudinary URLs for product images
             let productImages = [];
             
             try {
-              if (shopData?.imagePreviews && Array.isArray(shopData.imagePreviews)) {
+              // Check if imageFiles array is provided (preferred)
+              if (shopData?.imageFiles && Array.isArray(shopData.imageFiles) && shopData.imageFiles.length > 0) {
+                console.log('🛍️ Using imageFiles array:', shopData.imageFiles.length, 'files');
+                const uploadResults = await batchUploadImages(shopData.imageFiles, '');
+                // Filter out empty strings and invalid URLs, only keep successful Cloudinary uploads
+                productImages = uploadResults
+                  .filter(result => result.success && result.url && result.url.trim() !== '' && result.url.includes('res.cloudinary.com'))
+                  .map(result => result.url);
+                console.log('🛍️ Product images processed from imageFiles:', productImages.length, 'successful uploads');
+                if (productImages.length === 0 && shopData.imageFiles.length > 0) {
+                  console.warn('🛍️ ⚠️ No images were successfully uploaded to Cloudinary!');
+                }
+              } 
+              // Fallback to imagePreviews (blob/data URLs)
+              else if (shopData?.imagePreviews && Array.isArray(shopData.imagePreviews) && shopData.imagePreviews.length > 0) {
+                console.log('🛍️ Converting imagePreviews to Files:', shopData.imagePreviews.length, 'previews');
                 const imageFiles = [];
                 for (const imagePreview of shopData.imagePreviews) {
-                  if (imagePreview.startsWith('blob:')) {
+                  // Convert blob or data URLs to Files, skip already uploaded Cloudinary URLs
+                  if (imagePreview.startsWith('blob:') || imagePreview.startsWith('data:')) {
                     const imageFile = await convertBlobUrlToFile(imagePreview);
                     if (imageFile) imageFiles.push(imageFile);
+                  } else if (imagePreview.startsWith('https://res.cloudinary.com')) {
+                    // Already a Cloudinary URL, use it directly
+                    productImages.push(imagePreview);
+                    console.log('🛍️ Using existing Cloudinary URL:', imagePreview);
                   }
                 }
                 
                 if (imageFiles.length > 0) {
-                  const uploadResults = await batchUploadImages(imageFiles);
-                  productImages = uploadResults.map(result => result.url).filter(url => url);
-                  console.log('🛍️ Product images processed in parallel:', productImages.length, 'successful uploads');
+                  const uploadResults = await batchUploadImages(imageFiles, '');
+                  // Filter out empty strings and invalid URLs, only keep successful Cloudinary uploads
+                  const cloudinaryUrls = uploadResults
+                    .filter(result => result.success && result.url && result.url.trim() !== '' && result.url.includes('res.cloudinary.com'))
+                    .map(result => result.url);
+                  productImages = [...productImages, ...cloudinaryUrls];
+                  console.log('🛍️ Product images processed from imagePreviews:', productImages.length, 'successful uploads');
+                  if (cloudinaryUrls.length === 0 && imageFiles.length > 0) {
+                    console.warn('🛍️ ⚠️ No images were successfully uploaded to Cloudinary from imagePreviews!');
+                  }
                 }
+              } else {
+                console.log('🛍️ No images provided (imageFiles or imagePreviews empty or missing)');
               }
+              
+              // Final validation - ensure no placeholder images
+              productImages = productImages.filter(url => 
+                url && 
+                url.trim() !== '' && 
+                url.includes('res.cloudinary.com') && 
+                !url.includes('picsum.photos') && 
+                !url.includes('via.placeholder')
+              );
+              
+              console.log('🛍️ Final product images array (after validation):', productImages);
+              console.log('🛍️ Final product images count:', productImages.length);
             } catch (error) {
               console.error('🛍️ Error processing product images:', error);
+              // On error, set empty array instead of placeholder
+              productImages = [];
             }
             
             entityCreationData = {

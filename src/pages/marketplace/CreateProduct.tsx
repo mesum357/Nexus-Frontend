@@ -679,7 +679,8 @@ export default function CreateProduct() {
                 condition: formData.condition,
                 location: formData.location,
                 city: formData.city,
-                imagePreviews: imagePreviews,
+                imageFiles: imageFiles, // Pass File objects directly (preferred)
+                imagePreviews: imagePreviews, // Fallback for data URLs
                 tags: tags,
                 specifications: {},
                 contactPreference: formData.contactPreference,
