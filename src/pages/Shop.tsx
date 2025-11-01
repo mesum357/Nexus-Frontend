@@ -69,7 +69,6 @@ export default function Shop() {
     description: '',
     price: '',
     discountPercentage: '',
-    category: '',
     images: [] as File[],
     imagePreviews: [] as string[],
   });
@@ -234,7 +233,6 @@ export default function Shop() {
     if (!productForm.description.trim()) errors.description = 'Description is required.';
     if (!productForm.price || isNaN(Number(productForm.price)) || Number(productForm.price) <= 0) errors.price = 'Valid price is required.';
     if (productForm.discountPercentage && (isNaN(Number(productForm.discountPercentage)) || Number(productForm.discountPercentage) < 0)) errors.discountPercentage = 'Discount must be a positive number.';
-    if (!productForm.category.trim()) errors.category = 'Category is required.';
     
     // Check if we have either images (Files) or imagePreviews (Cloudinary URLs)
     if (productForm.images.length === 0 && productForm.imagePreviews.length === 0) {
@@ -292,7 +290,7 @@ export default function Shop() {
           }
         });
         
-        setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
+        setProductForm({ name: '', description: '', price: '', discountPercentage: '', images: [], imagePreviews: [] });
         toast({ title: 'Product Added', description: 'Your product was added successfully!', variant: 'default' });
       } else {
         console.error('📦 Shop - Failed to add product:', result);
@@ -363,9 +361,8 @@ export default function Shop() {
       description: product.description,
       price: String(product.price),
       discountPercentage: String(product.discountPercentage || ''),
-      category: product.category || '',
       images: [],
-                    imagePreviews: product.image ? [product.image] : [],
+      imagePreviews: product.image ? [product.image] : [],
     });
     setEditProductIndex(idx);
     setShowAddProduct(false);
@@ -390,7 +387,6 @@ export default function Shop() {
       formData.append('description', productForm.description);
       formData.append('price', productForm.price);
       formData.append('discountPercentage', productForm.discountPercentage);
-      formData.append('category', productForm.category);
       
       // Send the first image if available
       if (productForm.images[0]) {
@@ -419,7 +415,7 @@ export default function Shop() {
           }
         });
         
-        setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
+        setProductForm({ name: '', description: '', price: '', discountPercentage: '', images: [], imagePreviews: [] });
         toast({ title: 'Product Updated', description: 'Your product was updated successfully!', variant: 'default' });
       } else {
         console.error('📦 Shop - Failed to update product:', result);
@@ -1221,20 +1217,6 @@ export default function Shop() {
                       {formErrors.name && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.name}</div>}
                     </div>
                     <div className="space-y-2">
-                      <label className="block mb-1 font-medium">Category <span className="text-red-500">*</span></label>
-                      <Select value={productForm.category} onValueChange={value => setProductForm(prev => ({ ...prev, category: value }))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PRODUCT_CATEGORIES.map(category => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {formErrors.category && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.category}</div>}
-                    </div>
-                    <div className="space-y-2">
                       <label className="block mb-1 font-medium">Price (PKR) <span className="text-red-500">*</span></label>
                       <Input type="number" min="1" value={productForm.price} onChange={e => setProductForm(prev => ({ ...prev, price: e.target.value }))} required />
                       {formErrors.price && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.price}</div>}
@@ -1244,6 +1226,11 @@ export default function Shop() {
                       <Input type="number" min="0" value={productForm.discountPercentage} onChange={e => setProductForm(prev => ({ ...prev, discountPercentage: e.target.value }))} />
                       {formErrors.discountPercentage && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.discountPercentage}</div>}
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block mb-1 font-medium">Description <span className="text-red-500">*</span></label>
+                    <Textarea value={productForm.description} onChange={e => setProductForm(prev => ({ ...prev, description: e.target.value }))} required rows={3} />
+                    {formErrors.description && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.description}</div>}
                   </div>
                   <div className="space-y-2">
                     <label className="block mb-1 font-medium">Product Images <span className="text-red-500">*</span></label>
@@ -1263,11 +1250,6 @@ export default function Shop() {
                       </div>
                     </div>
                     {formErrors.images && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.images}</div>}
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block mb-1 font-medium">Description <span className="text-red-500">*</span></label>
-                    <Textarea value={productForm.description} onChange={e => setProductForm(prev => ({ ...prev, description: e.target.value }))} required rows={3} />
-                    {formErrors.description && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.description}</div>}
                   </div>
                   <div className="flex justify-end pt-4">
                     <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
@@ -1295,20 +1277,6 @@ export default function Shop() {
                       {formErrors.name && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.name}</div>}
                     </div>
                     <div className="space-y-2">
-                      <label className="block mb-1 font-medium">Category <span className="text-red-500">*</span></label>
-                      <Select value={productForm.category} onValueChange={value => setProductForm(prev => ({ ...prev, category: value }))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PRODUCT_CATEGORIES.map(category => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {formErrors.category && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.category}</div>}
-                    </div>
-                    <div className="space-y-2">
                       <label className="block mb-1 font-medium">Price (PKR) <span className="text-red-500">*</span></label>
                       <Input type="number" min="1" value={productForm.price} onChange={e => setProductForm(prev => ({ ...prev, price: e.target.value }))} required />
                       {formErrors.price && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.price}</div>}
@@ -1318,6 +1286,11 @@ export default function Shop() {
                       <Input type="number" min="0" value={productForm.discountPercentage} onChange={e => setProductForm(prev => ({ ...prev, discountPercentage: e.target.value }))} />
                       {formErrors.discountPercentage && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.discountPercentage}</div>}
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block mb-1 font-medium">Description <span className="text-red-500">*</span></label>
+                    <Textarea value={productForm.description} onChange={e => setProductForm(prev => ({ ...prev, description: e.target.value }))} required rows={3} />
+                    {formErrors.description && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.description}</div>}
                   </div>
                   <div className="space-y-2">
                     <label className="block mb-1 font-medium">Product Images</label>
@@ -1337,11 +1310,6 @@ export default function Shop() {
                       </div>
                     </div>
                     {formErrors.images && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.images}</div>}
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block mb-1 font-medium">Description <span className="text-red-500">*</span></label>
-                    <Textarea value={productForm.description} onChange={e => setProductForm(prev => ({ ...prev, description: e.target.value }))} required rows={3} />
-                    {formErrors.description && <div className="text-xs text-red-500 mt-1 flex items-center gap-1"><Info className="w-3 h-3" />{formErrors.description}</div>}
                   </div>
                   <div className="flex justify-end pt-4">
                     <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">

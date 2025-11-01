@@ -97,13 +97,15 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
           </h3>
 
           {/* Description */}
-          <div 
-            className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2"
-            dangerouslySetInnerHTML={{ 
-              __html: shop.shopDescription || '' 
-            }}
-            style={{ direction: 'ltr' }}
-          />
+          <div className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2 h-10">
+            {(() => {
+              // Strip HTML tags and get plain text
+              const text = shop.shopDescription ? shop.shopDescription.replace(/<[^>]*>/g, '').trim() : '';
+              // Truncate to 100 characters max
+              const truncated = text.length > 100 ? text.substring(0, 100) + '...' : text;
+              return truncated;
+            })()}
+          </div>
 
           {/* Location & Category */}
           <div className="space-y-2 mb-4">
