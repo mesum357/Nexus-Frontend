@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import WhatsAppSupport from "@/components/WhatsAppSupport";
 
 
 import Index from "./pages/Index";
@@ -132,6 +133,7 @@ const App = () => (
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <WhatsAppSupport />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
