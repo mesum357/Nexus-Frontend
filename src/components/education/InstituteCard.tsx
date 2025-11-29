@@ -26,7 +26,7 @@ interface Institute {
   admissionStatus?: string;
   phone?: string;
   email?: string;
-  owner?: string;
+  owner?: string | { _id: string; username?: string; fullName?: string; email?: string };
 }
 
 interface InstituteCardProps {
@@ -54,9 +54,18 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
     return imagePath
   }
 
+  // Helper function to get owner ID (handles both populated object and string ID)
+  const getOwnerId = (owner: any): string | null => {
+    if (!owner) return null
+    if (typeof owner === 'string') return owner
+    if (owner._id) return owner._id
+    return null
+  }
+
   // Handle institute deletion
   const handleDeleteInstitute = async () => {
-    if (!currentUser || String(institute.owner) !== String(currentUser._id)) {
+    const ownerId = getOwnerId(institute.owner)
+    if (!currentUser || !ownerId || String(ownerId) !== String(currentUser._id)) {
       toast({
         title: 'Unauthorized',
         description: 'You can only delete institutes you own.',
@@ -201,7 +210,7 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
           </Button>
 
           {/* Owner Actions */}
-          {currentUser && institute.owner && String(currentUser._id) === String(institute.owner) && (
+          {currentUser && institute.owner && String(currentUser._id) === String(getOwnerId(institute.owner)) && (
             <div className="space-y-2 mt-3">
             <Button
               variant="outline"

@@ -23,7 +23,7 @@ interface HospitalType {
   totalPatients?: string;
   technicalities?: string;
   specialization?: string;
-  owner?: string;
+  owner?: string | { _id: string; username?: string; fullName?: string; email?: string };
 }
 
 interface HospitalCardProps {
@@ -55,8 +55,26 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
     return imagePath
   }
 
+  // Helper function to get owner ID (handles both populated object and string ID)
+  const getOwnerId = (owner: any): string | null => {
+    if (!owner) return null
+    if (typeof owner === 'string') return owner
+    if (owner._id) return owner._id
+    return null
+  }
+
   const handleDeleteHospital = async () => {
-    if (!currentUser || String(hospital.owner) !== String(currentUser._id)) {
+    if (!currentUser) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to delete this hospital.',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    const ownerId = getOwnerId(hospital.owner)
+    if (!ownerId || String(ownerId) !== String(currentUser._id)) {
       toast({
         title: 'Unauthorized',
         description: 'You can only delete hospitals you own.',
@@ -194,7 +212,7 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
               Patient Dashboard
             </Button>
           </div>
-          {currentUser && hospital.owner && String(currentUser._id) === String(hospital.owner) && (
+          {currentUser && hospital.owner && String(currentUser._id) === String(getOwnerId(hospital.owner)) && (
             <div className="space-y-2 mt-3">
               <Button
                 variant="outline"

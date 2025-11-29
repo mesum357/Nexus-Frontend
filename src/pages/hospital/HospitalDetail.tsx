@@ -41,7 +41,7 @@ interface Hospital {
   status?: string;
   phone?: string;
   email?: string;
-  owner?: string;
+  owner?: string | { _id: string; username?: string; fullName?: string; email?: string };
   website?: string;
   establishedYear?: number;
   description?: string;
@@ -91,6 +91,14 @@ export default function HospitalDetail() {
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return null
     return imagePath
+  }
+
+  // Helper function to get owner ID (handles both string and populated object)
+  const getOwnerId = (owner: string | { _id: string } | undefined): string | null => {
+    if (!owner) return null
+    if (typeof owner === 'string') return owner
+    if (typeof owner === 'object' && owner._id) return owner._id
+    return null
   }
 
   useEffect(() => {
@@ -205,12 +213,21 @@ export default function HospitalDetail() {
     }
   }
 
+  // Helper function to get owner ID (handles both populated object and string ID)
+  const getOwnerId = (owner: any): string | null => {
+    if (!owner) return null
+    if (typeof owner === 'string') return owner
+    if (owner._id) return owner._id
+    return null
+  }
+
   const handleDeleteHospital = async () => {
     if (!isAuthenticated || !currentUser) {
       toast({ title: 'Authentication Required', description: 'Please log in to delete this hospital.', variant: 'destructive' })
       return
     }
-    if (!hospital || String(hospital.owner) !== String(currentUser._id)) {
+    const ownerId = getOwnerId(hospital?.owner)
+    if (!hospital || !ownerId || String(ownerId) !== String(currentUser._id)) {
       toast({ title: 'Unauthorized', description: 'You can only delete hospitals you own.', variant: 'destructive' })
       return
     }

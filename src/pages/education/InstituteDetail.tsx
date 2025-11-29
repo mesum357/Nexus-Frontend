@@ -30,7 +30,7 @@ interface Institute {
   admissionStatus?: string;
   phone?: string;
   email?: string;
-  owner?: string;
+  owner?: string | { _id: string; username?: string; fullName?: string; email?: string };
   website?: string;
   established?: string;
   establishedYear?: number;
@@ -83,6 +83,14 @@ export default function InstituteDetail() {
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return null
     return imagePath
+  }
+
+  // Helper function to get owner ID (handles both populated object and string ID)
+  const getOwnerId = (owner: string | { _id: string } | undefined): string | null => {
+    if (!owner) return null
+    if (typeof owner === 'string') return owner
+    if (typeof owner === 'object' && owner._id) return owner._id
+    return null
   }
 
   // Check authentication
@@ -229,7 +237,8 @@ export default function InstituteDetail() {
       return
     }
 
-    if (!institute || String(institute.owner) !== String(currentUser._id)) {
+    const ownerId = getOwnerId(institute?.owner)
+    if (!institute || !ownerId || String(ownerId) !== String(currentUser._id)) {
       toast({
         title: "Unauthorized",
         description: "You can only delete institutes you own.",
@@ -737,7 +746,7 @@ export default function InstituteDetail() {
                   </DropdownMenu>
                   
                   {/* Owner Actions */}
-                  {isAuthenticated && currentUser && institute && String(institute.owner) === String(currentUser._id) && (
+                  {isAuthenticated && currentUser && institute && String(getOwnerId(institute.owner)) === String(currentUser._id) && (
                     <>
                       <div className="border-t pt-3 mt-3">
                         <p className="text-sm font-medium text-muted-foreground mb-2">Owner Actions</p>
