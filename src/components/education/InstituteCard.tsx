@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
+import { useToast } from '@/hooks/use-toast'
 
 interface Institute {
   id?: number;
@@ -36,6 +37,7 @@ interface InstituteCardProps {
 
 export default function InstituteCard({ institute, index, currentUser }: InstituteCardProps) {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const id = institute._id || institute.id;
   const [bannerError, setBannerError] = useState(false)
   const [logoError, setLogoError] = useState(false)
@@ -55,6 +57,11 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
   // Handle institute deletion
   const handleDeleteInstitute = async () => {
     if (!currentUser || String(institute.owner) !== String(currentUser._id)) {
+      toast({
+        title: 'Unauthorized',
+        description: 'You can only delete institutes you own.',
+        variant: 'destructive'
+      })
       return
     }
 
@@ -66,14 +73,28 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
         credentials: 'include'
       })
 
+      const data = await response.json()
+
       if (response.ok) {
+        toast({
+          title: 'Institute Deleted',
+          description: 'The institute has been deleted successfully.'
+        })
         // Refresh the page to update the institutes list
         window.location.reload()
       } else {
-        console.error('Failed to delete institute')
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to delete institute',
+          variant: 'destructive'
+        })
       }
     } catch (error) {
-      console.error('Error deleting institute:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to delete institute. Please try again.',
+        variant: 'destructive'
+      })
     } finally {
       setIsDeleting(false)
       setShowDeleteConfirm(false)

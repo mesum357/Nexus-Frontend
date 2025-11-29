@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
+import { useToast } from '@/hooks/use-toast'
 
 interface HospitalType {
   id?: number;
@@ -33,6 +34,7 @@ interface HospitalCardProps {
 
 export default function HospitalCard({ hospital, index, currentUser }: HospitalCardProps) {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const id = hospital._id || hospital.id
   
   // Debug logging
@@ -54,18 +56,40 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
   }
 
   const handleDeleteHospital = async () => {
-    if (!currentUser || String(hospital.owner) !== String(currentUser._id)) return
+    if (!currentUser || String(hospital.owner) !== String(currentUser._id)) {
+      toast({
+        title: 'Unauthorized',
+        description: 'You can only delete hospitals you own.',
+        variant: 'destructive'
+      })
+      return
+    }
     setIsDeleting(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/institute/${id}`, { method: 'DELETE', credentials: 'include' })
+      const response = await fetch(`${API_BASE_URL}/api/hospital/${id}`, { method: 'DELETE', credentials: 'include' })
+      const data = await response.json()
       if (response.ok) {
+        toast({
+          title: 'Hospital Deleted',
+          description: 'The hospital has been deleted successfully.'
+        })
         window.location.reload()
+      } else {
+        toast({
+          title: 'Error',
+          description: data.error || 'Failed to delete hospital',
+          variant: 'destructive'
+        })
       }
     } catch (error) {
-      // noop
+      toast({
+        title: 'Error',
+        description: 'Failed to delete hospital. Please try again.',
+        variant: 'destructive'
+      })
     } finally {
-        setIsDeleting(false)
-        setShowDeleteConfirm(false)
+      setIsDeleting(false)
+      setShowDeleteConfirm(false)
     }
   }
 
