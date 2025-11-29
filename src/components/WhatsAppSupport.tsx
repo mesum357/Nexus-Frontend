@@ -1,7 +1,7 @@
 import { MessageCircle } from "lucide-react";
 
 const WhatsAppSupport = () => {
-  const phoneNumber = "923444670635"; // WhatsApp number with country code (92 for Pakistan, removing leading 0)
+  const phoneNumber = "60172685952"; // WhatsApp number with country code (60 for Malaysia, removing + and spaces)
   const whatsappUrl = `https://wa.me/${phoneNumber}`;
 
   const handleClick = () => {
