@@ -99,8 +99,20 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
           {/* Description */}
           <div className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2 h-10">
             {(() => {
-              // Strip HTML tags and get plain text
-              const text = shop.shopDescription ? shop.shopDescription.replace(/<[^>]*>/g, '').trim() : '';
+              if (!shop.shopDescription) return '';
+              
+              // Decode HTML entities
+              const decodeHtmlEntities = (text: string) => {
+                const textarea = document.createElement('textarea');
+                textarea.innerHTML = text;
+                return textarea.value;
+              };
+              
+              // Strip HTML tags and decode entities
+              let text = shop.shopDescription.replace(/<[^>]*>/g, '');
+              text = decodeHtmlEntities(text);
+              text = text.trim();
+              
               // Truncate to 100 characters max
               const truncated = text.length > 100 ? text.substring(0, 100) + '...' : text;
               return truncated;

@@ -70,13 +70,27 @@ export default function ShopPreview({ shop, isVisible, position }: ShopPreviewPr
             </div>
 
             {/* Shop Description */}
-            {shop.description && (
-              <div className="mb-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
-                  {shop.description}
-                </p>
-              </div>
-            )}
+            {shop.description && (() => {
+              // Decode HTML entities
+              const decodeHtmlEntities = (text: string) => {
+                const textarea = document.createElement('textarea');
+                textarea.innerHTML = text;
+                return textarea.value;
+              };
+              
+              // Strip HTML tags and decode entities
+              let text = shop.description.replace(/<[^>]*>/g, '');
+              text = decodeHtmlEntities(text);
+              text = text.trim();
+              
+              return (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
+                    {text}
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Gallery Images */}
             {galleryImages.length > 0 && (
