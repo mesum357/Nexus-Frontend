@@ -213,14 +213,6 @@ export default function HospitalDetail() {
     }
   }
 
-  // Helper function to get owner ID (handles both populated object and string ID)
-  const getOwnerId = (owner: any): string | null => {
-    if (!owner) return null
-    if (typeof owner === 'string') return owner
-    if (owner._id) return owner._id
-    return null
-  }
-
   const handleDeleteHospital = async () => {
     if (!isAuthenticated || !currentUser) {
       toast({ title: 'Authentication Required', description: 'Please log in to delete this hospital.', variant: 'destructive' })
