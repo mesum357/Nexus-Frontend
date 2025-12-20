@@ -916,6 +916,35 @@ export default function PaymentSection({
             </CardContent>
           </Card>
 
+          {/* Binance Account Details */}
+          <Card className="border-yellow-200 bg-yellow-50/30">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <svg className="h-5 w-5 text-yellow-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0L5.5 6.5L8 9L12 5L16 9L18.5 6.5L12 0ZM3 10.5L0.5 13L3 15.5L5.5 13L3 10.5ZM12 8L5.5 14.5L8 17L12 13L16 17L18.5 14.5L12 8ZM21 10.5L18.5 13L21 15.5L23.5 13L21 10.5ZM12 16L5.5 22.5L8 25L12 21L16 25L18.5 22.5L12 16Z"/>
+                </svg>
+                Binance Account Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 gap-3 text-sm">
+                <div className="flex justify-between items-center py-2 border-b border-yellow-200">
+                  <span className="font-medium text-yellow-800">Platform:</span>
+                  <span className="text-yellow-700 font-semibold">Binance</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="font-medium text-yellow-800">Binance ID:</span>
+                  <span className="text-yellow-700 font-mono font-bold text-lg">1048420929</span>
+                </div>
+              </div>
+              <div className="bg-yellow-100 p-3 rounded-lg border border-yellow-300 mt-3">
+                <p className="text-sm text-yellow-800">
+                  <span className="font-medium">Alternative Payment:</span> You can also pay via Binance using the ID above. Send USDT or any supported cryptocurrency.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* QR Code */}
           <Card>
             <CardHeader className="pb-3">

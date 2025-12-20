@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../lib/config'
 import { checkAuthStatus, isOnline, addNetworkListeners, isPWA } from '../lib/pwa-auth'
+import { useToast } from '@/hooks/use-toast'
 import GlobeLogo from '@/assets/globeLogo.png'
 
 const navigationLinks = [
@@ -12,11 +13,13 @@ const navigationLinks = [
   { name: 'Hospital', href: '/hospital' },
   { name: 'Feed', href: '/feed' },
   { name: 'Marketplace', href: '/marketplace' },
+  { name: 'Job Portal', href: '#', comingSoon: true },
 ]
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [myShops, setMyShops] = useState([]);
@@ -229,16 +232,34 @@ export default function Navbar() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link
-                  to={link.href}
-                  className="relative px-4 py-2 text-foreground hover:text-primary font-medium transition-all duration-300 group"
-                >
-                  <span className="relative z-10">{link.name}</span>
-                  <motion.div
-                    className="absolute inset-0 bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    layoutId="navbar-highlight"
-                  />
-                </Link>
+                {link.comingSoon ? (
+                  <button
+                    onClick={() => toast({ 
+                      title: 'Coming Soon!', 
+                      description: `${link.name} is coming soon. Stay tuned for updates!`,
+                    })}
+                    className="relative px-4 py-2 text-foreground hover:text-primary font-medium transition-all duration-300 group"
+                  >
+                    <span className="relative z-10 flex items-center gap-1">
+                      {link.name}
+                      <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">Soon</span>
+                    </span>
+                    <motion.div
+                      className="absolute inset-0 bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    />
+                  </button>
+                ) : (
+                  <Link
+                    to={link.href}
+                    className="relative px-4 py-2 text-foreground hover:text-primary font-medium transition-all duration-300 group"
+                  >
+                    <span className="relative z-10">{link.name}</span>
+                    <motion.div
+                      className="absolute inset-0 bg-primary/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      layoutId="navbar-highlight"
+                    />
+                  </Link>
+                )}
               </motion.div>
             ))}
           </div>
@@ -485,13 +506,31 @@ export default function Navbar() {
                 whileHover={{ x: 10 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link
-                  to={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-3 text-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium"
-                >
-                  <span className="inline-flex items-center">{link.name}</span>
-                </Link>
+                {link.comingSoon ? (
+                  <button
+                    onClick={() => {
+                      toast({ 
+                        title: 'Coming Soon!', 
+                        description: `${link.name} is coming soon. Stay tuned for updates!`,
+                      })
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="block w-full text-left px-4 py-3 text-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      {link.name}
+                      <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">Soon</span>
+                    </span>
+                  </button>
+                ) : (
+                  <Link
+                    to={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-3 text-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 font-medium"
+                  >
+                    <span className="inline-flex items-center">{link.name}</span>
+                  </Link>
+                )}
               </motion.div>
             ))}
           </div>
