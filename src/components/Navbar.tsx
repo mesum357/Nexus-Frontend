@@ -13,7 +13,7 @@ const navigationLinks = [
   { name: 'Hospital', href: '/hospital' },
   { name: 'Feed', href: '/feed' },
   { name: 'Marketplace', href: '/marketplace' },
-  { name: 'Job Portal', href: '#', comingSoon: true },
+  { name: 'E-Career', href: '#', comingSoon: true },
 ]
 
 export default function Navbar() {
