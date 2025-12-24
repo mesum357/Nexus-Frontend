@@ -225,7 +225,7 @@ export default function Navbar() {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden min-[907px]:flex items-center space-x-8">
             {navigationLinks.map((link) => (
               <motion.div
                 key={link.name}
@@ -485,7 +485,7 @@ export default function Navbar() {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-3 text-foreground hover:text-primary transition-colors"
+              className="min-[907px]:hidden p-3 text-foreground hover:text-primary transition-colors"
             >
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </motion.button>
@@ -497,7 +497,7 @@ export default function Navbar() {
           initial={false}
           animate={{ height: isMobileMenuOpen ? 'auto' : 0, opacity: isMobileMenuOpen ? 1 : 0 }}
           transition={{ duration: 0.3 }}
-          className="md:hidden overflow-hidden border-t border-border/50"
+          className="min-[907px]:hidden overflow-hidden border-t border-border/50"
         >
           <div className="py-4 space-y-2">
             {navigationLinks.map((link) => (
