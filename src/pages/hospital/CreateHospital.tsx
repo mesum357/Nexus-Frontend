@@ -17,7 +17,7 @@ import { ImageCropper } from '@/components/ui/image-cropper'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import PaymentSection from '@/components/PaymentSection'
 import TermsAndPolicies from '@/components/ui/TermsAndPolicies'
-import { PAKISTAN_CITIES } from '@/lib/cities'
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY } from '@/lib/countries'
 
 const steps = [
   'Basic Information',
@@ -232,18 +232,27 @@ export default function CreateHospital() {
               <Label htmlFor="address">Complete Address *</Label>
               <Textarea id="address" placeholder="Enter complete address" className="min-h-24" value={form.address || ''} onChange={handleChange} />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <Label htmlFor="country">Country *</Label>
+                <SearchableSelect
+                  value={form.country || DEFAULT_COUNTRY}
+                  onValueChange={(value) => setForm({ ...form, country: value, city: '' })}
+                  placeholder="Select country"
+                  options={COUNTRIES}
+                />
+              </div>
               <div>
                 <Label htmlFor="city">City *</Label>
                 <SearchableSelect
                   value={form.city}
                   onValueChange={(value) => setForm({ ...form, city: value })}
                   placeholder="Select city"
-                  options={PAKISTAN_CITIES}
+                  options={getCitiesForCountry(form.country || DEFAULT_COUNTRY)}
                 />
               </div>
               <div>
-                <Label htmlFor="province">Province *</Label>
+                <Label htmlFor="province">Province/State</Label>
                 <Select value={form.province} onValueChange={value => setForm({ ...form, province: value })}>
                   <SelectTrigger><SelectValue placeholder="Select province" /></SelectTrigger>
                   <SelectContent>
@@ -254,6 +263,7 @@ export default function CreateHospital() {
                     <SelectItem value="Islamabad Capital Territory">Islamabad Capital Territory</SelectItem>
                     <SelectItem value="Gilgit-Baltistan">Gilgit-Baltistan</SelectItem>
                     <SelectItem value="Azad Kashmir">Azad Kashmir</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Heart, Share2, MapPin, Clock, Eye, Star, ShieldCheck, MessageCircle, Phone, Edit, Trash2 } from 'lucide-react'
+import { ArrowLeft, Heart, Share2, MapPin, Clock, Eye, Star, ShieldCheck, Phone, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -425,11 +425,34 @@ export default function ProductDetail() {
                   </div>
 
                   <div className="space-y-3">
-                    <Button className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90 text-white">
-                      <MessageCircle className="h-5 w-5 mr-2" />
-                      Chat with Seller
-                    </Button>
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={async () => {
+                        const phoneNumber = product.owner?.phone || product.ownerPhone || ''
+                        if (phoneNumber) {
+                          try {
+                            await navigator.clipboard.writeText(phoneNumber)
+                            toast({
+                              title: "Phone number copied!",
+                              description: `${phoneNumber} has been copied to your clipboard.`,
+                            })
+                          } catch (error) {
+                            toast({
+                              title: "Error",
+                              description: "Failed to copy phone number.",
+                              variant: "destructive",
+                            })
+                          }
+                        } else {
+                          toast({
+                            title: "No phone number",
+                            description: "Seller has not provided a phone number.",
+                            variant: "destructive",
+                          })
+                        }
+                      }}
+                    >
                       <Phone className="h-5 w-5 mr-2" />
                       Call Seller
                     </Button>

@@ -1,5 +1,6 @@
 export interface ShopData {
   shopName: string;
+  country?: string;
   city: string;
   shopType: 'Product Seller' | 'Service Provider' | '';
   shopDescription: string;

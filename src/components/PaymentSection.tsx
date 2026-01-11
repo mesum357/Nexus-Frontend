@@ -100,7 +100,15 @@ export default function PaymentSection({
       
       if (response.ok) {
         const data = await response.json()
-        setBankDetails(data.settings)
+        // Merge fetched settings with defaults to ensure all fields are present
+        setBankDetails(prev => ({
+          ...prev,
+          ...data.settings,
+          paymentAmounts: {
+            ...prev.paymentAmounts,
+            ...data.settings?.paymentAmounts
+          }
+        }))
       } else {
         console.error('Failed to fetch payment settings')
       }

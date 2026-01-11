@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,40 +7,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShopData } from '@/types/shop';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY } from '@/lib/countries';
 
 interface ShopInformationStepProps {
   data: ShopData;
   updateData: (updates: Partial<ShopData>) => void;
 }
 
-const PAKISTAN_CITIES = Array.from(new Set([
-  'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad',
-  'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala',
-  'Hyderabad', 'Bahawalpur', 'Sargodha', 'Sukkur', 'Larkana',
-  'Sheikhupura', 'Mardan', 'Gujrat', 'Kasur', 'Dera Ghazi Khan',
-  'Sahiwal', 'Nawabshah', 'Mingora', 'Burewala', 'Jhelum',
-  'Kamoke', 'Hafizabad', 'Khanewal', 'Vehari', 'Dera Ismail Khan',
-  'Nowshera', 'Charsadda', 'Jhang', 'Mandi Bahauddin', 'Ahmadpur East',
-  'Kamalia', 'Gojra', 'Mansehra', 'Kabirwala', 'Okara', 'Gilgit',
-  'Mirpur Khas', 'Rahim Yar Khan', 'Leiah', 'Muzaffargarh', 'Khanpur',
-  'Jampur', 'Dadu', 'Khairpur', 'Pakpattan', 'Bahawalnagar',
-  'Tando Adam', 'Tando Allahyar', 'Mirpur Mathelo', 'Shikarpur', 'Jacobabad',
-  'Ghotki', 'Mehar', 'Tando Muhammad Khan', 'Dera Allahyar', 'Shahdadkot',
-  'Matiari', 'Gambat', 'Nasirabad', 'Mehrabpur', 'Rohri', 'Pano Aqil',
-  'Sakrand', 'Umerkot', 'Chhor', 'Kunri', 'Pithoro', 'Samaro',
-  'Goth Garelo', 'Ranipur', 'Dokri', 'Lakhi', 'Dingro', 'Kandhkot',
-  'Kashmore', 'Ubauro', 'Sadiqabad', 'Liaquatpur', 'Uch Sharif',
-  'Alipur', 'Jatoi', 'Taunsa', 'Kot Addu', 'Layyah', 'Chobara',
-  'Kot Sultan', 'Bhakkar', 'Darya Khan', 'Kallur Kot', 'Mankera',
-  'Dullewala', 'Daud Khel', 'Pindi Gheb', 'Fateh Jang', 'Gujar Khan',
-  'Kallar Syedan', 'Taxila', 'Wah Cantonment', 'Murree', 'Kahuta',
-  'Kotli Sattian', 'Chakwal', 'Attock', 'Abbottabad', 'Haripur',
-  'Batagram', 'Shangla', 'Swat', 'Buner', 'Malakand',
-  'Dir', 'Chitral', 'Kohistan', 'Torghar', 'Bannu', 'Tank',
-  'Kohat', 'Hangu', 'Karak', 'Lakki Marwat', 'Dera Ismail Khan'
-])).map(city => ({ value: city, label: city }));
-
 const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateData }) => {
+  // Get cities based on selected country
+  const availableCities = useMemo(() => {
+    return getCitiesForCountry(data.country || DEFAULT_COUNTRY);
+  }, [data.country]);
+
+  // Handle country change - reset city when country changes
+  const handleCountryChange = (country: string) => {
+    updateData({ country, city: '' });
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -58,6 +42,19 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
           />
         </div>
 
+        {/* Country Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="country" className="text-sm font-medium">
+            Country <span className="text-destructive">*</span>
+          </Label>
+          <SearchableSelect
+            value={data.country || DEFAULT_COUNTRY}
+            onValueChange={handleCountryChange}
+            placeholder="Select your country"
+            options={COUNTRIES}
+          />
+        </div>
+
         {/* City Selection */}
         <div className="space-y-2">
           <Label htmlFor="city" className="text-sm font-medium">
@@ -67,9 +64,10 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
             value={data.city}
             onValueChange={(value) => updateData({ city: value })}
             placeholder="Select your city"
-            options={PAKISTAN_CITIES}
+            options={availableCities}
           />
         </div>
+
         {/* Address */}
         <div className="space-y-2">
           <Label htmlFor="address" className="text-sm font-medium">

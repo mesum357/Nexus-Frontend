@@ -15,6 +15,7 @@ import { API_BASE_URL } from '@/lib/config';
 import { ImageCropper } from '@/components/ui/image-cropper';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import PaymentSection from '@/components/PaymentSection';
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY } from '@/lib/countries';
 
 const categories = [
   'Electronics',
@@ -30,21 +31,6 @@ const categories = [
   'Other'
 ];
 
-const cities = [
-  'Karachi',
-  'Lahore',
-  'Islamabad',
-  'Faisalabad',
-  'Rawalpindi',
-  'Multan',
-  'Peshawar',
-  'Quetta',
-  'Gujranwala',
-  'Sialkot',
-  'Bahawalpur',
-  'Sargodha',
-  'Other'
-];
 
 export default function CreateProduct() {
   const navigate = useNavigate();
@@ -76,6 +62,7 @@ export default function CreateProduct() {
     category: '',
     condition: 'used',
     location: '',
+    country: DEFAULT_COUNTRY,
     city: '',
     contactPreference: 'both',
     ownerPhone: '',
@@ -422,7 +409,38 @@ export default function CreateProduct() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Country *</label>
+                        <Select 
+                          value={formData.country} 
+                          onValueChange={(value) => {
+                            setFormData(prev => ({ ...prev, country: value, city: '' }));
+                          }}
+                        >
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {COUNTRIES.map(country => (
+                              <SelectItem key={country.value} value={country.value}>{country.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">City *</label>
+                        <Select value={formData.city} onValueChange={(value) => handleSelectChange('city', value)}>
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Select city" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getCitiesForCountry(formData.country).map(city => (
+                              <SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <div>
                         <label className="text-sm font-medium">Location *</label>
                         <Input
@@ -432,19 +450,6 @@ export default function CreateProduct() {
                           placeholder="Enter location (e.g., street, area)"
                           className="h-10"
                         />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">City *</label>
-                        <Select value={formData.city} onValueChange={(value) => handleSelectChange('city', value)}>
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Select city" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {cities.map(city => (
-                              <SelectItem key={city} value={city}>{city}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
                       </div>
                     </div>
 
@@ -678,6 +683,7 @@ export default function CreateProduct() {
                 category: formData.category,
                 condition: formData.condition,
                 location: formData.location,
+                country: formData.country,
                 city: formData.city,
                 imageFiles: imageFiles, // Pass File objects directly (preferred)
                 imagePreviews: imagePreviews, // Fallback for data URLs
