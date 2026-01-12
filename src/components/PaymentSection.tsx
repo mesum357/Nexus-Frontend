@@ -100,14 +100,23 @@ export default function PaymentSection({
       
       if (response.ok) {
         const data = await response.json()
+        console.log('💰 Payment settings fetched from API:', data.settings)
+        console.log('💰 Payment amounts from API:', data.settings?.paymentAmounts)
+        
         // Merge fetched settings with defaults to ensure all fields are present
+        const mergedPaymentAmounts = {
+          shop: data.settings?.paymentAmounts?.shop ?? 5000,
+          institute: data.settings?.paymentAmounts?.institute ?? 10000,
+          hospital: data.settings?.paymentAmounts?.hospital ?? 15000,
+          marketplace: data.settings?.paymentAmounts?.marketplace ?? 2000
+        }
+        
+        console.log('💰 Merged payment amounts:', mergedPaymentAmounts)
+        
         setBankDetails(prev => ({
           ...prev,
           ...data.settings,
-          paymentAmounts: {
-            ...prev.paymentAmounts,
-            ...data.settings?.paymentAmounts
-          }
+          paymentAmounts: mergedPaymentAmounts
         }))
       } else {
         console.error('Failed to fetch payment settings')
@@ -846,7 +855,9 @@ export default function PaymentSection({
   }
 
   const getPaymentAmount = () => {
-    return bankDetails.paymentAmounts[entityType] || 5000
+    const amount = bankDetails.paymentAmounts[entityType];
+    // Use explicit check to allow 0 as a valid value
+    return amount !== undefined && amount !== null ? amount : 5000;
   }
 
   if (loading) {
