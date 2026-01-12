@@ -18,6 +18,7 @@ interface Institute {
   logo?: string;
   banner?: string;
   rating?: number;
+  totalReviews?: number;
   verified?: boolean;
   students?: string;
   totalStudents?: string;
@@ -162,7 +163,9 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
             <div className="flex items-center gap-1">
               <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
               <span className="font-medium text-xs sm:text-sm">{institute.rating || 'N/A'}</span>
-              <span className="text-xs text-muted-foreground hidden sm:inline">(1.2k reviews)</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                ({institute.totalReviews || 0} {institute.totalReviews === 1 ? 'review' : 'reviews'})
+              </span>
             </div>
             {institute.verified && (
               <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">

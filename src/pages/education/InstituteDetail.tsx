@@ -22,6 +22,7 @@ interface Institute {
   logo?: string;
   banner?: string;
   rating?: number;
+  totalReviews?: number;
   verified?: boolean;
   students?: string;
   totalStudents?: string;
@@ -396,10 +397,12 @@ export default function InstituteDetail() {
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     <span className="font-medium">
-                      {institute.rating ? institute.rating.toFixed(1) : 'N/A'}
+                      {reviews.length > 0 
+                        ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
+                        : 'N/A'}
                     </span>
                     <span className="text-sm text-muted-foreground">
-                      ({reviews.length} reviews)
+                      ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
                     </span>
                   </div>
                 </div>
@@ -471,7 +474,11 @@ export default function InstituteDetail() {
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Star className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-foreground">{institute.rating || 'N/A'}</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {reviews.length > 0 
+                        ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
+                        : 'N/A'}
+                    </p>
                     <p className="text-sm text-muted-foreground">Rating</p>
                   </CardContent>
                 </Card>

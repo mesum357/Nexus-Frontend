@@ -21,6 +21,7 @@ interface Institute {
   logo?: string;
   banner?: string;
   rating?: number;
+  totalReviews?: number;
   verified?: boolean;
   students?: string;
   totalStudents?: string;
