@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { GraduationCap, Plus, MapPin, Star, Search, Filter } from 'lucide-react'
+import { GraduationCap, Plus, MapPin, Star, Search, Filter, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import Logo from '@/assets/globeLogo.png'
 import bgImage from '@/assets/colege.avif'
+import { COUNTRIES, CITIES_BY_COUNTRY } from '@/lib/countries'
 
 // Define Institute type
 interface Institute {
@@ -43,12 +44,26 @@ interface CurrentUser {
 export default function Education() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState('all')
   const [selectedCity, setSelectedCity] = useState('all')
   const [selectedType, setSelectedType] = useState('all')
   const [institutes, setInstitutes] = useState<Institute[]>([]);
   const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [hospitalNames, setHospitalNames] = useState<Set<string>>(new Set());
+  const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
+
+  // Update available cities when country changes
+  useEffect(() => {
+    if (selectedCountry && selectedCountry !== 'all') {
+      setAvailableCities(CITIES_BY_COUNTRY[selectedCountry] || [])
+      setSelectedCity('all') // Reset city when country changes
+    } else {
+      // Show all cities from all countries
+      const allCities = Object.values(CITIES_BY_COUNTRY).flat()
+      setAvailableCities(allCities)
+    }
+  }, [selectedCountry])
 
   const fetchInstitutes = () => {
     setIsLoading(true)
@@ -80,16 +95,16 @@ export default function Education() {
     return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
-  const cities = ['Lahore', 'Karachi', 'Islamabad', 'Faisalabad', 'Rawalpindi', 'Multan']
   const instituteTypes = ['University', 'College', 'School', 'Academy']
 
   const filteredInstitutes = institutes.filter(institute => {
     const matchesSearch = (institute.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (institute.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCountry = selectedCountry === 'all' || ((institute as any).country || 'Pakistan').toLowerCase() === selectedCountry.toLowerCase()
     const matchesCity = selectedCity === 'all' || (institute.city || '').includes(selectedCity)
     const matchesType = selectedType === 'all' || (institute.type || '').toLowerCase().includes(selectedType.toLowerCase())
     const isHospitalByName = hospitalNames.has(String(institute.name || '').trim())
-    return matchesSearch && matchesCity && matchesType && !isHospitalByName
+    return matchesSearch && matchesCountry && matchesCity && matchesType && !isHospitalByName
   })
 
   return (
@@ -182,14 +197,27 @@ export default function Education() {
                   
                   {/* Filters Row - Stack on mobile */}
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                      <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
+                        <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <SelectValue placeholder="Select Country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Countries</SelectItem>
+                        {COUNTRIES.map(country => (
+                          <SelectItem key={country.value} value={country.value}>{country.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Select value={selectedCity} onValueChange={setSelectedCity}>
                       <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
+                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                         <SelectValue placeholder="Select City" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Cities</SelectItem>
-                        {cities.map(city => (
-                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        {availableCities.map(city => (
+                          <SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

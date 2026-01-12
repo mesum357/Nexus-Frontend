@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Search, Filter, MapPin, Clock, Heart, Eye, Smartphone, Car, Sofa, Briefcase, Home, ChevronRight, Plus, Trash2, MoreHorizontal, Edit } from 'lucide-react'
+import { Search, Filter, MapPin, Clock, Heart, Eye, Smartphone, Car, Sofa, Briefcase, Home, ChevronRight, Plus, Trash2, MoreHorizontal, Edit, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import marketImage from '@/assets/market.avif'
+import { COUNTRIES, CITIES_BY_COUNTRY } from '@/lib/countries'
 
 
 
@@ -46,24 +47,14 @@ const categoryIcons = {
 
 
 
-const cities = [
-  "All Cities",
-  "Karachi",
-  "Lahore", 
-  "Islamabad",
-  "Faisalabad",
-  "Multan",
-  "Peshawar",
-  "Quetta"
-]
-
 export default function Marketplace() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCity, setSelectedCity] = useState('All Cities')
+  const [selectedCountry, setSelectedCountry] = useState('all')
+  const [selectedCity, setSelectedCity] = useState('all')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [priceRange, setPriceRange] = useState('')
   const [condition, setCondition] = useState('')
@@ -73,6 +64,19 @@ export default function Marketplace() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [productToDelete, setProductToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
+
+  // Update available cities when country changes
+  useEffect(() => {
+    if (selectedCountry && selectedCountry !== 'all') {
+      setAvailableCities(CITIES_BY_COUNTRY[selectedCountry] || [])
+      setSelectedCity('all') // Reset city when country changes
+    } else {
+      // Show all cities from all countries
+      const allCities = Object.values(CITIES_BY_COUNTRY).flat()
+      setAvailableCities(allCities)
+    }
+  }, [selectedCountry])
 
   // Fetch products from API
   const fetchProducts = async () => {
@@ -84,7 +88,8 @@ export default function Marketplace() {
       
       if (searchTerm) params.append('search', searchTerm)
       if (selectedCategory !== 'all') params.append('category', selectedCategory)
-      if (selectedCity !== 'All Cities') params.append('city', selectedCity)
+      if (selectedCountry !== 'all') params.append('country', selectedCountry)
+      if (selectedCity !== 'all') params.append('city', selectedCity)
       if (condition) params.append('condition', condition)
       if (sortBy) params.append('sortBy', sortBy)
       if (priceRange && priceRange !== 'all-prices') {
@@ -194,7 +199,7 @@ export default function Marketplace() {
   // Separate useEffect for filters to avoid infinite loops
   useEffect(() => {
     fetchProducts()
-  }, [searchTerm, selectedCategory, selectedCity, condition, sortBy, priceRange])
+  }, [searchTerm, selectedCategory, selectedCountry, selectedCity, condition, sortBy, priceRange])
 
   // Format price for display
   const formatPrice = (price) => {
@@ -326,14 +331,31 @@ export default function Marketplace() {
                     
                     {/* Filters Row - Stack on mobile */}
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                        <SelectTrigger className="w-full sm:w-48 h-12">
+                          <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <SelectValue placeholder="Select Country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Countries</SelectItem>
+                          {COUNTRIES.map((country) => (
+                            <SelectItem key={country.value} value={country.value}>
+                              {country.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
                       <Select value={selectedCity} onValueChange={setSelectedCity}>
                         <SelectTrigger className="w-full sm:w-48 h-12">
+                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                           <SelectValue placeholder="Select City" />
                         </SelectTrigger>
                         <SelectContent>
-                          {cities.map((city) => (
-                            <SelectItem key={city} value={city}>
-                              {city}
+                          <SelectItem value="all">All Cities</SelectItem>
+                          {availableCities.map((city) => (
+                            <SelectItem key={city.value} value={city.value}>
+                              {city.label}
                             </SelectItem>
                           ))}
                         </SelectContent>

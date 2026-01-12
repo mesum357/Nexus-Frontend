@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, MapPin, Filter } from 'lucide-react'
+import { Search, MapPin, Filter, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -11,64 +11,61 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BUSINESS_CATEGORIES } from '@/lib/categories'
-
-const cities = [
-  'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad',
-  'Multan', 'Peshawar', 'Quetta', 'Sialkot', 'Gujranwala',
-  'Hyderabad', 'Bahawalpur', 'Sargodha', 'Sukkur', 'Larkana',
-  'Sheikhupura', 'Mardan', 'Gujrat', 'Kasur', 'Dera Ghazi Khan',
-  'Sahiwal', 'Nawabshah', 'Mingora', 'Burewala', 'Jhelum',
-  'Kamoke', 'Hafizabad', 'Khanewal', 'Vehari', 'Dera Ismail Khan',
-  'Nowshera', 'Charsadda', 'Jhang', 'Mandi Bahauddin', 'Ahmadpur East',
-  'Kamalia', 'Gojra', 'Mansehra', 'Kabirwala', 'Okara', 'Gilgit',
-  'Mirpur Khas', 'Rahim Yar Khan', 'Leiah', 'Muzaffargarh', 'Khanpur',
-  'Jampur', 'Dadu', 'Khairpur', 'Pakpattan', 'Bahawalnagar',
-  'Tando Adam', 'Tando Allahyar', 'Mirpur Mathelo', 'Shikarpur', 'Jacobabad',
-  'Ghotki', 'Mehar', 'Tando Muhammad Khan', 'Dera Allahyar', 'Shahdadkot',
-  'Matiari', 'Gambat', 'Nasirabad', 'Mehrabpur', 'Rohri', 'Pano Aqil',
-  'Sakrand', 'Umerkot', 'Chhor', 'Kunri', 'Pithoro', 'Samaro',
-  'Goth Garelo', 'Ranipur', 'Dokri', 'Lakhi', 'Dingro', 'Kandhkot',
-  'Kashmore', 'Ubauro', 'Sadiqabad', 'Liaquatpur', 'Uch Sharif',
-  'Alipur', 'Jatoi', 'Taunsa', 'Kot Addu', 'Layyah', 'Chobara',
-  'Kot Sultan', 'Bhakkar', 'Darya Khan', 'Kallur Kot', 'Mankera',
-  'Dullewala', 'Daud Khel', 'Pindi Gheb', 'Fateh Jang', 'Gujar Khan',
-  'Kallar Syedan', 'Taxila', 'Wah Cantonment', 'Murree', 'Kahuta',
-  'Kotli Sattian', 'Chakwal', 'Attock', 'Abbottabad', 'Haripur',
-  'Batagram', 'Shangla', 'Swat', 'Buner', 'Malakand',
-  'Dir', 'Chitral', 'Kohistan', 'Torghar', 'Bannu', 'Tank',
-  'Kohat', 'Hangu', 'Karak', 'Lakki Marwat', 'Dera Ismail Khan'
-]
+import { COUNTRIES, CITIES_BY_COUNTRY, DEFAULT_COUNTRY } from '@/lib/countries'
 
 // Use the same categories as the create shop section
 const categories = BUSINESS_CATEGORIES.map(cat => cat.value)
 
 interface StoreFiltersProps {
-  onFilter: (filters: { city: string; category: string; search: string }) => void
+  onFilter: (filters: { country: string; city: string; category: string; search: string }) => void
 }
 
 export default function StoreFilters({ onFilter }: StoreFiltersProps) {
+  const [country, setCountry] = useState('')
   const [city, setCity] = useState('')
   const [category, setCategory] = useState('')
   const [search, setSearch] = useState('')
   const [citySearch, setCitySearch] = useState('')
   const [categorySearch, setCategorySearch] = useState('')
+  const [countrySearch, setCountrySearch] = useState('')
+  const [availableCities, setAvailableCities] = useState(CITIES_BY_COUNTRY[DEFAULT_COUNTRY] || [])
+
+  // Update cities when country changes
+  useEffect(() => {
+    if (country) {
+      setAvailableCities(CITIES_BY_COUNTRY[country] || [])
+      setCity('') // Reset city when country changes
+      setCitySearch('')
+    } else {
+      // If no country selected, show all cities from all countries
+      const allCities = Object.values(CITIES_BY_COUNTRY).flat()
+      setAvailableCities(allCities)
+    }
+  }, [country])
 
   const handleFilterChange = () => {
-    onFilter({ city, category, search })
+    onFilter({ country, city, category, search })
   }
 
   const clearFilters = () => {
+    setCountry('')
     setCity('')
     setCategory('')
     setSearch('')
     setCitySearch('')
     setCategorySearch('')
-    onFilter({ city: '', category: '', search: '' })
+    setCountrySearch('')
+    onFilter({ country: '', city: '', category: '', search: '' })
   }
 
+  // Filter countries based on search
+  const filteredCountries = COUNTRIES.filter(c =>
+    c.label.toLowerCase().includes(countrySearch.toLowerCase())
+  )
+
   // Filter cities based on search
-  const filteredCities = cities.filter(cityName =>
-    cityName.toLowerCase().includes(citySearch.toLowerCase())
+  const filteredCities = availableCities.filter(c =>
+    c.label.toLowerCase().includes(citySearch.toLowerCase())
   )
 
   // Filter categories based on search
@@ -95,7 +92,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
               onChange={(e) => {
                 setSearch(e.target.value)
                 setTimeout(() => {
-                  onFilter({ city, category, search: e.target.value })
+                  onFilter({ country, city, category, search: e.target.value })
                 }, 300)
               }}
               className="pl-10 rounded-full border-border focus:border-primary h-11 sm:h-10"
@@ -104,6 +101,47 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
 
           {/* Filters Row - Stack on mobile, side by side on larger screens */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            {/* Country Filter */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+              className="w-full sm:w-48"
+            >
+              <Select value={country} onValueChange={(value) => {
+                setCountry(value)
+                setTimeout(() => {
+                  onFilter({ country: value, city: '', category, search })
+                }, 100)
+              }}>
+                <SelectTrigger className="rounded-full border-border focus:border-primary h-11 sm:h-10">
+                  <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Select Country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* Country Search Input */}
+                  <div className="p-2">
+                    <Input
+                      placeholder="Search countries..."
+                      value={countrySearch}
+                      onChange={(e) => setCountrySearch(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  {/* Filtered Countries */}
+                  {filteredCountries.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                  {filteredCountries.length === 0 && (
+                    <div className="px-2 py-1 text-sm text-muted-foreground">
+                      No countries found
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </motion.div>
+
             {/* City Filter */}
             <motion.div
               whileHover={{ scale: 1.02 }}
@@ -113,7 +151,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
               <Select value={city} onValueChange={(value) => {
                 setCity(value)
                 setTimeout(() => {
-                  onFilter({ city: value, category, search })
+                  onFilter({ country, city: value, category, search })
                 }, 100)
               }}>
                 <SelectTrigger className="rounded-full border-border focus:border-primary h-11 sm:h-10">
@@ -131,9 +169,9 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
                     />
                   </div>
                   {/* Filtered Cities */}
-                  {filteredCities.map((cityName) => (
-                    <SelectItem key={cityName} value={cityName}>
-                      {cityName}
+                  {filteredCities.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.label}
                     </SelectItem>
                   ))}
                   {filteredCities.length === 0 && (
@@ -154,7 +192,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
               <Select value={category} onValueChange={(value) => {
                 setCategory(value)
                 setTimeout(() => {
-                  onFilter({ city, category: value, search })
+                  onFilter({ country, city, category: value, search })
                 }, 100)
               }}>
                 <SelectTrigger className="rounded-full border-border focus:border-primary h-11 sm:h-10">
@@ -187,7 +225,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
             </motion.div>
 
             {/* Clear Filters Button */}
-            {(city || category || search) && (
+            {(country || city || category || search) && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}

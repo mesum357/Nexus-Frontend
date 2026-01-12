@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Hospital as HospitalIcon, Plus, MapPin, Star, Search, Filter, User } from 'lucide-react'
+import { Hospital as HospitalIcon, Plus, MapPin, Star, Search, Filter, User, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import Logo from '@/assets/globeLogo.png'
 import bgImage from '@/assets/hospital.avif' // Hospital background image
+import { COUNTRIES, CITIES_BY_COUNTRY } from '@/lib/countries'
 
 interface HospitalType {
   _id: string;
@@ -41,11 +42,25 @@ interface CurrentUser {
 export default function Hospital() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState('all')
   const [selectedCity, setSelectedCity] = useState('all')
   const [selectedType, setSelectedType] = useState('all')
   const [hospitals, setHospitals] = useState<HospitalType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
+  const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
+
+  // Update available cities when country changes
+  useEffect(() => {
+    if (selectedCountry && selectedCountry !== 'all') {
+      setAvailableCities(CITIES_BY_COUNTRY[selectedCountry] || [])
+      setSelectedCity('all') // Reset city when country changes
+    } else {
+      // Show all cities from all countries
+      const allCities = Object.values(CITIES_BY_COUNTRY).flat()
+      setAvailableCities(allCities)
+    }
+  }, [selectedCountry])
 
   const fetchHospitals = () => {
     setIsLoading(true)
@@ -93,15 +108,15 @@ export default function Hospital() {
     return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
-  const cities = ['Lahore', 'Karachi', 'Islamabad', 'Faisalabad', 'Rawalpindi', 'Multan']
   const hospitalTypes = ['General', 'Specialized', 'Clinic', 'Medical Center']
 
   const filteredHospitals = hospitals.filter(hospital => {
     const matchesSearch = (hospital.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (hospital.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCountry = selectedCountry === 'all' || ((hospital as any).country || 'Pakistan').toLowerCase() === selectedCountry.toLowerCase()
     const matchesCity = selectedCity === 'all' || (hospital.city || '').includes(selectedCity)
     const matchesType = selectedType === 'all' || (hospital.type || '').toLowerCase().includes(selectedType.toLowerCase())
-    return matchesSearch && matchesCity && matchesType
+    return matchesSearch && matchesCountry && matchesCity && matchesType
   })
 
   return (
@@ -177,14 +192,27 @@ export default function Hospital() {
                     />
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                      <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
+                        <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <SelectValue placeholder="Select Country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Countries</SelectItem>
+                        {COUNTRIES.map(country => (
+                          <SelectItem key={country.value} value={country.value}>{country.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Select value={selectedCity} onValueChange={setSelectedCity}>
                       <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
+                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                         <SelectValue placeholder="Select City" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Cities</SelectItem>
-                        {cities.map(city => (
-                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        {availableCities.map(city => (
+                          <SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

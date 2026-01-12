@@ -72,11 +72,17 @@ export default function Store() {
   }, []);
 
   const handleFilter = (filters: {
+    country: string
     city: string
     category: string
     search: string
   }) => {
     let filtered = shops;
+    if (filters.country) {
+      filtered = filtered.filter(shop => 
+        (shop as any).country?.toLowerCase() === filters.country.toLowerCase()
+      );
+    }
     if (filters.city) {
       filtered = filtered.filter(shop => 
         shop.city?.toLowerCase().includes(filters.city.toLowerCase())
