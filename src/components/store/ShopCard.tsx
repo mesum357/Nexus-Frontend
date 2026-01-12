@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
-import { Star, MapPin, Badge, User } from 'lucide-react'
+import { Star, MapPin, Badge } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Shop } from '@/pages/Store'
 
 interface ShopCardProps {
@@ -17,8 +16,7 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
   // Debug image URLs
   console.log(`🖼️ ShopCard ${index + 1} - ${shop.shopName}:`, {
     logo: shop.shopLogo,
-    banner: shop.shopBanner,
-    ownerDp: shop.ownerDp
+    banner: shop.shopBanner
   });
   
   return (
@@ -77,20 +75,6 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
         </div>
 
         <CardContent className="p-4 sm:p-6">
-          {/* Owner Info */}
-          <div className="flex items-center mb-3">
-            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3">
-              <AvatarImage src={shop.ownerDp} alt={shop.ownerName} />
-              <AvatarFallback>
-                <User className="h-4 w-4 sm:h-5 sm:w-5" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-xs sm:text-sm font-medium text-foreground">{shop.ownerName}</p>
-              <p className="text-xs text-muted-foreground">Shop Owner</p>
-            </div>
-          </div>
-
           {/* Shop Name */}
           <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
             {shop.shopName}
