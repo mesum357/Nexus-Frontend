@@ -20,6 +20,7 @@ interface HospitalType {
   logo?: string;
   banner?: string;
   rating?: number;
+  totalReviews?: number;
   verified?: boolean;
   patients?: string;
   totalPatients?: string;

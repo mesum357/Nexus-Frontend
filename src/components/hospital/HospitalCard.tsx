@@ -18,6 +18,7 @@ interface HospitalType {
   logo?: string;
   banner?: string;
   rating?: number;
+  totalReviews?: number;
   verified?: boolean;
   patients?: string;
   totalPatients?: string;
@@ -160,7 +161,9 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
             <div className="flex items-center gap-1">
               <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
               <span className="font-medium text-xs sm:text-sm">{hospital.rating || 'N/A'}</span>
-              <span className="text-xs text-muted-foreground hidden sm:inline">(reviews)</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                ({hospital.totalReviews || 0} {hospital.totalReviews === 1 ? 'review' : 'reviews'})
+              </span>
             </div>
             {hospital.verified && (
               <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
