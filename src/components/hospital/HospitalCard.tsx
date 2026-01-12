@@ -160,7 +160,9 @@ export default function HospitalCard({ hospital, index, currentUser }: HospitalC
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1">
               <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium text-xs sm:text-sm">{hospital.rating || 'N/A'}</span>
+              <span className="font-medium text-xs sm:text-sm">
+                {hospital.totalReviews && hospital.totalReviews > 0 ? hospital.rating?.toFixed(1) : '0'}
+              </span>
               <span className="text-xs text-muted-foreground hidden sm:inline">
                 ({hospital.totalReviews || 0} {hospital.totalReviews === 1 ? 'review' : 'reviews'})
               </span>

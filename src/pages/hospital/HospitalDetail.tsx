@@ -321,7 +321,7 @@ export default function HospitalDetail() {
                     <span className="font-medium">
                       {reviews.length > 0 
                         ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
-                        : 'N/A'}
+                        : '0'}
                     </span>
                     <span className="text-sm text-muted-foreground">({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</span>
                   </div>
@@ -373,7 +373,7 @@ export default function HospitalDetail() {
                     <p className="text-2xl font-bold text-foreground">
                       {reviews.length > 0 
                         ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
-                        : 'N/A'}
+                        : '0'}
                     </p>
                     <p className="text-sm text-muted-foreground">Rating</p>
                   </CardContent>
