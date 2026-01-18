@@ -49,12 +49,14 @@ export default function Hospital() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
   const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
+  const [citySearch, setCitySearch] = useState('')
 
   // Update available cities when country changes
   useEffect(() => {
     if (selectedCountry && selectedCountry !== 'all') {
       setAvailableCities(CITIES_BY_COUNTRY[selectedCountry] || [])
       setSelectedCity('all') // Reset city when country changes
+      setCitySearch('') // Reset city search when country changes
     } else {
       // Show all cities from all countries
       const allCities = Object.values(CITIES_BY_COUNTRY).flat()
@@ -70,7 +72,7 @@ export default function Hospital() {
       .then(data => {
         console.log('🏥 Hospitals data received:', data);
         console.log('🏥 Number of hospitals:', data.hospitals ? data.hospitals.length : 0);
-        
+
         if (data.hospitals && data.hospitals.length > 0) {
           data.hospitals.forEach((hospital, index) => {
             console.log(`🏥 Hospital ${index + 1}:`, {
@@ -82,13 +84,13 @@ export default function Hospital() {
             });
           });
         }
-        
+
         setHospitals((data.hospitals || []) as any)
         setIsLoading(false)
       })
-      .catch((error) => { 
+      .catch((error) => {
         console.error('❌ Error fetching hospitals:', error);
-        setIsLoading(false) 
+        setIsLoading(false)
       })
   }
 
@@ -112,7 +114,7 @@ export default function Hospital() {
 
   const filteredHospitals = hospitals.filter(hospital => {
     const matchesSearch = (hospital.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (hospital.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (hospital.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCountry = selectedCountry === 'all' || ((hospital as any).country || 'Pakistan').toLowerCase() === selectedCountry.toLowerCase()
     const matchesCity = selectedCity === 'all' || (hospital.city || '').includes(selectedCity)
     const matchesType = selectedType === 'all' || (hospital.type || '').toLowerCase().includes(selectedType.toLowerCase())
@@ -139,8 +141,8 @@ export default function Hospital() {
           <div className="text-center">
             <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}>
               <div className="flex flex-col sm:flex-row items-center justify-center mb-6">
-                <img 
-                  src={Logo} 
+                <img
+                  src={Logo}
                   alt="E - Dunia Logo"
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
                 />
@@ -210,10 +212,26 @@ export default function Hospital() {
                         <SelectValue placeholder="Select City" />
                       </SelectTrigger>
                       <SelectContent>
+                        {/* City Search Input */}
+                        <div className="p-2">
+                          <Input
+                            placeholder="Search cities..."
+                            value={citySearch}
+                            onChange={(e) => setCitySearch(e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
                         <SelectItem value="all">All Cities</SelectItem>
-                        {availableCities.map(city => (
-                          <SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>
-                        ))}
+                        {availableCities
+                          .filter(city => city.label.toLowerCase().includes(citySearch.toLowerCase()))
+                          .map(city => (
+                            <SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>
+                          ))}
+                        {availableCities.filter(city => city.label.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && citySearch && (
+                          <div className="px-2 py-1 text-sm text-muted-foreground">
+                            No cities found
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                     <Select value={selectedType} onValueChange={setSelectedType}>

@@ -52,12 +52,14 @@ export default function Education() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [hospitalNames, setHospitalNames] = useState<Set<string>>(new Set());
   const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
+  const [citySearch, setCitySearch] = useState('')
 
   // Update available cities when country changes
   useEffect(() => {
     if (selectedCountry && selectedCountry !== 'all') {
       setAvailableCities(CITIES_BY_COUNTRY[selectedCountry] || [])
       setSelectedCity('all') // Reset city when country changes
+      setCitySearch('') // Reset city search when country changes
     } else {
       // Show all cities from all countries
       const allCities = Object.values(CITIES_BY_COUNTRY).flat()
@@ -90,7 +92,7 @@ export default function Education() {
     const handleFocus = () => {
       fetchInstitutes()
     }
-    
+
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
   }, [])
@@ -99,7 +101,7 @@ export default function Education() {
 
   const filteredInstitutes = institutes.filter(institute => {
     const matchesSearch = (institute.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (institute.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (institute.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCountry = selectedCountry === 'all' || ((institute as any).country || 'Pakistan').toLowerCase() === selectedCountry.toLowerCase()
     const matchesCity = selectedCity === 'all' || (institute.city || '').includes(selectedCity)
     const matchesType = selectedType === 'all' || (institute.type || '').toLowerCase().includes(selectedType.toLowerCase())
@@ -110,7 +112,7 @@ export default function Education() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       {/* Hero Section */}
       <motion.section
         initial={{ opacity: 0 }}
@@ -132,8 +134,8 @@ export default function Education() {
               transition={{ delay: 0.2, duration: 0.6 }}
             >
               <div className="flex flex-col sm:flex-row items-center justify-center mb-6">
-                <img 
-                  src={Logo} 
+                <img
+                  src={Logo}
                   alt="E - Dunia Logo"
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border-4 border-primary shadow-lg mb-4 sm:mb-0 sm:mr-4"
                 />
@@ -159,7 +161,7 @@ export default function Education() {
                 Connect with trusted schools, colleges, tutors and training centers across Pakistan. Search courses, compare programs, read reviews from other learners, and book classes or admissions
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-                <Button 
+                <Button
                   onClick={() => navigate('/education/create')}
                   className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
                   size="lg"
@@ -194,7 +196,7 @@ export default function Education() {
                       className="pl-10 h-11 sm:h-10"
                     />
                   </div>
-                  
+
                   {/* Filters Row - Stack on mobile */}
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <Select value={selectedCountry} onValueChange={setSelectedCountry}>
@@ -215,10 +217,26 @@ export default function Education() {
                         <SelectValue placeholder="Select City" />
                       </SelectTrigger>
                       <SelectContent>
+                        {/* City Search Input */}
+                        <div className="p-2">
+                          <Input
+                            placeholder="Search cities..."
+                            value={citySearch}
+                            onChange={(e) => setCitySearch(e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
                         <SelectItem value="all">All Cities</SelectItem>
-                        {availableCities.map(city => (
-                          <SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>
-                        ))}
+                        {availableCities
+                          .filter(city => city.label.toLowerCase().includes(citySearch.toLowerCase()))
+                          .map(city => (
+                            <SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>
+                          ))}
+                        {availableCities.filter(city => city.label.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && citySearch && (
+                          <div className="px-2 py-1 text-sm text-muted-foreground">
+                            No cities found
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                     <Select value={selectedType} onValueChange={setSelectedType}>

@@ -19,7 +19,7 @@ import { COUNTRIES, CITIES_BY_COUNTRY } from '@/lib/countries'
 
 const categories = [
   'Electronics',
-  'Vehicles', 
+  'Vehicles',
   'Furniture',
   'Jobs',
   'Property',
@@ -65,12 +65,14 @@ export default function Marketplace() {
   const [productToDelete, setProductToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
+  const [citySearch, setCitySearch] = useState('')
 
   // Update available cities when country changes
   useEffect(() => {
     if (selectedCountry && selectedCountry !== 'all') {
       setAvailableCities(CITIES_BY_COUNTRY[selectedCountry] || [])
       setSelectedCity('all') // Reset city when country changes
+      setCitySearch('') // Reset city search when country changes
     } else {
       // Show all cities from all countries
       const allCities = Object.values(CITIES_BY_COUNTRY).flat()
@@ -83,9 +85,9 @@ export default function Marketplace() {
     try {
       setLoading(true)
       console.log('Fetching products from:', `${API_BASE_URL}/api/marketplace`)
-      
+
       const params = new URLSearchParams()
-      
+
       if (searchTerm) params.append('search', searchTerm)
       if (selectedCategory !== 'all') params.append('category', selectedCategory)
       if (selectedCountry !== 'all') params.append('country', selectedCountry)
@@ -106,15 +108,15 @@ export default function Marketplace() {
         }
       })
       console.log('Response status:', response.status)
-      
+
       if (response.status === 401) {
         console.warn('Unauthorized access - proceeding without authentication')
         // Continue anyway for public marketplace data
       }
-      
+
       const data = await response.json()
       console.log('Response data:', data)
-      
+
       if (response.ok || response.status === 401) {
         // Even with 401, we might get public data
         const apiProducts = data.products || []
@@ -130,9 +132,9 @@ export default function Marketplace() {
           })
           // Log all products' image status
           apiProducts.forEach((p, idx) => {
-            const validImages = p.images?.filter(img => 
-              img && 
-              typeof img === 'string' && 
+            const validImages = p.images?.filter(img =>
+              img &&
+              typeof img === 'string' &&
               img.trim() !== '' &&
               (img.startsWith('http://') || img.startsWith('https://')) &&
               img.includes('res.cloudinary.com') &&
@@ -168,16 +170,16 @@ export default function Marketplace() {
         }
       })
       console.log('Category stats response status:', response.status)
-      
+
       if (response.status === 401) {
         console.warn('Unauthorized access for category stats - using empty data')
         setCategoryStats([])
         return
       }
-      
+
       const data = await response.json()
       console.log('Category stats data:', data)
-      
+
       if (response.ok) {
         setCategoryStats(data.categories || [])
         console.log('Category stats set:', data.categories?.length || 0)
@@ -212,7 +214,7 @@ export default function Marketplace() {
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-    
+
     if (diffInHours < 1) return 'Just now'
     if (diffInHours < 24) return `${diffInHours}h ago`
     if (diffInHours < 48) return '1 day ago'
@@ -277,13 +279,13 @@ export default function Marketplace() {
     if (!currentUser || !product.owner) return false
     return currentUser._id === product.owner._id || currentUser._id === product.owner
   }
-  
+
   console.log('Marketplace component rendering, loading:', loading, 'products:', products.length)
-  
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="pt-16 sm:pt-20">
         {/* Hero Section with Search */}
         <motion.section
@@ -328,7 +330,7 @@ export default function Marketplace() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
-                    
+
                     {/* Filters Row - Stack on mobile */}
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       <Select value={selectedCountry} onValueChange={setSelectedCountry}>
@@ -352,12 +354,28 @@ export default function Marketplace() {
                           <SelectValue placeholder="Select City" />
                         </SelectTrigger>
                         <SelectContent>
+                          {/* City Search Input */}
+                          <div className="p-2">
+                            <Input
+                              placeholder="Search cities..."
+                              value={citySearch}
+                              onChange={(e) => setCitySearch(e.target.value)}
+                              className="h-8 text-sm"
+                            />
+                          </div>
                           <SelectItem value="all">All Cities</SelectItem>
-                          {availableCities.map((city) => (
-                            <SelectItem key={city.value} value={city.value}>
-                              {city.label}
-                            </SelectItem>
-                          ))}
+                          {availableCities
+                            .filter((city) => city.label.toLowerCase().includes(citySearch.toLowerCase()))
+                            .map((city) => (
+                              <SelectItem key={city.value} value={city.value}>
+                                {city.label}
+                              </SelectItem>
+                            ))}
+                          {availableCities.filter((city) => city.label.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && citySearch && (
+                            <div className="px-2 py-1 text-sm text-muted-foreground">
+                              No cities found
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
 
@@ -380,7 +398,7 @@ export default function Marketplace() {
                           <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                           <span className="hidden sm:inline">Search</span>
                         </Button>
-                        <Button 
+                        <Button
                           className="h-12 px-4 bg-primary hover:bg-primary-hover"
                           onClick={() => navigate('/marketplace/create')}
                         >
@@ -416,7 +434,7 @@ export default function Marketplace() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Card 
+                    <Card
                       className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-orange-500/50"
                       onClick={() => setSelectedCategory(category)}
                     >
@@ -447,48 +465,48 @@ export default function Marketplace() {
                     <Filter className="h-4 w-4" />
                     Filters
                   </h3>
-                  
+
                   <div className="space-y-4 sm:space-y-6">
                     <div>
                       <h4 className="font-medium text-foreground mb-2 text-sm sm:text-base">Condition</h4>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="condition"
                             checked={condition === 'new'}
                             onChange={() => setCondition('new')}
-                            className="rounded" 
+                            className="rounded"
                           />
                           <span className="text-xs sm:text-sm text-muted-foreground">New</span>
                         </label>
                         <label className="flex items-center gap-2">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="condition"
                             checked={condition === 'used'}
                             onChange={() => setCondition('used')}
-                            className="rounded" 
+                            className="rounded"
                           />
                           <span className="text-xs sm:text-sm text-muted-foreground">Used</span>
                         </label>
                         <label className="flex items-center gap-2">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="condition"
                             checked={condition === 'refurbished'}
                             onChange={() => setCondition('refurbished')}
-                            className="rounded" 
+                            className="rounded"
                           />
                           <span className="text-xs sm:text-sm text-muted-foreground">Refurbished</span>
                         </label>
                         <label className="flex items-center gap-2">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="condition"
                             checked={condition === ''}
                             onChange={() => setCondition('')}
-                            className="rounded" 
+                            className="rounded"
                           />
                           <span className="text-xs sm:text-sm text-muted-foreground">All</span>
                         </label>
@@ -531,177 +549,177 @@ export default function Marketplace() {
                   <p className="text-muted-foreground">Loading products...</p>
                 </div>
               ) : products.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {products.map((product, index) => (
-                  <motion.div
-                    key={product._id || index}
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 * index, duration: 0.6 }}
-                    whileHover={{ y: -5 }}
-                  >
-                    <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
-                      {/* Product Image */}
-                      <div className="relative">
-                        {(() => {
-                          // Debug logging for image display
-                          console.log(`🖼️ Rendering image for product: ${product.title}`, {
-                            hasImages: !!product.images,
-                            imagesArray: Array.isArray(product.images),
-                            imagesLength: product.images?.length || 0,
-                            rawImages: product.images
-                          });
-                          
-                          // Filter valid Cloudinary images (exclude placeholders)
-                          if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-                            const validImages = product.images.filter(img => {
-                              const isValid = img && 
-                                typeof img === 'string' && 
-                                img.trim() !== '' &&
-                                (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('//')) &&
-                                img.includes('res.cloudinary.com') &&
-                                !img.includes('picsum.photos') &&
-                                !img.includes('via.placeholder');
-                              
-                              if (!isValid && img) {
-                                console.log(`⚠️ Invalid image filtered out for ${product.title}:`, img.substring(0, 80));
-                              }
-                              
-                              return isValid;
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {products.map((product, index) => (
+                    <motion.div
+                      key={product._id || index}
+                      initial={{ y: 50, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.1 * index, duration: 0.6 }}
+                      whileHover={{ y: -5 }}
+                    >
+                      <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
+                        {/* Product Image */}
+                        <div className="relative">
+                          {(() => {
+                            // Debug logging for image display
+                            console.log(`🖼️ Rendering image for product: ${product.title}`, {
+                              hasImages: !!product.images,
+                              imagesArray: Array.isArray(product.images),
+                              imagesLength: product.images?.length || 0,
+                              rawImages: product.images
                             });
-                            
-                            console.log(`🖼️ Valid images for ${product.title}:`, validImages.length, validImages);
-                            
-                            // Use first valid Cloudinary image
-                            if (validImages.length > 0) {
-                              const firstImage = validImages[0];
-                              console.log(`✅ Displaying image for ${product.title}:`, firstImage.substring(0, 80));
-                              return (
-                                <img
-                                  src={firstImage}
-                                  alt={product.title}
-                                  className="w-full h-40 sm:h-48 object-cover"
-                                  onError={(e) => {
-                                    console.error(`❌ Image load error for ${product.title}:`, firstImage);
-                                    // Hide image on error and show empty state
-                                    e.currentTarget.style.display = 'none';
-                                    const parent = e.currentTarget.parentElement;
-                                    if (parent && !parent.querySelector('.empty-state')) {
-                                      const emptyDiv = document.createElement('div');
-                                      emptyDiv.className = 'w-full h-40 sm:h-48 bg-muted flex items-center justify-center empty-state';
-                                      emptyDiv.innerHTML = '<div class="text-center text-muted-foreground"><p class="text-sm">No Image</p></div>';
-                                      parent.appendChild(emptyDiv);
-                                    }
-                                  }}
-                                  onLoad={() => {
-                                    console.log(`✅ Image loaded successfully for ${product.title}`);
-                                  }}
-                                />
-                              );
+
+                            // Filter valid Cloudinary images (exclude placeholders)
+                            if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                              const validImages = product.images.filter(img => {
+                                const isValid = img &&
+                                  typeof img === 'string' &&
+                                  img.trim() !== '' &&
+                                  (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('//')) &&
+                                  img.includes('res.cloudinary.com') &&
+                                  !img.includes('picsum.photos') &&
+                                  !img.includes('via.placeholder');
+
+                                if (!isValid && img) {
+                                  console.log(`⚠️ Invalid image filtered out for ${product.title}:`, img.substring(0, 80));
+                                }
+
+                                return isValid;
+                              });
+
+                              console.log(`🖼️ Valid images for ${product.title}:`, validImages.length, validImages);
+
+                              // Use first valid Cloudinary image
+                              if (validImages.length > 0) {
+                                const firstImage = validImages[0];
+                                console.log(`✅ Displaying image for ${product.title}:`, firstImage.substring(0, 80));
+                                return (
+                                  <img
+                                    src={firstImage}
+                                    alt={product.title}
+                                    className="w-full h-40 sm:h-48 object-cover"
+                                    onError={(e) => {
+                                      console.error(`❌ Image load error for ${product.title}:`, firstImage);
+                                      // Hide image on error and show empty state
+                                      e.currentTarget.style.display = 'none';
+                                      const parent = e.currentTarget.parentElement;
+                                      if (parent && !parent.querySelector('.empty-state')) {
+                                        const emptyDiv = document.createElement('div');
+                                        emptyDiv.className = 'w-full h-40 sm:h-48 bg-muted flex items-center justify-center empty-state';
+                                        emptyDiv.innerHTML = '<div class="text-center text-muted-foreground"><p class="text-sm">No Image</p></div>';
+                                        parent.appendChild(emptyDiv);
+                                      }
+                                    }}
+                                    onLoad={() => {
+                                      console.log(`✅ Image loaded successfully for ${product.title}`);
+                                    }}
+                                  />
+                                );
+                              }
                             }
-                          }
-                          
-                          console.log(`❌ No valid images for ${product.title}, showing placeholder`);
-                          // No valid image available - show empty state with background
-                          return (
-                            <div className="w-full h-40 sm:h-48 bg-muted flex items-center justify-center">
-                              <div className="text-center text-muted-foreground">
-                                <p className="text-sm">No Image</p>
+
+                            console.log(`❌ No valid images for ${product.title}, showing placeholder`);
+                            // No valid image available - show empty state with background
+                            return (
+                              <div className="w-full h-40 sm:h-48 bg-muted flex items-center justify-center">
+                                <div className="text-center text-muted-foreground">
+                                  <p className="text-sm">No Image</p>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          {product.featured && (
+                            <Badge className="absolute top-2 left-2 bg-orange-500 hover:bg-orange-600 text-xs">
+                              Featured
+                            </Badge>
+                          )}
+                          <div className="absolute top-2 right-2 flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 sm:h-8 sm:w-8 bg-white/80 hover:bg-white"
+                            >
+                              <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                            {isProductOwner(product) && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 sm:h-8 sm:w-8 bg-white/80 hover:bg-white"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      navigate(`/marketplace/edit/${product._id}`)
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit Product
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setProductToDelete(product)
+                                      setDeleteDialogOpen(true)
+                                    }}
+                                    className="text-red-600 focus:text-red-600"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete Product
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
+                        </div>
+
+                        <CardContent className="p-3 sm:p-4">
+                          <h3 className="font-semibold text-foreground mb-2 line-clamp-2 text-sm sm:text-base">
+                            {product.title}
+                          </h3>
+
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-base sm:text-lg font-bold text-orange-500">{formatPrice(product.price)}</p>
+                            <Badge variant="outline" className="text-xs">{product.category}</Badge>
+                          </div>
+
+                          <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              <span className="line-clamp-1">{product.location}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{getTimeAgo(product.createdAt)}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Eye className="h-3 w-3" />
+                                <span>{product.views}</span>
                               </div>
                             </div>
-                          );
-                        })()}
-                        {product.featured && (
-                          <Badge className="absolute top-2 left-2 bg-orange-500 hover:bg-orange-600 text-xs">
-                            Featured
-                          </Badge>
-                        )}
-                        <div className="absolute top-2 right-2 flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                            className="h-7 w-7 sm:h-8 sm:w-8 bg-white/80 hover:bg-white"
-                        >
-                          <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
-                          {isProductOwner(product) && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 w-7 sm:h-8 sm:w-8 bg-white/80 hover:bg-white"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    navigate(`/marketplace/edit/${product._id}`)
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit Product
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setProductToDelete(product)
-                                    setDeleteDialogOpen(true)
-                                  }}
-                                  className="text-red-600 focus:text-red-600"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete Product
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </div>
-                      </div>
-
-                      <CardContent className="p-3 sm:p-4">
-                        <h3 className="font-semibold text-foreground mb-2 line-clamp-2 text-sm sm:text-base">
-                          {product.title}
-                        </h3>
-                        
-                        <div className="flex items-center justify-between mb-3">
-                          <p className="text-base sm:text-lg font-bold text-orange-500">{formatPrice(product.price)}</p>
-                          <Badge variant="outline" className="text-xs">{product.category}</Badge>
-                        </div>
-
-                        <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            <span className="line-clamp-1">{product.location}</span>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{getTimeAgo(product.createdAt)}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" />
-                              <span>{product.views}</span>
-                            </div>
-                          </div>
-                        </div>
 
-                        <Button 
-                          className="w-full mt-3 sm:mt-4 bg-orange-500 hover:bg-orange-600 text-sm sm:text-base h-9 sm:h-10"
-                          onClick={() => navigate(`/marketplace/product/${product._id}`)}
-                        >
-                          View Details
-                          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
+                          <Button
+                            className="w-full mt-3 sm:mt-4 bg-orange-500 hover:bg-orange-600 text-sm sm:text-base h-9 sm:h-10"
+                            onClick={() => navigate(`/marketplace/product/${product._id}`)}
+                          >
+                            View Details
+                            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">No products found</p>
