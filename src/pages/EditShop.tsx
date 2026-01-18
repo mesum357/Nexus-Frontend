@@ -8,31 +8,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import Navbar from '@/components/Navbar';
 import { API_BASE_URL } from '@/lib/config';
 import { useCategories } from '@/hooks/use-categories';
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY } from '@/lib/countries';
 
-const cities = [
-  "Karachi", "Lahore", "Islamabad", "Faisalabad", "Multan",
-  "Peshawar", "Quetta", "Rawalpindi", "Gujranwala", "Sialkot"
-];
+
 
 export default function EditShop() {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { categories, loading: categoriesLoading } = useCategories();
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shop, setShop] = useState<any>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     shopName: '',
+    country: DEFAULT_COUNTRY,
     city: '',
     shopType: '',
     shopDescription: '',
@@ -47,7 +47,7 @@ export default function EditShop() {
   const [shopLogo, setShopLogo] = useState<File | null>(null);
   const [shopBanner, setShopBanner] = useState<File | null>(null);
   const [ownerProfilePhoto, setOwnerProfilePhoto] = useState<File | null>(null);
-  
+
   // Preview states
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [bannerPreview, setBannerPreview] = useState<string>('');
@@ -60,17 +60,18 @@ export default function EditShop() {
         const response = await fetch(`${API_BASE_URL}/api/shop/${shopId}`, {
           credentials: 'include'
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch shop');
         }
-        
+
         const data = await response.json();
         setShop(data.shop);
-        
+
         // Set form data
         setFormData({
           shopName: data.shop.shopName || '',
+          country: data.shop.country || DEFAULT_COUNTRY,
           city: data.shop.city || '',
           shopType: data.shop.shopType || '',
           shopDescription: data.shop.shopDescription || '',
@@ -91,7 +92,7 @@ export default function EditShop() {
         if (data.shop.ownerProfilePhoto) {
           setProfilePreview(data.shop.ownerProfilePhoto);
         }
-        
+
       } catch (error) {
         console.error('Error fetching shop:', error);
         toast({
@@ -125,7 +126,7 @@ export default function EditShop() {
 
     try {
       const formDataToSend = new FormData();
-      
+
       // Add form fields
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'categories') {
@@ -196,7 +197,7 @@ export default function EditShop() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <div className="pt-24 pb-12">
         <div className="max-w-4xl mx-auto px-4">
           {/* Header */}
@@ -239,19 +240,27 @@ export default function EditShop() {
                     </div>
 
                     <div>
+                      <Label htmlFor="country">Country *</Label>
+                      <SearchableSelect
+                        value={formData.country}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, country: value, city: '' }))}
+                        placeholder="Select country"
+                        options={COUNTRIES}
+                        allowCustom={true}
+                        customPlaceholder="Type your country name..."
+                      />
+                    </div>
+
+                    <div>
                       <Label htmlFor="city">City *</Label>
-                      <Select value={formData.city} onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a city" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {cities.map((city) => (
-                            <SelectItem key={city} value={city}>
-                              {city}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        value={formData.city}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}
+                        placeholder="Select city"
+                        options={getCitiesForCountry(formData.country)}
+                        allowCustom={true}
+                        customPlaceholder="Type your city name..."
+                      />
                     </div>
 
                     <div>
@@ -273,11 +282,10 @@ export default function EditShop() {
                         {categories.map((category) => (
                           <div
                             key={category.value}
-                            className={`flex items-center gap-2 p-2 rounded-md cursor-pointer border transition-colors ${
-                              formData.categories.includes(category.value)
+                            className={`flex items-center gap-2 p-2 rounded-md cursor-pointer border transition-colors ${formData.categories.includes(category.value)
                                 ? 'bg-primary text-primary-foreground border-primary'
                                 : 'bg-background hover:bg-muted border-border'
-                            }`}
+                              }`}
                             onClick={() => handleCategoryToggle(category.value)}
                           >
                             <span className="text-sm">{category.icon}</span>
@@ -292,7 +300,7 @@ export default function EditShop() {
                               key={category}
                               className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
                             >
-                                                             <span>{categories.find(c => c.value === category)?.icon}</span>
+                              <span>{categories.find(c => c.value === category)?.icon}</span>
                               <span>{category}</span>
                               <button
                                 onClick={() => {

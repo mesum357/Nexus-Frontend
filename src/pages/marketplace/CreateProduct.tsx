@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -100,16 +101,16 @@ export default function CreateProduct() {
     // This function is called after successful payment submission
     setPaymentCompleted(true);
     console.log('Payment completed:', paymentData);
-    
-    toast({ 
-      title: 'Payment Submitted Successfully', 
-      description: 'Your payment request has been submitted to the admin panel for review. You can now proceed to review your product details.' 
+
+    toast({
+      title: 'Payment Submitted Successfully',
+      description: 'Your payment request has been submitted to the admin panel for review. You can now proceed to review your product details.'
     });
   }
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    
+
     if (imageFiles.length + files.length > 10) {
       toast({
         title: "Error",
@@ -121,7 +122,7 @@ export default function CreateProduct() {
 
     // Add files to queue for processing
     setFileQueue(prev => [...prev, ...files]);
-    
+
     // Start processing the first file if no cropper is currently open
     if (!showCropper && files.length > 0) {
       processNextFile();
@@ -132,15 +133,15 @@ export default function CreateProduct() {
   const processNextFile = () => {
     setFileQueue(prev => {
       if (prev.length === 0) return prev;
-      
+
       const nextFile = prev[0];
       const remainingFiles = prev.slice(1);
-      
+
       // Open cropper for this file
       setTempImageFile(nextFile);
       setCroppingIndex(-1); // New image
       setShowCropper(true);
-      
+
       return remainingFiles;
     });
   };
@@ -177,7 +178,7 @@ export default function CreateProduct() {
     setTempImageFile(null);
     setCroppingIndex(-1);
     setShowCropper(false);
-    
+
     // Process next file in queue if available
     setTimeout(() => {
       if (fileQueue.length > 0) {
@@ -200,7 +201,7 @@ export default function CreateProduct() {
     setShowCropper(false);
     setTempImageFile(null);
     setCroppingIndex(-1);
-    
+
     // If we're processing a new file and user cancels, remove it from queue
     if (croppingIndex === -1 && tempImageFile) {
       setFileQueue(prev => prev.slice(1));
@@ -239,7 +240,7 @@ export default function CreateProduct() {
         });
         return;
       }
-      
+
       // Check if there are files still being processed
       if (fileQueue.length > 0) {
         toast({
@@ -250,16 +251,16 @@ export default function CreateProduct() {
         return;
       }
     }
-    
+
     if (currentStep === 2 && !paymentCompleted) {
-      toast({ 
-        title: 'Payment Required', 
-        description: 'Please complete the payment section before proceeding.', 
-        variant: 'destructive' 
+      toast({
+        title: 'Payment Required',
+        description: 'Please complete the payment section before proceeding.',
+        variant: 'destructive'
       });
       return;
     }
-    
+
     setCurrentStep(prev => Math.min(prev + 1, 3));
   };
 
@@ -269,7 +270,7 @@ export default function CreateProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!acceptTerms) {
       toast({
         title: 'Terms Not Accepted',
@@ -278,7 +279,7 @@ export default function CreateProduct() {
       });
       return;
     }
-    
+
     // Product is already created in handlePaymentComplete, just navigate to success
     toast({
       title: "Product Creation Complete!",
@@ -412,34 +413,27 @@ export default function CreateProduct() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
                         <label className="text-sm font-medium">Country *</label>
-                        <Select 
-                          value={formData.country} 
+                        <SearchableSelect
+                          value={formData.country}
                           onValueChange={(value) => {
                             setFormData(prev => ({ ...prev, country: value, city: '' }));
                           }}
-                        >
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {COUNTRIES.map(country => (
-                              <SelectItem key={country.value} value={country.value}>{country.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          placeholder="Select country"
+                          options={COUNTRIES}
+                          allowCustom={true}
+                          customPlaceholder="Type your country name..."
+                        />
                       </div>
                       <div>
                         <label className="text-sm font-medium">City *</label>
-                        <Select value={formData.city} onValueChange={(value) => handleSelectChange('city', value)}>
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Select city" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getCitiesForCountry(formData.country).map(city => (
-                              <SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <SearchableSelect
+                          value={formData.city}
+                          onValueChange={(value) => handleSelectChange('city', value)}
+                          placeholder="Select city"
+                          options={getCitiesForCountry(formData.country)}
+                          allowCustom={true}
+                          customPlaceholder="Type your city name..."
+                        />
                       </div>
                       <div>
                         <label className="text-sm font-medium">Location *</label>
@@ -505,7 +499,7 @@ export default function CreateProduct() {
                       <p className="text-sm text-muted-foreground">
                         Upload up to 10 images of your product. First image will be the main image.
                       </p>
-                      
+
                       {/* Image Upload Area */}
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
                         {imagePreviews.length > 0 ? (
@@ -518,7 +512,7 @@ export default function CreateProduct() {
                                 </p>
                               </div>
                             )}
-                            
+
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                               {imagePreviews.map((preview, index) => (
                                 <div key={index} className="relative group">
@@ -672,7 +666,7 @@ export default function CreateProduct() {
                 Complete payment to finalize your product listing
               </p>
             </div>
-            
+
             <PaymentSection
               entityType="marketplace"
               shopData={{
@@ -760,13 +754,13 @@ export default function CreateProduct() {
                         I accept the Terms and Conditions <span className="text-destructive">*</span>
                       </Label>
                       <p className="text-xs text-muted-foreground">
-                        By creating this product listing, you agree to our terms of service, 
-                        privacy policy, and marketplace guidelines. You confirm that all information 
+                        By creating this product listing, you agree to our terms of service,
+                        privacy policy, and marketplace guidelines. You confirm that all information
                         provided is accurate and that you have the right to sell this product.
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <Button
                       type="button"
@@ -778,7 +772,7 @@ export default function CreateProduct() {
                       <ExternalLink className="h-3 w-3" />
                       Read Full Terms & Policies
                     </Button>
-                    
+
                     {acceptTerms && (
                       <div className="flex items-center gap-2 text-marketplace-success text-sm">
                         <CheckCircle2 className="h-4 w-4" />
@@ -833,17 +827,15 @@ export default function CreateProduct() {
             <div className="flex items-center justify-center space-x-4">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    currentStep >= step 
-                      ? 'bg-primary text-primary-foreground' 
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= step
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
-                  }`}>
+                    }`}>
                     {currentStep > step ? '✓' : step}
                   </div>
                   {step < 3 && (
-                    <div className={`w-16 h-0.5 mx-2 ${
-                      currentStep > step ? 'bg-primary' : 'bg-muted'
-                    }`} />
+                    <div className={`w-16 h-0.5 mx-2 ${currentStep > step ? 'bg-primary' : 'bg-muted'
+                      }`} />
                   )}
                 </div>
               ))}
@@ -852,8 +844,8 @@ export default function CreateProduct() {
               <span className="text-sm text-muted-foreground">
                 Step {currentStep} of 3: {
                   currentStep === 1 ? 'List Your Product' :
-                  currentStep === 2 ? 'Payment Section' :
-                  'Review & Submit'
+                    currentStep === 2 ? 'Payment Section' :
+                      'Review & Submit'
                 }
               </span>
             </div>
