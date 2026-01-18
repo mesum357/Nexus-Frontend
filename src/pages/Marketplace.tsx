@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Search, Filter, MapPin, Clock, Heart, Eye, Smartphone, Car, Sofa, Briefcase, Home, ChevronRight, Plus, Trash2, MoreHorizontal, Edit, Globe } from 'lucide-react'
+import { Search, Filter, MapPin, Clock, Heart, Eye, Smartphone, Car, Sofa, Briefcase, Home, ChevronRight, Plus, Trash2, MoreHorizontal, Edit, Globe, Edit3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -66,6 +66,8 @@ export default function Marketplace() {
   const [deleting, setDeleting] = useState(false)
   const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
   const [citySearch, setCitySearch] = useState('')
+  const [showCustomCityInput, setShowCustomCityInput] = useState(false)
+  const [customCityValue, setCustomCityValue] = useState('')
 
   // Update available cities when country changes
   useEffect(() => {
@@ -348,7 +350,17 @@ export default function Marketplace() {
                         </SelectContent>
                       </Select>
 
-                      <Select value={selectedCity} onValueChange={setSelectedCity}>
+                      <Select
+                        value={selectedCity}
+                        onValueChange={(value) => {
+                          if (value === 'custom') {
+                            setShowCustomCityInput(true)
+                          } else {
+                            setSelectedCity(value)
+                            setShowCustomCityInput(false)
+                          }
+                        }}
+                      >
                         <SelectTrigger className="w-full sm:w-48 h-12">
                           <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                           <SelectValue placeholder="Select City" />
@@ -376,6 +388,56 @@ export default function Marketplace() {
                               No cities found
                             </div>
                           )}
+                          {/* Custom City Option */}
+                          <div className="border-t mt-1 pt-1">
+                            {showCustomCityInput ? (
+                              <div className="p-2 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    value={customCityValue}
+                                    onChange={(e) => setCustomCityValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && customCityValue.trim()) {
+                                        setSelectedCity(customCityValue.trim())
+                                        setCustomCityValue('')
+                                        setShowCustomCityInput(false)
+                                      } else if (e.key === 'Escape') {
+                                        setShowCustomCityInput(false)
+                                        setCustomCityValue('')
+                                      }
+                                    }}
+                                    placeholder="Type your city name..."
+                                    className="h-8 text-sm"
+                                    autoFocus
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      if (customCityValue.trim()) {
+                                        setSelectedCity(customCityValue.trim())
+                                        setCustomCityValue('')
+                                        setShowCustomCityInput(false)
+                                      }
+                                    }}
+                                    disabled={!customCityValue.trim()}
+                                    className="h-8 px-3"
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Press Enter to add, Escape to cancel
+                                </p>
+                              </div>
+                            ) : (
+                              <SelectItem value="custom" className="text-primary cursor-pointer">
+                                <div className="flex items-center">
+                                  <Edit3 className="mr-2 h-4 w-4" />
+                                  Enter Custom City
+                                </div>
+                              </SelectItem>
+                            )}
+                          </div>
                         </SelectContent>
                       </Select>
 
