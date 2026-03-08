@@ -294,11 +294,11 @@ export default function PostCard({ post, index, currentUser, onPostDeleted }: Po
             />
             )}
             {post.image && (
-              <div className="mt-4 rounded-xl overflow-hidden">
+              <div className="mt-4 rounded-xl overflow-hidden bg-muted/10">
                 <img
                   src={post.image}
                   alt="Post content"
-                  className="w-full max-h-96 object-cover hover:scale-105 transition-transform duration-300"
+                  className="w-full max-h-96 object-contain hover:scale-105 transition-transform duration-300"
                 />
               </div>
             )}

@@ -55,6 +55,7 @@ export default function Marketplace() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('all')
   const [selectedCity, setSelectedCity] = useState('all')
+  const [selectedArea, setSelectedArea] = useState('all')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [priceRange, setPriceRange] = useState('')
   const [condition, setCondition] = useState('')
@@ -66,6 +67,7 @@ export default function Marketplace() {
   const [deleting, setDeleting] = useState(false)
   const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
   const [citySearch, setCitySearch] = useState('')
+  const [areaSearch, setAreaSearch] = useState('')
   const [showCustomCityInput, setShowCustomCityInput] = useState(false)
   const [customCityValue, setCustomCityValue] = useState('')
 
@@ -94,6 +96,7 @@ export default function Marketplace() {
       if (selectedCategory !== 'all') params.append('category', selectedCategory)
       if (selectedCountry !== 'all') params.append('country', selectedCountry)
       if (selectedCity !== 'all') params.append('city', selectedCity)
+      if (selectedArea !== 'all') params.append('location', selectedArea)
       if (condition) params.append('condition', condition)
       if (sortBy) params.append('sortBy', sortBy)
       if (priceRange && priceRange !== 'all-prices') {
@@ -203,7 +206,7 @@ export default function Marketplace() {
   // Separate useEffect for filters to avoid infinite loops
   useEffect(() => {
     fetchProducts()
-  }, [searchTerm, selectedCategory, selectedCountry, selectedCity, condition, sortBy, priceRange])
+  }, [searchTerm, selectedCategory, selectedCountry, selectedCity, selectedArea, condition, sortBy, priceRange])
 
   // Format price for display
   const formatPrice = (price) => {
@@ -438,6 +441,41 @@ export default function Marketplace() {
                               </SelectItem>
                             )}
                           </div>
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        value={selectedArea}
+                        onValueChange={setSelectedArea}
+                      >
+                        <SelectTrigger className="w-full sm:w-48 h-12">
+                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <SelectValue placeholder="Select Area" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <div className="p-2">
+                            <Input
+                              placeholder="Search areas..."
+                              value={areaSearch}
+                              onChange={(e) => setAreaSearch(e.target.value)}
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <SelectItem value="all">All Areas</SelectItem>
+                          {Array.from(new Set(products.map((p: any) => p.location).filter(Boolean)))
+                            .filter((area: any) => area.toLowerCase().includes(areaSearch.toLowerCase()))
+                            .sort()
+                            .map((area: any) => (
+                              <SelectItem key={area} value={area}>
+                                {area}
+                              </SelectItem>
+                            ))}
+                          {Array.from(new Set(products.map((p: any) => p.location).filter(Boolean)))
+                            .filter((area: any) => area.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && areaSearch && (
+                            <div className="px-2 py-1 text-sm text-muted-foreground">
+                              No areas found
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
 

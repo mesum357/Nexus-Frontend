@@ -74,6 +74,7 @@ export default function Store() {
   const handleFilter = (filters: {
     country: string
     city: string
+    area: string
     category: string
     search: string
   }) => {
@@ -86,6 +87,11 @@ export default function Store() {
     if (filters.city) {
       filtered = filtered.filter(shop => 
         shop.city?.toLowerCase().includes(filters.city.toLowerCase())
+      );
+    }
+    if (filters.area && filters.area !== 'all') {
+      filtered = filtered.filter(shop => 
+        shop.address?.toLowerCase().includes(filters.area.toLowerCase())
       );
     }
     if (filters.category) {
@@ -101,6 +107,13 @@ export default function Store() {
     }
     setFilteredShops(filtered);
   }
+
+  // Extract unique areas from addresses
+  const availableAreas = Array.from(new Set(
+    shops
+      .map(shop => shop.address)
+      .filter((address): address is string => !!address && address.trim() !== '')
+  )).sort();
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,7 +195,7 @@ export default function Store() {
       </motion.section>
 
       {/* Filters */}
-      <StoreFilters onFilter={handleFilter} />
+      <StoreFilters onFilter={handleFilter} availableAreas={availableAreas} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

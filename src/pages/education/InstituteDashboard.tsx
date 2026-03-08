@@ -124,7 +124,12 @@ export default function InstituteDashboard() {
   const [facultyImagePreview, setFacultyImagePreview] = useState<string | null>(null)
   // Notifications state
   const [notifications, setNotifications] = useState<{ _id?: string; title?: string; message: string; createdAt?: string }[]>([])
-  const [newNotification, setNewNotification] = useState({ title: '', message: '' })
+  const [newNotification, setNewNotification] = useState({ 
+    title: '', 
+    message: '', 
+    targetType: 'all', 
+    targetId: '' 
+  })
 
   // Messages state
   const [messages, setMessages] = useState<{ _id?: string; senderName: string; message: string; createdAt?: string }[]>([])
@@ -132,7 +137,19 @@ export default function InstituteDashboard() {
 
   // Tasks state
   const [tasks, setTasks] = useState<{ _id?: string; title: string; description: string; type: 'theory'|'practical'|'listing'|'reading'; createdAt?: string }[]>([])
-  const [newTask, setNewTask] = useState<{ title: string; description: string; type: 'theory'|'practical'|'listing'|'reading' }>({ title: '', description: '', type: 'theory' })
+  const [newTask, setNewTask] = useState<{ 
+    title: string; 
+    description: string; 
+    type: 'theory'|'practical'|'listing'|'reading';
+    targetType: 'all' | 'course' | 'individual';
+    targetId: string;
+  }>({ 
+    title: '', 
+    description: '', 
+    type: 'theory',
+    targetType: 'all',
+    targetId: ''
+  })
   const [editingTask, setEditingTask] = useState<{ _id: string; title: string; description: string; type: 'theory'|'practical'|'listing'|'reading' } | null>(null)
   const [showEditTaskDialog, setShowEditTaskDialog] = useState(false)
 
@@ -376,13 +393,18 @@ export default function InstituteDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(newNotification)
+        body: JSON.stringify({
+          title: newNotification.title,
+          message: newNotification.message,
+          targetType: newNotification.targetType,
+          targetId: newNotification.targetId
+        })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to create notification')
       setNotifications(prev => [data.notification, ...prev])
       setNewNotification({ title: '', message: '' })
-      toast({ title: 'Sent', description: 'Notification sent to students.' })
+      toast({ title: 'Sent', description: 'Notification sent successfully.' })
     } catch (error: any) {
       toast({ title: 'Error', description: error?.message || 'Failed to send notification', variant: 'destructive' })
     }
@@ -440,7 +462,13 @@ export default function InstituteDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(newTask)
+        body: JSON.stringify({
+          title: newTask.title,
+          description: newTask.description,
+          type: newTask.type,
+          targetType: newTask.targetType,
+          targetId: newTask.targetId
+        })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to create task')
@@ -845,7 +873,7 @@ export default function InstituteDashboard() {
                   <CardHeader className="pb-3 sm:pb-6">
                     <CardTitle className="flex items-center gap-2 text-base sm:text-lg lg:text-xl">
                       <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
-                      Courses Offered
+                      Departments Offered
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -1220,9 +1248,56 @@ export default function InstituteDashboard() {
                   <CardContent className="pt-0 space-y-3">
                     {isOwner && (
                       <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Select 
+                            value={newNotification.targetType} 
+                            onValueChange={(val) => setNewNotification(prev => ({ ...prev, targetType: val, targetId: '' }))}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Target Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Students</SelectItem>
+                              <SelectItem value="course">Specific Course</SelectItem>
+                              <SelectItem value="individual">Individual Student</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {newNotification.targetType === 'course' && (
+                            <Select 
+                              value={newNotification.targetId} 
+                              onValueChange={(val) => setNewNotification(prev => ({ ...prev, targetId: val }))}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Course" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {institute?.courses?.map(c => (
+                                  <SelectItem key={c._id} value={c._id || ''}>{c.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+
+                          {newNotification.targetType === 'individual' && (
+                            <Select 
+                              value={newNotification.targetId} 
+                              onValueChange={(val) => setNewNotification(prev => ({ ...prev, targetId: val }))}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Student" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {applications.filter(app => app.status === 'accepted').map(app => (
+                                  <SelectItem key={app._id} value={app._id}>{app.studentName}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
                         <Input placeholder="Title (optional)" value={newNotification.title} onChange={(e) => setNewNotification(prev => ({ ...prev, title: e.target.value }))} />
                         <Textarea placeholder="Write a notification..." value={newNotification.message} onChange={(e) => setNewNotification(prev => ({ ...prev, message: e.target.value }))} />
-                        <Button onClick={handleCreateNotification} size="sm">Send Notification</Button>
+                        <Button onClick={handleCreateNotification} size="sm" className="w-full">Send Notification</Button>
                       </div>
                     )}
                     <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -1253,6 +1328,53 @@ export default function InstituteDashboard() {
                   <CardContent className="pt-0 space-y-3">
                     {isOwner && (
                       <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Select 
+                            value={newTask.targetType} 
+                            onValueChange={(val) => setNewTask(prev => ({ ...prev, targetType: val as any, targetId: '' }))}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Target Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Students</SelectItem>
+                              <SelectItem value="course">Specific Course</SelectItem>
+                              <SelectItem value="individual">Individual Student</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {newTask.targetType === 'course' && (
+                            <Select 
+                              value={newTask.targetId} 
+                              onValueChange={(val) => setNewTask(prev => ({ ...prev, targetId: val }))}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Course" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {institute?.courses?.map(c => (
+                                  <SelectItem key={c._id} value={c._id || ''}>{c.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+
+                          {newTask.targetType === 'individual' && (
+                            <Select 
+                              value={newTask.targetId} 
+                              onValueChange={(val) => setNewTask(prev => ({ ...prev, targetId: val }))}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Student" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {applications.filter(app => app.status === 'accepted').map(app => (
+                                  <SelectItem key={app._id} value={app._id}>{app.studentName}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
                         <Input placeholder="Title" value={newTask.title} onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))} />
                         <Textarea placeholder="Task details" value={newTask.description} onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))} />
                         <div className="flex items-center gap-2">

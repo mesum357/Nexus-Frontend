@@ -46,6 +46,7 @@ export default function Education() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('all')
   const [selectedCity, setSelectedCity] = useState('all')
+  const [selectedArea, setSelectedArea] = useState('all')
   const [selectedType, setSelectedType] = useState('all')
   const [institutes, setInstitutes] = useState<Institute[]>([]);
   const [isLoading, setIsLoading] = useState(true)
@@ -53,6 +54,7 @@ export default function Education() {
   const [hospitalNames, setHospitalNames] = useState<Set<string>>(new Set());
   const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
   const [citySearch, setCitySearch] = useState('')
+  const [areaSearch, setAreaSearch] = useState('')
   const [showCustomCityInput, setShowCustomCityInput] = useState(false)
   const [customCityValue, setCustomCityValue] = useState('')
 
@@ -106,10 +108,18 @@ export default function Education() {
       (institute.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCountry = selectedCountry === 'all' || ((institute as any).country || 'Pakistan').toLowerCase() === selectedCountry.toLowerCase()
     const matchesCity = selectedCity === 'all' || (institute.city || '').includes(selectedCity)
+    const matchesArea = selectedArea === 'all' || (institute as any).address?.toLowerCase().includes(selectedArea.toLowerCase()) || (institute as any).location?.toLowerCase().includes(selectedArea.toLowerCase())
     const matchesType = selectedType === 'all' || (institute.type || '').toLowerCase().includes(selectedType.toLowerCase())
     const isHospitalByName = hospitalNames.has(String(institute.name || '').trim())
-    return matchesSearch && matchesCountry && matchesCity && matchesType && !isHospitalByName
+    return matchesSearch && matchesCountry && matchesCity && matchesArea && matchesType && !isHospitalByName
   })
+
+  // Extract unique areas from institute addresses
+  const availableAreas = Array.from(new Set(
+    institutes
+      .map(i => (i as any).address || (i as any).location)
+      .filter((addr): addr is string => !!addr && addr.trim() !== '')
+  )).sort();
 
   return (
     <div className="min-h-screen bg-background">
@@ -192,7 +202,7 @@ export default function Education() {
                   <div className="relative w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search institutes, courses, or specializations..."
+                      placeholder="Search institutes, courses, or departments..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 h-11 sm:h-10"
@@ -299,6 +309,33 @@ export default function Education() {
                             </SelectItem>
                           )}
                         </div>
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedArea} onValueChange={setSelectedArea}>
+                      <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
+                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <SelectValue placeholder="Select Area" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <div className="p-2">
+                          <Input
+                            placeholder="Search areas..."
+                            value={areaSearch}
+                            onChange={(e) => setAreaSearch(e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <SelectItem value="all">All Areas</SelectItem>
+                        {availableAreas
+                          .filter(area => area.toLowerCase().includes(areaSearch.toLowerCase()))
+                          .map(area => (
+                            <SelectItem key={area} value={area}>{area}</SelectItem>
+                          ))}
+                        {availableAreas.filter(area => area.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && areaSearch && (
+                          <div className="px-2 py-1 text-sm text-muted-foreground">
+                            No areas found
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                     <Select value={selectedType} onValueChange={setSelectedType}>

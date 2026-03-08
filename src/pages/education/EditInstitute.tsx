@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Upload, X, Loader2, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, Loader2, Plus, Trash2, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,16 +19,24 @@ const steps = [
   "Basic Information",
   "Contact Details", 
   "Media & Branding",
-  "Courses & Programs",
+  "Departments & Courses",
   "Review & Submit"
 ]
+
+interface CourseInput {
+  name: string;
+  duration?: string;
+  category: string;
+}
 
 export default function EditInstitute() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [currentStep, setCurrentStep] = useState(0)
-  const [courses, setCourses] = useState<string[]>([])
-  const [newCourse, setNewCourse] = useState("")
+  const [courses, setCourses] = useState<CourseInput[]>([])
+  const [newCourseName, setNewCourseName] = useState("")
+  const [newCourseDuration, setNewCourseDuration] = useState("")
+  const [newCourseDepartment, setNewCourseDepartment] = useState("")
   const [form, setForm] = useState<any>({})
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [bannerFile, setBannerFile] = useState<File | null>(null)
@@ -83,17 +91,18 @@ export default function EditInstitute() {
               }
               
               setForm(institute)
-              // Convert course objects back to strings for display
-              let courseNames = []
-              if (institute.courses && Array.isArray(institute.courses)) {
-                courseNames = institute.courses.map((course: any) => 
-                  typeof course === 'string' ? course : course.name || course
-                )
-              } else if (institute.specialization) {
-                // If no courses array, use specialization
-                courseNames = institute.specialization.split(', ').filter(course => course.trim())
-              }
-              setCourses(courseNames)
+              // Map existing courses into { name, duration, category }
+              const courseInputs: CourseInput[] = (institute.courses || []).map((course: any) => {
+                if (typeof course === 'string') {
+                  return { name: course, category: 'General' };
+                }
+                return { 
+                  name: course.name || '', 
+                  duration: course.duration || '', 
+                  category: course.category || course.department || 'General' 
+                };
+              });
+              setCourses(courseInputs)
               
               // Set preview images if they exist
               if (institute.logo) {
@@ -118,12 +127,18 @@ export default function EditInstitute() {
   }, [id, navigate, toast])
 
   const addCourse = () => {
-    if (newCourse.trim()) {
-      setCourses([...courses, newCourse.trim()]);
-      setNewCourse("");
+    if (newCourseName.trim() && newCourseDepartment.trim()) {
+      setCourses([...courses, { 
+        name: newCourseName.trim(), 
+        duration: newCourseDuration.trim(),
+        category: newCourseDepartment.trim()
+      }]);
+      setNewCourseName("");
+      setNewCourseDuration("");
+      setNewCourseDepartment("");
       setCourseError(null);
     } else {
-      setCourseError('Course name cannot be empty');
+      setCourseError('Course name and Department are required');
     }
   }
 
@@ -132,8 +147,8 @@ export default function EditInstitute() {
   }
 
   const nextStep = () => {
-    // If on the courses step and newCourse is not empty, add it
-    if (currentStep === 3 && newCourse.trim()) {
+    // If on the courses step and new fields are not empty, add it
+    if (currentStep === 3 && (newCourseName.trim() || newCourseDepartment.trim())) {
       addCourse();
       return; // Wait for the next click to actually go to the next step
     }
@@ -248,8 +263,9 @@ export default function EditInstitute() {
         }
       })
       
-      // Add courses as specialization (overwrite the original)
-      formData.append('specialization', courses.join(', '))
+      // Add courses as JSON string
+      formData.append('courses', JSON.stringify(courses))
+      formData.append('specialization', Array.from(new Set(courses.map(c => c.category))).join(', '))
       
       // Add files if selected
       if (logoFile) {
@@ -546,39 +562,71 @@ export default function EditInstitute() {
         return (
           <div className="space-y-6">
             <div>
-              <Label>Courses & Programs</Label>
-              <div className="mt-2 space-y-4">
-                <div className="flex space-x-2">
+              <Label>Departments & Courses *</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 mt-2">
+                <div className="sm:col-span-2">
                   <Input
-                    value={newCourse}
-                    onChange={(e) => setNewCourse(e.target.value)}
-                    placeholder="Enter course name"
-                    onKeyPress={(e) => e.key === 'Enter' && addCourse()}
+                    value={newCourseDepartment}
+                    onChange={(e) => setNewCourseDepartment(e.target.value)}
+                    placeholder="Department (e.g. CS)"
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
                   />
-                  <Button type="button" onClick={addCourse} variant="outline">
+                </div>
+                <div className="sm:col-span-2">
+                  <Input
+                    value={newCourseName}
+                    onChange={(e) => setNewCourseName(e.target.value)}
+                    placeholder="Course Name"
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
+                  />
+                </div>
+                <div className="sm:col-span-2 flex gap-2">
+                  <Input
+                    value={newCourseDuration}
+                    onChange={(e) => setNewCourseDuration(e.target.value)}
+                    placeholder="Duration"
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
+                  />
+                  <Button type="button" onClick={addCourse} variant="outline" size="icon" className="shrink-0">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                
-                {courseError && (
-                  <p className="text-sm text-red-600">{courseError}</p>
-                )}
+              </div>
+              
+              {courseError && (
+                <p className="text-sm text-red-600 mt-1">{courseError}</p>
+              )}
 
-                <div className="flex flex-wrap gap-2">
-                  {courses.map((course, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center space-x-1">
-                      <span>{course}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeCourse(index)}
-                        className="ml-1 hover:text-red-600"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
+              {courses.length > 0 && (
+                <div className="mt-6 space-y-4">
+                  {/* Group courses by department for display */}
+                  {Array.from(new Set(courses.map(c => c.category))).map(dept => (
+                    <div key={dept} className="space-y-2">
+                      <h4 className="text-sm font-semibold text-primary flex items-center gap-2">
+                        <Building2 className="h-3 w-3" />
+                        {dept} Department
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {courses.filter(c => c.category === dept).map((course, index) => (
+                          <Badge key={index} variant="secondary" className="gap-2 py-1.5 px-3">
+                            <span className="font-medium">{course.name}</span>
+                            {course.duration && (
+                              <span className="text-muted-foreground border-l pl-2 ml-1">{course.duration}</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setCourses(courses.filter(c => c !== course))}
+                              className="ml-1 hover:text-red-600"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )
@@ -627,12 +675,19 @@ export default function EditInstitute() {
               </div>
               
               <div className="mt-4">
-                <p className="text-sm font-medium text-gray-600">Courses ({courses.length})</p>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {courses.map((course, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {course}
-                    </Badge>
+                <p className="text-sm font-medium text-gray-600">Departments & Courses ({courses.length})</p>
+                <div className="space-y-2 mt-2">
+                  {Array.from(new Set(courses.map(c => c.category))).map(dept => (
+                    <div key={dept}>
+                      <p className="text-xs font-semibold text-primary">{dept}:</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {courses.filter(c => c.category === dept).map((course, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {course.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>

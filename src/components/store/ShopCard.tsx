@@ -36,11 +36,11 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
     >
       <Card className="overflow-hidden border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
         {/* Shop Image */}
-        <div className="relative h-40 sm:h-48 overflow-hidden">
+        <div className="relative h-40 sm:h-48 overflow-hidden bg-muted/30">
           <motion.img
             src={shop.shopBanner || shop.shopLogo}
             alt={shop.shopName}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
             whileHover={{ scale: 1.05 }}
           />
           

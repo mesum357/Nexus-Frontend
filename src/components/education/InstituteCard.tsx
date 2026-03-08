@@ -179,7 +179,7 @@ export default function InstituteCard({ institute, index, currentUser }: Institu
 
           {/* Courses Offered */}
           <div className="mb-3 sm:mb-4">
-            <p className="text-xs text-muted-foreground mb-2">Courses Offered (3 shown):</p>
+            <p className="text-xs text-muted-foreground mb-2">Departments Offered (3 shown):</p>
             <div className="flex flex-wrap gap-1">
               {institute.specialization ?
                 institute.specialization.split(', ').slice(0, 3).map((course, idx) => (

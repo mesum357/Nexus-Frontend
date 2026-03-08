@@ -17,17 +17,20 @@ import { COUNTRIES, CITIES_BY_COUNTRY, DEFAULT_COUNTRY } from '@/lib/countries'
 const categories = BUSINESS_CATEGORIES.map(cat => cat.value)
 
 interface StoreFiltersProps {
-  onFilter: (filters: { country: string; city: string; category: string; search: string }) => void
+  onFilter: (filters: { country: string; city: string; area: string; category: string; search: string }) => void
+  availableAreas: string[]
 }
 
-export default function StoreFilters({ onFilter }: StoreFiltersProps) {
+export default function StoreFilters({ onFilter, availableAreas }: StoreFiltersProps) {
   const [country, setCountry] = useState('')
   const [city, setCity] = useState('')
+  const [area, setArea] = useState('')
   const [category, setCategory] = useState('')
   const [search, setSearch] = useState('')
   const [citySearch, setCitySearch] = useState('')
   const [categorySearch, setCategorySearch] = useState('')
   const [countrySearch, setCountrySearch] = useState('')
+  const [areaSearch, setAreaSearch] = useState('')
   const [availableCities, setAvailableCities] = useState(CITIES_BY_COUNTRY[DEFAULT_COUNTRY] || [])
   const [showCustomCityInput, setShowCustomCityInput] = useState(false)
   const [customCityValue, setCustomCityValue] = useState('')
@@ -46,18 +49,20 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
   }, [country])
 
   const handleFilterChange = () => {
-    onFilter({ country, city, category, search })
+    onFilter({ country, city, area, category, search })
   }
 
   const clearFilters = () => {
     setCountry('')
     setCity('')
+    setArea('')
     setCategory('')
     setSearch('')
     setCitySearch('')
     setCategorySearch('')
     setCountrySearch('')
-    onFilter({ country: '', city: '', category: '', search: '' })
+    setAreaSearch('')
+    onFilter({ country: '', city: '', area: '', category: '', search: '' })
   }
 
   // Filter countries based on search
@@ -94,7 +99,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
               onChange={(e) => {
                 setSearch(e.target.value)
                 setTimeout(() => {
-                  onFilter({ country, city, category, search: e.target.value })
+                  onFilter({ country, city, area, category, search: e.target.value })
                 }, 300)
               }}
               className="pl-10 rounded-full border-border focus:border-primary h-11 sm:h-10"
@@ -112,7 +117,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
               <Select value={country} onValueChange={(value) => {
                 setCountry(value)
                 setTimeout(() => {
-                  onFilter({ country: value, city: '', category, search })
+                  onFilter({ country: value, city: '', area: '', category, search })
                 }, 100)
               }}>
                 <SelectTrigger className="rounded-full border-border focus:border-primary h-11 sm:h-10">
@@ -157,7 +162,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
                   setCity(value)
                   setShowCustomCityInput(false)
                   setTimeout(() => {
-                    onFilter({ country, city: value, category, search })
+                    onFilter({ country, city: value, area: '', category, search })
                   }, 100)
                 }
               }}>
@@ -246,6 +251,48 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
               </Select>
             </motion.div>
 
+            {/* Area Filter */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+              className="w-full sm:w-48"
+            >
+              <Select value={area} onValueChange={(value) => {
+                setArea(value)
+                setTimeout(() => {
+                  onFilter({ country, city, area: value, category, search })
+                }, 100)
+              }}>
+                <SelectTrigger className="rounded-full border-border focus:border-primary h-11 sm:h-10">
+                  <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Select Area" />
+                </SelectTrigger>
+                <SelectContent>
+                  <div className="p-2">
+                    <Input
+                      placeholder="Search areas..."
+                      value={areaSearch}
+                      onChange={(e) => setAreaSearch(e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <SelectItem value="all">All Areas</SelectItem>
+                  {availableAreas
+                    .filter(a => a.toLowerCase().includes(areaSearch.toLowerCase()))
+                    .map((a) => (
+                      <SelectItem key={a} value={a}>
+                        {a}
+                      </SelectItem>
+                    ))}
+                  {availableAreas.filter(a => a.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && (
+                    <div className="px-2 py-1 text-sm text-muted-foreground">
+                      No areas found
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </motion.div>
+
             {/* Category Filter */}
             <motion.div
               whileHover={{ scale: 1.02 }}
@@ -255,7 +302,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
               <Select value={category} onValueChange={(value) => {
                 setCategory(value)
                 setTimeout(() => {
-                  onFilter({ country, city, category: value, search })
+                  onFilter({ country, city, area, category: value, search })
                 }, 100)
               }}>
                 <SelectTrigger className="rounded-full border-border focus:border-primary h-11 sm:h-10">
@@ -288,7 +335,7 @@ export default function StoreFilters({ onFilter }: StoreFiltersProps) {
             </motion.div>
 
             {/* Clear Filters Button */}
-            {(country || city || category || search) && (
+            {(country || city || area || category || search) && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}

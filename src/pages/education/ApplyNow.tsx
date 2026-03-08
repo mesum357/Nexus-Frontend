@@ -39,6 +39,7 @@ export default function ApplyNow() {
   const [fatherName, setFatherName] = useState('')
   const [cnic, setCnic] = useState('')
   const [city, setCity] = useState('')
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('')
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
   const [courseDuration, setCourseDuration] = useState('')
   const { toast } = useToast()
@@ -80,6 +81,14 @@ export default function ApplyNow() {
     }
     fetchInstitute()
   }, [id])
+
+  // Get unique departments from courses
+  const departments = [...new Set(courses.map(c => c.category || 'General'))].filter(Boolean)
+
+  // Sub-filter courses based on selected department
+  const filteredCourses = selectedDepartment 
+    ? courses.filter(c => (c.category || 'General') === selectedDepartment)
+    : []
 
   useEffect(() => {
     const course = courses.find(c => String(c._id || c.name) === selectedCourseId)
@@ -191,16 +200,38 @@ export default function ApplyNow() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
+                      <Label>Department</Label>
+                      <Select
+                        value={selectedDepartment}
+                        onValueChange={(value) => {
+                          setSelectedDepartment(value);
+                          setSelectedCourseId(''); // Reset course when department changes
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={departments.length ? 'Select a department' : 'No departments available'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departments.map((dept) => (
+                            <SelectItem key={dept} value={dept}>
+                              {dept}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
                       <Label>Course</Label>
                       <Select
                         value={selectedCourseId}
                         onValueChange={setSelectedCourseId}
+                        disabled={!selectedDepartment}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={courses.length ? 'Select a course' : 'No courses available'} />
+                          <SelectValue placeholder={!selectedDepartment ? 'Select department first' : (filteredCourses.length ? 'Select a course' : 'No courses in this dept')} />
                         </SelectTrigger>
                         <SelectContent>
-                          {courses.map((course) => (
+                          {filteredCourses.map((course) => (
                             <SelectItem key={String(course._id || course.name)} value={String(course._id || course.name)}>
                               {course.name}
                             </SelectItem>
@@ -208,6 +239,9 @@ export default function ApplyNow() {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="duration">Duration</Label>
                       <Input id="duration" value={courseDuration} readOnly placeholder="Auto-filled" />

@@ -11,6 +11,8 @@ import Navbar from '@/components/Navbar'
 import { useToast } from '@/hooks/use-toast'
 import { useState } from 'react'
 import { RichTextDisplay } from '@/components/ui/rich-text-display'
+import QRCode from 'qrcode'
+import { useEffect } from 'react'
 
 // Mock shop data
 const shopData = {
@@ -46,7 +48,8 @@ const shopData = {
       image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=300&h=300&fit=crop",
       price: "PKR 2,500",
       originalPrice: "PKR 3,000",
-      discount: 17
+      discount: 17,
+      isFeatured: true
     },
     {
       id: 2,
@@ -54,7 +57,8 @@ const shopData = {
       image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=300&h=300&fit=crop",
       price: "PKR 4,500",
       originalPrice: null,
-      discount: 0
+      discount: 0,
+      isFeatured: true
     },
     {
       id: 3,
@@ -62,7 +66,8 @@ const shopData = {
       image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=300&fit=crop",
       price: "PKR 3,200",
       originalPrice: "PKR 4,000",
-      discount: 20
+      discount: 20,
+      isFeatured: false
     }
   ],
   reviews: [
@@ -90,25 +95,78 @@ export default function ShopDetail() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [sharing, setSharing] = useState(false)
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
+
+  useEffect(() => {
+    const generateQR = async () => {
+      try {
+        const shopUrl = `${window.location.origin}/store/shop/${shopId}`
+        const url = await QRCode.toDataURL(shopUrl, {
+          width: 300,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
+          },
+        })
+        setQrCodeUrl(url)
+      } catch (err) {
+        console.error('Error generating QR code:', err)
+      }
+    }
+    generateQR()
+  }, [shopId])
 
   const handleShare = async () => {
     setSharing(true)
     
     try {
       const shopUrl = `${window.location.origin}/store/shop/${shopId}`
-      await navigator.clipboard.writeText(shopUrl)
-      
-      toast({
-        title: "Link copied!",
-        description: "Shop link has been copied to your clipboard.",
-      })
+      const shareData: ShareData = {
+        title: shopData.name,
+        text: `Check out ${shopData.name} on Nexus!`,
+        url: shopUrl,
+      }
+
+      // Check if Web Share API supports files
+      if (navigator.share && navigator.canShare && qrCodeUrl) {
+        try {
+          const response = await fetch(qrCodeUrl)
+          const blob = await response.blob()
+          const file = new File([blob], 'shop-qr.png', { type: 'image/png' })
+          
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              ...shareData,
+              files: [file]
+            })
+            return
+          }
+        } catch (fileError) {
+          console.error('Error sharing file:', fileError)
+        }
+      }
+
+      // Fallback to sharing only text/url
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shopUrl)
+        toast({
+          title: "Link copied!",
+          description: "Shop link has been copied to your clipboard.",
+        })
+      }
     } catch (error) {
-      console.error('Failed to copy link:', error)
-      toast({
-        title: "Error",
-        description: "Failed to copy link. Please try again.",
-        variant: "destructive",
-      })
+      if ((error as any).name !== 'AbortError') {
+        console.error('Failed to share:', error)
+        toast({
+          title: "Error",
+          description: "Failed to share shop. Please try again.",
+          variant: "destructive",
+        })
+      }
     } finally {
       setSharing(false)
     }
@@ -234,13 +292,30 @@ export default function ShopDetail() {
                           variant="outline"
                           onClick={handleShare}
                           disabled={sharing}
+                          className="relative group"
                         >
                           <Share2 className="h-4 w-4 mr-2" />
-                          {sharing ? 'Copying...' : 'Share'}
+                          {sharing ? 'Sharing...' : 'Share'}
                         </Button>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* QR Code Section */}
+                  {qrCodeUrl && (
+                    <div className="hidden lg:flex flex-col items-center justify-center pl-6 border-l">
+                      <div className="bg-white p-2 rounded-lg shadow-sm mb-2 border">
+                        <img 
+                          src={qrCodeUrl} 
+                          alt="Shop QR Code" 
+                          className="w-24 h-24"
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                        Scan to Share
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -253,6 +328,47 @@ export default function ShopDetail() {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="py-8"
           >
+            {/* Featured Products Section */}
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <Star className="h-6 w-6 text-yellow-500 fill-current" />
+                Featured Products
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {shopData.products.filter(p => p.isFeatured).map((product, index) => (
+                  <motion.div
+                    key={`featured-${product.id}`}
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.1 * index }}
+                  >
+                    <Card className="overflow-hidden border-2 border-primary/10 hover:border-primary/30 transition-all hover:shadow-lg group">
+                      <div className="relative aspect-square">
+                        <img 
+                          src={product.image} 
+                          alt={product.name} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute top-2 right-2">
+                          <Badge className="bg-yellow-500 hover:bg-yellow-600 border-none">Featured</Badge>
+                        </div>
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-lg line-clamp-1">{product.name}</h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xl font-bold text-primary">{product.price}</span>
+                          {product.originalPrice && (
+                            <span className="text-sm text-muted-foreground line-through">{product.originalPrice}</span>
+                          )}
+                        </div>
+                        <Button className="w-full mt-4" variant="outline">View Product</Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
             <Tabs defaultValue="products" className="w-full">
               <TabsList className="grid w-full grid-cols-3 max-w-md">
                 <TabsTrigger value="products">Products</TabsTrigger>

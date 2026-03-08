@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, Plus, X, Crop, ExternalLink, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Upload, Plus, X, Crop, ExternalLink, CheckCircle2, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,7 +26,7 @@ const steps = [
   "Basic Information",
   "Contact Details", 
   "Media & Branding",
-  "Courses & Programs",
+  "Departments & Courses",
   "Payment Section",
   "Review & Submit"
 ]
@@ -34,6 +34,7 @@ const steps = [
 interface CourseInput {
   name: string;
   duration?: string;
+  category: string;
 }
 
 export default function CreateInstitute() {
@@ -43,6 +44,7 @@ export default function CreateInstitute() {
   const [courses, setCourses] = useState<CourseInput[]>([])
   const [newCourseName, setNewCourseName] = useState("")
   const [newCourseDuration, setNewCourseDuration] = useState("")
+  const [newCourseDepartment, setNewCourseDepartment] = useState("")
   const [form, setForm] = useState<any>({})
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [bannerFile, setBannerFile] = useState<File | null>(null)
@@ -108,13 +110,18 @@ export default function CreateInstitute() {
   }, [id, navigate])
 
   const addCourse = () => {
-    if (newCourseName.trim()) {
-      setCourses([...courses, { name: newCourseName.trim(), duration: newCourseDuration.trim() }]);
+    if (newCourseName.trim() && newCourseDepartment.trim()) {
+      setCourses([...courses, { 
+        name: newCourseName.trim(), 
+        duration: newCourseDuration.trim(),
+        category: newCourseDepartment.trim()
+      }]);
       setNewCourseName("");
       setNewCourseDuration("");
+      setNewCourseDepartment("");
       setCourseError(null);
     } else {
-      setCourseError('Course name cannot be empty');
+      setCourseError('Course name and Department are required');
     }
   }
 
@@ -144,7 +151,7 @@ export default function CreateInstitute() {
 
   const nextStep = () => {
     // If on the courses step and pending course name is not empty, add it
-    if (currentStep === 3 && newCourseName.trim()) {
+    if (currentStep === 3 && (newCourseName.trim() || newCourseDepartment.trim())) {
       addCourse();
       return; // Wait for the next click to actually go to the next step
     }
@@ -470,41 +477,63 @@ export default function CreateInstitute() {
         return (
       <div className="space-y-6">
             <div>
-              <Label>Courses & Programs *</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 mt-2">
-                <div className="sm:col-span-3">
+              <Label>Departments & Courses *</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 mt-2">
+                <div className="sm:col-span-2">
                   <Input
-                    value={newCourseName}
-                    onChange={(e) => setNewCourseName(e.target.value)}
-                    placeholder="Enter course name"
+                    value={newCourseDepartment}
+                    onChange={(e) => setNewCourseDepartment(e.target.value)}
+                    placeholder="Department (e.g. CS)"
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
                   />
                 </div>
                 <div className="sm:col-span-2">
                   <Input
-                    value={newCourseDuration}
-                    onChange={(e) => setNewCourseDuration(e.target.value)}
-                    placeholder="Duration (e.g. 6 months)"
+                    value={newCourseName}
+                    onChange={(e) => setNewCourseName(e.target.value)}
+                    placeholder="Course Name"
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
                   />
                 </div>
+                <div className="sm:col-span-2 flex gap-2">
+                  <Input
+                    value={newCourseDuration}
+                    onChange={(e) => setNewCourseDuration(e.target.value)}
+                    placeholder="Duration"
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCourse(); } }}
+                  />
+                  <Button onClick={addCourse} type="button" size="icon" className="shrink-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="mt-2">
-                <Button onClick={addCourse} type="button">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
+              
               {courseError && <div className="text-xs text-red-500 mt-1">{courseError}</div>}
+              
               {courses.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {courses.map((course, index) => (
-                    <Badge key={index} variant="secondary" className="gap-2">
-                      {course.name}{course.duration ? ` • ${course.duration}` : ''}
-                      <X 
-                        className="h-3 w-3 cursor-pointer" 
-                        onClick={() => removeCourse(index)}
-                      />
-                    </Badge>
+                <div className="mt-6 space-y-4">
+                  {/* Group courses by department for display */}
+                  {Array.from(new Set(courses.map(c => c.category))).map(dept => (
+                    <div key={dept} className="space-y-2">
+                      <h4 className="text-sm font-semibold text-primary flex items-center gap-2">
+                        <Building2 className="h-3 w-3" />
+                        {dept} Department
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {courses.filter(c => c.category === dept).map((course, index) => (
+                          <Badge key={index} variant="secondary" className="gap-2 py-1.5 px-3">
+                            <span className="font-medium">{course.name}</span>
+                            {course.duration && (
+                              <span className="text-muted-foreground border-l pl-2 ml-1">{course.duration}</span>
+                            )}
+                            <X 
+                              className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors" 
+                              onClick={() => setCourses(courses.filter(c => c !== course))}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}

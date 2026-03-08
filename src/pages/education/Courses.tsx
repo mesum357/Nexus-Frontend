@@ -251,7 +251,7 @@ export default function Courses() {
                     />
                   </div>
                   
-                  {/* Category Filter */}
+                  {/* Department Filter */}
                   <div className="flex gap-2 flex-wrap">
                     <Button
                       variant={selectedCategory === 'all' ? 'default' : 'outline'}

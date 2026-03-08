@@ -44,12 +44,14 @@ export default function Hospital() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('all')
   const [selectedCity, setSelectedCity] = useState('all')
+  const [selectedArea, setSelectedArea] = useState('all')
   const [selectedType, setSelectedType] = useState('all')
   const [hospitals, setHospitals] = useState<HospitalType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
   const [availableCities, setAvailableCities] = useState<{ value: string; label: string }[]>([])
   const [citySearch, setCitySearch] = useState('')
+  const [areaSearch, setAreaSearch] = useState('')
   const [showCustomCityInput, setShowCustomCityInput] = useState(false)
   const [customCityValue, setCustomCityValue] = useState('')
 
@@ -119,9 +121,17 @@ export default function Hospital() {
       (hospital.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCountry = selectedCountry === 'all' || ((hospital as any).country || 'Pakistan').toLowerCase() === selectedCountry.toLowerCase()
     const matchesCity = selectedCity === 'all' || (hospital.city || '').includes(selectedCity)
+    const matchesArea = selectedArea === 'all' || (hospital as any).address?.toLowerCase().includes(selectedArea.toLowerCase()) || (hospital as any).location?.toLowerCase().includes(selectedArea.toLowerCase())
     const matchesType = selectedType === 'all' || (hospital.type || '').toLowerCase().includes(selectedType.toLowerCase())
-    return matchesSearch && matchesCountry && matchesCity && matchesType
+    return matchesSearch && matchesCountry && matchesCity && matchesArea && matchesType
   })
+
+  // Extract unique areas from hospital addresses
+  const availableAreas = Array.from(new Set(
+    hospitals
+      .map(h => (h as any).address || (h as any).location)
+      .filter((addr): addr is string => !!addr && addr.trim() !== '')
+  )).sort();
 
   return (
     <div className="min-h-screen bg-background">
@@ -294,6 +304,33 @@ export default function Hospital() {
                             </SelectItem>
                           )}
                         </div>
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedArea} onValueChange={setSelectedArea}>
+                      <SelectTrigger className="w-full sm:w-48 h-11 sm:h-10">
+                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <SelectValue placeholder="Select Area" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <div className="p-2">
+                          <Input
+                            placeholder="Search areas..."
+                            value={areaSearch}
+                            onChange={(e) => setAreaSearch(e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <SelectItem value="all">All Areas</SelectItem>
+                        {availableAreas
+                          .filter(area => area.toLowerCase().includes(areaSearch.toLowerCase()))
+                          .map(area => (
+                            <SelectItem key={area} value={area}>{area}</SelectItem>
+                          ))}
+                        {availableAreas.filter(area => area.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && areaSearch && (
+                          <div className="px-2 py-1 text-sm text-muted-foreground">
+                            No areas found
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                     <Select value={selectedType} onValueChange={setSelectedType}>
