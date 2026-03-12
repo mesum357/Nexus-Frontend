@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import { useToast } from '@/hooks/use-toast'
 import marketImage from '@/assets/market.avif'
-import { COUNTRIES, CITIES_BY_COUNTRY } from '@/lib/countries'
+import { COUNTRIES, CITIES_BY_COUNTRY, getAreasForCity } from '@/lib/countries'
 
 
 
@@ -360,6 +360,7 @@ export default function Marketplace() {
                             setShowCustomCityInput(true)
                           } else {
                             setSelectedCity(value)
+                            setSelectedArea('all') // Reset area when city changes
                             setShowCustomCityInput(false)
                           }
                         }}
@@ -462,15 +463,21 @@ export default function Marketplace() {
                             />
                           </div>
                           <SelectItem value="all">All Areas</SelectItem>
-                          {Array.from(new Set(products.map((p: any) => p.location).filter(Boolean)))
-                            .filter((area: any) => area.toLowerCase().includes(areaSearch.toLowerCase()))
-                            .sort()
-                            .map((area: any) => (
-                              <SelectItem key={area} value={area}>
-                                {area}
-                              </SelectItem>
-                            ))}
-                          {Array.from(new Set(products.map((p: any) => p.location).filter(Boolean)))
+                          {selectedCity !== 'all' ? (
+                            getAreasForCity(selectedCity).filter((area: any) => area.toLowerCase().includes(areaSearch.toLowerCase())).map((area: any) => (
+                              <SelectItem key={area} value={area}>{area}</SelectItem>
+                            ))
+                          ) : (
+                            Array.from(new Set(products.map((p: any) => p.area || p.location).filter(Boolean)))
+                              .filter((area: any) => area.toLowerCase().includes(areaSearch.toLowerCase()))
+                              .sort()
+                              .map((area: any) => (
+                                <SelectItem key={area} value={area}>
+                                  {area}
+                                </SelectItem>
+                              ))
+                          )}
+                          {Array.from(new Set(products.map((p: any) => p.area || p.location).filter(Boolean)))
                             .filter((area: any) => area.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && areaSearch && (
                             <div className="px-2 py-1 text-sm text-muted-foreground">
                               No areas found

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BUSINESS_CATEGORIES } from '@/lib/categories'
-import { COUNTRIES, CITIES_BY_COUNTRY, DEFAULT_COUNTRY } from '@/lib/countries'
+import { COUNTRIES, CITIES_BY_COUNTRY, DEFAULT_COUNTRY, getAreasForCity } from '@/lib/countries'
 
 // Use the same categories as the create shop section
 const categories = BUSINESS_CATEGORIES.map(cat => cat.value)
@@ -40,7 +40,9 @@ export default function StoreFilters({ onFilter, availableAreas }: StoreFiltersP
     if (country) {
       setAvailableCities(CITIES_BY_COUNTRY[country] || [])
       setCity('') // Reset city when country changes
+      setArea('') // Also reset area
       setCitySearch('')
+      setAreaSearch('')
     } else {
       // If no country selected, show all cities from all countries
       const allCities = Object.values(CITIES_BY_COUNTRY).flat()
@@ -78,6 +80,11 @@ export default function StoreFilters({ onFilter, availableAreas }: StoreFiltersP
   // Filter categories based on search
   const filteredCategories = categories.filter(cat =>
     cat.toLowerCase().includes(categorySearch.toLowerCase())
+  )
+
+  // Filter areas based on search and city
+  const filteredAreas = getAreasForCity(city).filter(a =>
+    a.toLowerCase().includes(areaSearch.toLowerCase())
   )
 
   return (
@@ -205,7 +212,7 @@ export default function StoreFilters({ onFilter, availableAreas }: StoreFiltersP
                                 setCustomCityValue('')
                                 setShowCustomCityInput(false)
                                 setTimeout(() => {
-                                  onFilter({ country, city: customCityValue.trim(), category, search })
+                                  onFilter({ country, city: customCityValue.trim(), area: '', category, search })
                                 }, 100)
                               } else if (e.key === 'Escape') {
                                 setShowCustomCityInput(false)
@@ -224,7 +231,7 @@ export default function StoreFilters({ onFilter, availableAreas }: StoreFiltersP
                                 setCustomCityValue('')
                                 setShowCustomCityInput(false)
                                 setTimeout(() => {
-                                  onFilter({ country, city: customCityValue.trim(), category, search })
+                                  onFilter({ country, city: customCityValue.trim(), area: '', category, search })
                                 }, 100)
                               }
                             }}
@@ -277,16 +284,14 @@ export default function StoreFilters({ onFilter, availableAreas }: StoreFiltersP
                     />
                   </div>
                   <SelectItem value="all">All Areas</SelectItem>
-                  {availableAreas
-                    .filter(a => a.toLowerCase().includes(areaSearch.toLowerCase()))
-                    .map((a) => (
-                      <SelectItem key={a} value={a}>
-                        {a}
-                      </SelectItem>
-                    ))}
-                  {availableAreas.filter(a => a.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && (
+                  {filteredAreas.map((a) => (
+                    <SelectItem key={a} value={a}>
+                      {a}
+                    </SelectItem>
+                  ))}
+                  {filteredAreas.length === 0 && (
                     <div className="px-2 py-1 text-sm text-muted-foreground">
-                      No areas found
+                      {city ? 'No areas found for this city' : 'Select a city first'}
                     </div>
                   )}
                 </SelectContent>

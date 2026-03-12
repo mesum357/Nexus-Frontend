@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShopData } from '@/types/shop';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY } from '@/lib/countries';
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY, getAreasForCity } from '@/lib/countries';
 
 interface ShopInformationStepProps {
   data: ShopData;
@@ -22,7 +22,7 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
 
   // Handle country change - reset city when country changes
   const handleCountryChange = (country: string) => {
-    updateData({ country, city: '' });
+    updateData({ country, city: '', area: '' });
   };
 
   return (
@@ -70,12 +70,28 @@ const ShopInformationStep: React.FC<ShopInformationStepProps> = ({ data, updateD
 
         {/* Address */}
         <div className="space-y-2">
+          <Label htmlFor="area" className="text-sm font-medium">
+            Area <span className="text-destructive">*</span>
+          </Label>
+          <SearchableSelect
+            value={data.area || ''}
+            onValueChange={(value) => {
+              updateData({ area: value });
+            }}
+            placeholder="Select your area"
+            options={getAreasForCity(data.city).map(area => ({ value: area, label: area }))}
+            disabled={!data.city}
+          />
+        </div>
+
+        {/* Full Address */}
+        <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="address" className="text-sm font-medium">
-            Shop Address
+            Full Address
           </Label>
           <Input
             id="address"
-            placeholder="Street address, area, nearby landmark"
+            placeholder="Street address, nearby landmark (e.g. House #123, Street 4)"
             value={data.address || ''}
             onChange={(e) => updateData({ address: e.target.value })}
             className="transition-all duration-200 focus:ring-2 focus:ring-primary/20 h-10 sm:h-10"

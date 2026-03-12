@@ -20,7 +20,7 @@ import { ImageCropper } from '@/components/ui/image-cropper'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import PaymentSection from '@/components/PaymentSection'
 import TermsAndPolicies from '@/components/ui/TermsAndPolicies'
-import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY } from '@/lib/countries'
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY, getAreasForCity } from '@/lib/countries'
 
 const steps = [
   "Basic Information",
@@ -321,7 +321,7 @@ export default function CreateInstitute() {
                 <Label htmlFor="country">Country *</Label>
                 <SearchableSelect
                   value={form.country || DEFAULT_COUNTRY}
-                  onValueChange={(value) => setForm({ ...form, country: value, city: '' })}
+                  onValueChange={(value) => setForm({ ...form, country: value, city: '', area: '' })}
                   placeholder="Select country"
                   options={COUNTRIES}
                 />
@@ -330,9 +330,19 @@ export default function CreateInstitute() {
                 <Label htmlFor="city">City *</Label>
                 <SearchableSelect
                   value={form.city}
-                  onValueChange={(value) => setForm({ ...form, city: value })}
+                  onValueChange={(value) => setForm({ ...form, city: value, area: '' })}
                   placeholder="Select city"
                   options={getCitiesForCountry(form.country || DEFAULT_COUNTRY)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="area">Area *</Label>
+                <SearchableSelect
+                  value={form.area}
+                  onValueChange={(value) => setForm({ ...form, area: value })}
+                  placeholder="Select area"
+                  options={getAreasForCity(form.city).map(area => ({ value: area, label: area }))}
+                  disabled={!form.city}
                 />
               </div>
               <div>

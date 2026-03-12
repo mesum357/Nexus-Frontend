@@ -11,6 +11,8 @@ import { API_BASE_URL } from '@/lib/config'
 export interface Shop {
   _id: string;
   shopName: string;
+  country?: string;
+  area?: string;
   city: string;
   address?: string;
   shopType?: 'Product Seller' | 'Service Provider';
@@ -40,23 +42,11 @@ export default function Store() {
   useEffect(() => {
     const fetchShops = async () => {
       try {
-        console.log('🛍️ Fetching shops from:', `${API_BASE_URL}/api/shop/all`);
         const response = await fetch(`${API_BASE_URL}/api/shop/all`);
         const data = await response.json();
-        console.log('🛍️ Shops data received:', data);
+        console.log('🛍️ Store.tsx - Shops received from API:', data.shops);
         
         if (Array.isArray(data.shops)) {
-          console.log('🛍️ Number of shops:', data.shops.length);
-          data.shops.forEach((shop, index) => {
-            console.log(`   Shop ${index + 1}:`, {
-              name: shop.shopName,
-              logo: shop.shopLogo,
-              banner: shop.shopBanner,
-              ownerDp: shop.ownerDp,
-              approvalStatus: shop.approvalStatus
-            });
-          });
-          
           setShops(data.shops);
           setFilteredShops(data.shops);
         } else {
@@ -81,7 +71,7 @@ export default function Store() {
     let filtered = shops;
     if (filters.country) {
       filtered = filtered.filter(shop => 
-        (shop as any).country?.toLowerCase() === filters.country.toLowerCase()
+        shop.country?.toLowerCase() === filters.country.toLowerCase()
       );
     }
     if (filters.city) {
@@ -90,9 +80,15 @@ export default function Store() {
       );
     }
     if (filters.area && filters.area !== 'all') {
-      filtered = filtered.filter(shop => 
-        shop.address?.toLowerCase().includes(filters.area.toLowerCase())
-      );
+      const filterArea = filters.area.toLowerCase();
+      console.log(`🔍 Filtering for area: "${filterArea}"`);
+      filtered = filtered.filter(shop => {
+        const shopArea = (shop.area || '').toLowerCase();
+        const match = shopArea === filterArea || shopArea.includes(filterArea);
+        
+        console.log(`   - Checking Shop: "${shop.shopName}" | Area: "${shop.area}" | Match: ${match}`);
+        return match;
+      });
     }
     if (filters.category) {
       filtered = filtered.filter(shop => 
@@ -105,14 +101,15 @@ export default function Store() {
         (shop.shopDescription || '').toLowerCase().includes(filters.search.toLowerCase())
       );
     }
+    console.log(`🎯 Shops remaining after filter: ${filtered.length}`);
     setFilteredShops(filtered);
   }
 
-  // Extract unique areas from addresses
+  // Extract unique areas from the area field only
   const availableAreas = Array.from(new Set(
     shops
-      .map(shop => shop.address)
-      .filter((address): address is string => !!address && address.trim() !== '')
+      .map(shop => shop.area)
+      .filter((area): area is string => !!area && area.trim() !== '')
   )).sort();
 
   return (

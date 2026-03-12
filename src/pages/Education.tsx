@@ -11,13 +11,15 @@ import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import Logo from '@/assets/globeLogo.png'
 import bgImage from '@/assets/colege.avif'
-import { COUNTRIES, CITIES_BY_COUNTRY } from '@/lib/countries'
+import { COUNTRIES, CITIES_BY_COUNTRY, getAreasForCity } from '@/lib/countries'
 
 // Define Institute type
 interface Institute {
   _id: string;
   name: string;
+  country?: string;
   city?: string;
+  area?: string;
   type?: string;
   logo?: string;
   banner?: string;
@@ -32,6 +34,8 @@ interface Institute {
   phone?: string;
   email?: string;
   owner?: string;
+  address?: string;
+  location?: string;
 }
 
 // Add CurrentUser type
@@ -108,7 +112,10 @@ export default function Education() {
       (institute.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCountry = selectedCountry === 'all' || ((institute as any).country || 'Pakistan').toLowerCase() === selectedCountry.toLowerCase()
     const matchesCity = selectedCity === 'all' || (institute.city || '').includes(selectedCity)
-    const matchesArea = selectedArea === 'all' || (institute as any).address?.toLowerCase().includes(selectedArea.toLowerCase()) || (institute as any).location?.toLowerCase().includes(selectedArea.toLowerCase())
+    const matchesArea = selectedArea === 'all' || 
+      (institute.area ? institute.area.toLowerCase().includes(selectedArea.toLowerCase()) :
+      ((institute as any).address?.toLowerCase().includes(selectedArea.toLowerCase()) || 
+       (institute as any).location?.toLowerCase().includes(selectedArea.toLowerCase())))
     const matchesType = selectedType === 'all' || (institute.type || '').toLowerCase().includes(selectedType.toLowerCase())
     const isHospitalByName = hospitalNames.has(String(institute.name || '').trim())
     return matchesSearch && matchesCountry && matchesCity && matchesArea && matchesType && !isHospitalByName
@@ -230,6 +237,7 @@ export default function Education() {
                           setShowCustomCityInput(true)
                         } else {
                           setSelectedCity(value)
+                          setSelectedArea('all') // Reset area when city changes
                           setShowCustomCityInput(false)
                         }
                       }}
@@ -326,11 +334,17 @@ export default function Education() {
                           />
                         </div>
                         <SelectItem value="all">All Areas</SelectItem>
-                        {availableAreas
-                          .filter(area => area.toLowerCase().includes(areaSearch.toLowerCase()))
-                          .map(area => (
+                        {selectedCity !== 'all' ? (
+                          getAreasForCity(selectedCity).filter(area => area.toLowerCase().includes(areaSearch.toLowerCase())).map(area => (
                             <SelectItem key={area} value={area}>{area}</SelectItem>
-                          ))}
+                          ))
+                        ) : (
+                          availableAreas
+                            .filter(area => area.toLowerCase().includes(areaSearch.toLowerCase()))
+                            .map(area => (
+                              <SelectItem key={area} value={area}>{area}</SelectItem>
+                            ))
+                        )}
                         {availableAreas.filter(area => area.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && areaSearch && (
                           <div className="px-2 py-1 text-sm text-muted-foreground">
                             No areas found

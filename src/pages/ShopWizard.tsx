@@ -50,6 +50,7 @@ const ShopWizard: React.FC = () => {
     whatsappNumber: '',
     websiteUrl: '',
     products: [],
+    area: '',
     acceptTerms: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -16,7 +16,7 @@ import { API_BASE_URL } from '@/lib/config';
 import { ImageCropper } from '@/components/ui/image-cropper';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import PaymentSection from '@/components/PaymentSection';
-import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY } from '@/lib/countries';
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY, getAreasForCity } from '@/lib/countries';
 
 const categories = [
   'Electronics',
@@ -65,6 +65,7 @@ export default function CreateProduct() {
     location: '',
     country: DEFAULT_COUNTRY,
     city: '',
+    area: '',
     contactPreference: 'both',
     ownerPhone: '',
     ownerEmail: '',
@@ -416,7 +417,7 @@ export default function CreateProduct() {
                         <SearchableSelect
                           value={formData.country}
                           onValueChange={(value) => {
-                            setFormData(prev => ({ ...prev, country: value, city: '' }));
+                            setFormData(prev => ({ ...prev, country: value, city: '', area: '' }));
                           }}
                           placeholder="Select country"
                           options={COUNTRIES}
@@ -428,7 +429,7 @@ export default function CreateProduct() {
                         <label className="text-sm font-medium">City *</label>
                         <SearchableSelect
                           value={formData.city}
-                          onValueChange={(value) => handleSelectChange('city', value)}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, city: value, area: '' }))}
                           placeholder="Select city"
                           options={getCitiesForCountry(formData.country)}
                           allowCustom={true}
@@ -436,12 +437,22 @@ export default function CreateProduct() {
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium">Location *</label>
+                        <label className="text-sm font-medium">Area *</label>
+                        <SearchableSelect
+                          value={formData.area}
+                          onValueChange={(value) => handleSelectChange('area', value)}
+                          placeholder="Select area"
+                          options={getAreasForCity(formData.city).map(area => ({ value: area, label: area }))}
+                          disabled={!formData.city}
+                        />
+                      </div>
+                      <div className="sm:col-span-3">
+                        <label className="text-sm font-medium">Detailed Location</label>
                         <Input
                           name="location"
                           value={formData.location}
                           onChange={handleInputChange}
-                          placeholder="Enter location (e.g., street, area)"
+                          placeholder="Enter street address, nearby landmark"
                           className="h-10"
                         />
                       </div>
@@ -717,7 +728,7 @@ export default function CreateProduct() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-foreground">Location</h4>
-                    <p className="text-muted-foreground">{formData.location}, {formData.city}</p>
+                    <p className="text-muted-foreground">{formData.location}, {formData.area}, {formData.city}</p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-foreground">Images</h4>

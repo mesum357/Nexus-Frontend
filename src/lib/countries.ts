@@ -371,6 +371,27 @@ export const CITIES_BY_COUNTRY: Record<string, CityOption[]> = {
   ].sort((a, b) => a.label.localeCompare(b.label)),
 };
 
+export const AREAS_BY_CITY: Record<string, string[]> = {
+  'Islamabad': ['G-6', 'G-7', 'G-8', 'G-9', 'G-10', 'G-11', 'F-6', 'F-7', 'F-8', 'F-10', 'F-11', 'E-7', 'E-11', 'D-12', 'Blue Area', 'Bani Gala', 'Bahria Town', 'DHA'],
+  'Rawalpindi': ['Satellite Town', 'Saddar', 'Bahria Town', 'DHA Phase 1', 'DHA Phase 2', 'Westridge', 'Chaklala Scheme 3', 'Pindi Board', 'Morgah', 'Gulraiz'],
+  'Lahore': ['Gulberg', 'DHA Phase 1', 'DHA Phase 2', 'DHA Phase 3', 'DHA Phase 4', 'DHA Phase 5', 'DHA Phase 6', 'Model Town', 'Johar Town', 'Faisal Town', 'Garden Town', 'Cavalry Ground', 'Wapda Town', 'Valencia', 'Bahria Town'],
+  'Karachi': ['DHA', 'Clifton', 'PECHS', 'Gulshan-e-Iqbal', 'North Nazimabad', 'Korangi', 'Malir', 'Buffer Zone', 'Federal B Area', 'Jauhar', 'Defence'],
+  'Peshawar': ['Hayatabad', 'University Road', 'Saddar', 'Warsak Road', 'Ring Road', 'Gulbahar', 'Dalazak Road'],
+  'Quetta': ['Cantt', 'Saddar', 'Samungli Road', 'Jinnah Road', 'Zarghoon Road'],
+  'Faisalabad': ['Canal Road', 'Madina Town', 'Peoples Colony', 'Gulberg', 'D-Type', 'Samanabad'],
+  'Multan': ['Gulgasht Colony', 'Bosan Road', 'Wapda Town', 'Cantt', 'Model Town'],
+  'Sialkot': ['Model Town', 'Cantt', 'Kashmir Road', 'Sialkot City'],
+  'Gujranwala': ['Model Town', 'Satellite Town', 'DC Colony', 'Citi Housing'],
+  'Sargodha': ['Satellite Town', 'University Road', 'Cantt'],
+  'Abbottabad': ['Mandian', 'Saddar', 'Supply Area', 'Jinnahabad'],
+  'Gilgit': ['Jutial', 'Saddar', 'Baseen', 'Konodas'],
+  'Skardu': ['Main Bazar', 'Liaquat Market', 'Satellite Town'],
+};
+
+export const getAreasForCity = (city: string): string[] => {
+  return AREAS_BY_CITY[city] || [];
+};
+
 // Helper function to get cities for a country
 export const getCitiesForCountry = (country: string): CityOption[] => {
   return CITIES_BY_COUNTRY[country] || [];

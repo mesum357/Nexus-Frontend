@@ -60,18 +60,6 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
             </motion.div>
           </div>
 
-          {/* Rating */}
-          <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.4 + index * 0.1 }}
-              className="bg-black/70 text-white px-2 py-1 rounded-full flex items-center text-xs"
-            >
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
-              {shop.rating || 0}
-            </motion.div>
-          </div>
         </div>
 
         <CardContent className="p-4 sm:p-6">

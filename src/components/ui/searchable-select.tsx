@@ -26,6 +26,7 @@ interface SearchableSelectProps {
   className?: string;
   allowCustom?: boolean; // Enable custom value entry
   customPlaceholder?: string; // Placeholder for custom input
+  disabled?: boolean;
 }
 
 export function SearchableSelect({
@@ -35,7 +36,8 @@ export function SearchableSelect({
   options,
   className,
   allowCustom = true, // Default to allowing custom values
-  customPlaceholder = "Type your custom value..."
+  customPlaceholder = "Type your custom value...",
+  disabled = false
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -99,6 +101,7 @@ export function SearchableSelect({
             "w-full justify-between transition-all duration-200 focus:ring-2 focus:ring-primary/20 h-10 sm:h-10",
             className
           )}
+          disabled={disabled}
         >
           {displayLabel || placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

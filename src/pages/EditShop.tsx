@@ -15,7 +15,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import Navbar from '@/components/Navbar';
 import { API_BASE_URL } from '@/lib/config';
 import { useCategories } from '@/hooks/use-categories';
-import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY } from '@/lib/countries';
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY, getAreasForCity } from '@/lib/countries';
 
 
 
@@ -34,6 +34,7 @@ export default function EditShop() {
     shopName: '',
     country: DEFAULT_COUNTRY,
     city: '',
+    area: '',
     shopType: '',
     shopDescription: '',
     categories: [] as string[],
@@ -69,18 +70,19 @@ export default function EditShop() {
         setShop(data.shop);
 
         // Set form data
-        setFormData({
-          shopName: data.shop.shopName || '',
-          country: data.shop.country || DEFAULT_COUNTRY,
-          city: data.shop.city || '',
-          shopType: data.shop.shopType || '',
-          shopDescription: data.shop.shopDescription || '',
-          categories: data.shop.categories || [],
-          whatsappNumber: data.shop.whatsappNumber || '',
-          facebookUrl: data.shop.facebookUrl || '',
-          instagramHandle: data.shop.instagramHandle || '',
-          websiteUrl: data.shop.websiteUrl || ''
-        });
+      setFormData({
+        shopName: data.shop.shopName || '',
+        country: data.shop.country || DEFAULT_COUNTRY,
+        city: data.shop.city || '',
+        area: data.shop.area || '',
+        shopType: data.shop.shopType || '',
+        shopDescription: data.shop.shopDescription || '',
+        categories: data.shop.categories || [],
+        whatsappNumber: data.shop.whatsappNumber || '',
+        facebookUrl: data.shop.facebookUrl || '',
+        instagramHandle: data.shop.instagramHandle || '',
+        websiteUrl: data.shop.websiteUrl || ''
+      });
 
         // Set preview images
         if (data.shop.shopLogo) {
@@ -132,7 +134,7 @@ export default function EditShop() {
         if (key === 'categories') {
           formDataToSend.append(key, JSON.stringify(value));
         } else {
-          formDataToSend.append(key, value);
+          formDataToSend.append(key, String(value));
         }
       });
 
@@ -243,7 +245,7 @@ export default function EditShop() {
                       <Label htmlFor="country">Country *</Label>
                       <SearchableSelect
                         value={formData.country}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, country: value, city: '' }))}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, country: value, city: '', area: '' }))}
                         placeholder="Select country"
                         options={COUNTRIES}
                         allowCustom={true}
@@ -255,11 +257,32 @@ export default function EditShop() {
                       <Label htmlFor="city">City *</Label>
                       <SearchableSelect
                         value={formData.city}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, city: value, area: '' }))}
                         placeholder="Select city"
                         options={getCitiesForCountry(formData.country)}
                         allowCustom={true}
                         customPlaceholder="Type your city name..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="area">Area *</Label>
+                      <SearchableSelect
+                        value={formData.area || ''}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, area: value }))}
+                        placeholder="Select area"
+                        options={getAreasForCity(formData.city).map(area => ({ value: area, label: area }))}
+                        disabled={!formData.city}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="address">Full Address</Label>
+                      <Input
+                        id="address"
+                        placeholder="Street address, nearby landmark"
+                        value={(shop as any)?.address || ''}
+                        onChange={(e) => setShop((prev: any) => ({ ...prev, address: e.target.value }))}
                       />
                     </div>
 

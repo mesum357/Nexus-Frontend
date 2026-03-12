@@ -11,12 +11,14 @@ import { useEffect, useState } from 'react'
 import { API_BASE_URL } from '@/lib/config'
 import Logo from '@/assets/globeLogo.png'
 import bgImage from '@/assets/hospital.avif' // Hospital background image
-import { COUNTRIES, CITIES_BY_COUNTRY } from '@/lib/countries'
+import { COUNTRIES, CITIES_BY_COUNTRY, getAreasForCity } from '@/lib/countries'
 
 interface HospitalType {
   _id: string;
   name: string;
+  country?: string;
   city?: string;
+  area?: string;
   type?: string;
   logo?: string;
   banner?: string;
@@ -31,6 +33,8 @@ interface HospitalType {
   phone?: string;
   email?: string;
   owner?: string;
+  address?: string;
+  location?: string;
 }
 
 interface CurrentUser {
@@ -121,7 +125,10 @@ export default function Hospital() {
       (hospital.specialization || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCountry = selectedCountry === 'all' || ((hospital as any).country || 'Pakistan').toLowerCase() === selectedCountry.toLowerCase()
     const matchesCity = selectedCity === 'all' || (hospital.city || '').includes(selectedCity)
-    const matchesArea = selectedArea === 'all' || (hospital as any).address?.toLowerCase().includes(selectedArea.toLowerCase()) || (hospital as any).location?.toLowerCase().includes(selectedArea.toLowerCase())
+    const matchesArea = selectedArea === 'all' || 
+      (hospital.area ? hospital.area.toLowerCase().includes(selectedArea.toLowerCase()) :
+      ((hospital as any).address?.toLowerCase().includes(selectedArea.toLowerCase()) || 
+       (hospital as any).location?.toLowerCase().includes(selectedArea.toLowerCase())))
     const matchesType = selectedType === 'all' || (hospital.type || '').toLowerCase().includes(selectedType.toLowerCase())
     return matchesSearch && matchesCountry && matchesCity && matchesArea && matchesType
   })
@@ -225,6 +232,7 @@ export default function Hospital() {
                           setShowCustomCityInput(true)
                         } else {
                           setSelectedCity(value)
+                          setSelectedArea('all') // Reset area when city changes
                           setShowCustomCityInput(false)
                         }
                       }}
@@ -321,11 +329,17 @@ export default function Hospital() {
                           />
                         </div>
                         <SelectItem value="all">All Areas</SelectItem>
-                        {availableAreas
-                          .filter(area => area.toLowerCase().includes(areaSearch.toLowerCase()))
-                          .map(area => (
+                        {selectedCity !== 'all' ? (
+                          getAreasForCity(selectedCity).filter(area => area.toLowerCase().includes(areaSearch.toLowerCase())).map(area => (
                             <SelectItem key={area} value={area}>{area}</SelectItem>
-                          ))}
+                          ))
+                        ) : (
+                          availableAreas
+                            .filter(area => area.toLowerCase().includes(areaSearch.toLowerCase()))
+                            .map(area => (
+                              <SelectItem key={area} value={area}>{area}</SelectItem>
+                            ))
+                        )}
                         {availableAreas.filter(area => area.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && areaSearch && (
                           <div className="px-2 py-1 text-sm text-muted-foreground">
                             No areas found

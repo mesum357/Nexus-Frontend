@@ -14,6 +14,8 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ImageCropper } from '@/components/ui/image-cropper';
 import Navbar from '@/components/Navbar';
 import { API_BASE_URL } from '@/lib/config';
+import { COUNTRIES, getCitiesForCountry, DEFAULT_COUNTRY, getAreasForCity } from '@/lib/countries';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 const steps = [
   "Basic Information",
@@ -358,25 +360,33 @@ export default function EditInstitute() {
               
               <div>
                 <Label htmlFor="city">City *</Label>
-                <Input
-                  id="city"
-                  name="city"
+                <SearchableSelect
                   value={form.city || ''}
-                  onChange={handleChange}
-                  placeholder="Enter city"
-                  required
+                  onValueChange={(value) => setForm((prev: any) => ({ ...prev, city: value, area: '' }))}
+                  placeholder="Select city"
+                  options={getCitiesForCountry(form.country || DEFAULT_COUNTRY)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="area">Area *</Label>
+                <SearchableSelect
+                  value={form.area || ''}
+                  onValueChange={(value) => setForm((prev: any) => ({ ...prev, area: value }))}
+                  placeholder="Select area"
+                  options={getAreasForCity(form.city).map(area => ({ value: area, label: area }))}
+                  disabled={!form.city}
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="location">Location/Address *</Label>
+              <Label htmlFor="location">Full Address *</Label>
               <Textarea
                 id="location"
                 name="location"
                 value={form.location || ''}
                 onChange={handleChange}
-                placeholder="Enter full address"
+                placeholder="Street address, nearby landmark"
                 required
               />
             </div>
@@ -806,10 +816,11 @@ export default function EditInstitute() {
               </Button>
             </div>
             <ImageCropper
-              file={logoCropFile}
+              isOpen={showLogoCropper}
+              onClose={handleCloseLogoCropper}
+              imageFile={logoCropFile}
               onCropComplete={handleLogoCropComplete}
               aspectRatio={1}
-              onCancel={handleCloseLogoCropper}
             />
           </div>
         </div>
@@ -825,10 +836,11 @@ export default function EditInstitute() {
               </Button>
             </div>
             <ImageCropper
-              file={bannerCropFile}
+              isOpen={showBannerCropper}
+              onClose={handleCloseBannerCropper}
+              imageFile={bannerCropFile}
               onCropComplete={handleBannerCropComplete}
               aspectRatio={16/9}
-              onCancel={handleCloseBannerCropper}
             />
           </div>
         </div>

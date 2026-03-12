@@ -444,6 +444,7 @@ export default function PaymentSection({
               whatsappNumber: shopData?.whatsappNumber || '',
               websiteUrl: shopData?.websiteUrl || '',
               products: processedProducts,
+              area: shopData?.area || '',
               agentId: paymentData.agentId.trim() || '',
               approvalStatus: 'pending'
             };
@@ -521,6 +522,7 @@ export default function PaymentSection({
               logo: logoUrl,
               banner: bannerUrl,
               gallery: galleryUrls,
+              area: shopData?.area || '',
               agentId: paymentData.agentId.trim() || '',
               approvalStatus: 'pending'
             };
@@ -607,6 +609,7 @@ export default function PaymentSection({
               logo: hospitalLogoUrl,
               banner: hospitalBannerUrl,
               gallery: hospitalGalleryUrls,
+              area: shopData?.area || '',
               agentId: paymentData.agentId.trim() || '',
               approvalStatus: 'pending'
             };
@@ -707,6 +710,7 @@ export default function PaymentSection({
               tags: shopData.tags || [],
               specifications: shopData.specifications || {},
               contactPreference: shopData.contactPreference || 'both',
+              area: shopData?.area || '',
               agentId: paymentData.agentId.trim() || '',
               approvalStatus: 'pending'
             };
@@ -717,21 +721,30 @@ export default function PaymentSection({
             break;
         }
 
-        if (entityCreationData && entityEndpoint) {
-          console.log(`📝 ${entityName} creation data:`, entityCreationData);
-          console.log(`🌐 Making API call to: ${API_BASE_URL}${entityEndpoint}`);
+          if (entityCreationData && entityEndpoint) {
+            console.log(`📝 ${entityName} creation data:`, entityCreationData);
+            console.log(`🌐 Making API call to: ${API_BASE_URL}${entityEndpoint}`);
+            
+            // CRITICAL DIAGNOSTIC LOG: Check if area is present in the final payload
+            console.log('🚀 PAYLOAD DEBUG:', {
+              type: entityType,
+              area: (entityCreationData as any).area,
+              city: (entityCreationData as any).city,
+              shopName: (entityCreationData as any).shopName || (entityCreationData as any).name
+            });
 
-          setCurrentStep(`Creating ${entityName.toLowerCase()}...`)
-          setUploadProgress(70)
+            setCurrentStep(`Creating ${entityName.toLowerCase()}...`)
+            setUploadProgress(70)
 
-          const entityResponse = await fetch(`${API_BASE_URL}${entityEndpoint}`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(entityCreationData)
-          });
+            console.log('📤 Submitting entityCreationData:', JSON.stringify(entityCreationData, null, 2));
+            const entityResponse = await fetch(`${API_BASE_URL}${entityEndpoint}`, {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(entityCreationData)
+            });
 
           console.log(`📡 ${entityName} creation response status:`, entityResponse.status);
           console.log(`📡 ${entityName} creation response headers:`, entityResponse.headers);

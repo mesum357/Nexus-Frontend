@@ -103,6 +103,13 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ data, updateData })
                 </p>
               </div>
               <div className="flex-1">
+                <Label className="text-sm text-muted-foreground">Area</Label>
+                <p className="font-medium flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  {data.area || 'Not selected'}
+                </p>
+              </div>
+              <div className="flex-1">
                 <Label className="text-sm text-muted-foreground">Type</Label>
                 <p className="font-medium">{data.shopType || 'Not selected'}</p>
               </div>
@@ -252,9 +259,9 @@ const ReviewSubmitStep: React.FC<ReviewSubmitStepProps> = ({ data, updateData })
                   className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg"
                 >
                   <div className="w-10 h-10 rounded bg-muted flex-shrink-0">
-                    {product.imagePreview ? (
+                    {product.imagePreviews && product.imagePreviews.length > 0 ? (
                       <img 
-                        src={product.imagePreview} 
+                        src={product.imagePreviews[0]} 
                         alt={product.name}
                         className="w-full h-full object-cover rounded"
                       />

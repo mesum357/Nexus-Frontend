@@ -2,6 +2,7 @@ export interface ShopData {
   shopName: string;
   country?: string;
   city: string;
+  area?: string;
   shopType: 'Product Seller' | 'Service Provider' | '';
   shopDescription: string;
   address?: string;
