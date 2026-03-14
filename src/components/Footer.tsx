@@ -154,12 +154,12 @@ export function Footer() {
               <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">
                 Registered with
               </p>
-              <div className="flex items-center gap-6">
-                <motion.div whileHover={{ scale: 1.1 }} className="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/5">
-                  <img src="/fbr.png" alt="FBR Logo" className="h-10 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300" />
+              <div className="flex items-center gap-8">
+                <motion.div whileHover={{ scale: 1.1 }} className="bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/5">
+                  <img src="/fbr.png" alt="FBR Logo" className="h-14 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300" />
                 </motion.div>
-                <motion.div whileHover={{ scale: 1.1 }} className="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/5">
-                  <img src="/scep.png" alt="SECP Logo" className="h-10 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300" />
+                <motion.div whileHover={{ scale: 1.1 }} className="bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/5">
+                  <img src="/scep.png" alt="SECP Logo" className="h-14 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300" />
                 </motion.div>
               </div>
             </motion.div>
