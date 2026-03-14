@@ -169,18 +169,10 @@ export default function Hospital() {
                   <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground">
                     Find Local <span className="text-primary">Hospitals & Healthcare Services</span>
                   </h1>
-                  <div className="flex flex-col sm:flex-row items-center gap-2 mt-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 mt-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground text-sm sm:text-base">Pakistan</span>
                     </div>
-                    <div className="flex items-center gap-1 sm:ml-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                      <span className="text-xs sm:text-sm text-muted-foreground ml-1">(4.8)</span>
-                    </div>
-                  </div>
                 </div>
               </div>
               <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">

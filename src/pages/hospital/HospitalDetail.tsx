@@ -311,21 +311,10 @@ export default function HospitalDetail() {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
                     <span>{hospital.city || hospital.location || 'Location not specified'}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">
-                      {reviews.length > 0 
-                        ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
-                        : '0'}
-                    </span>
-                    <span className="text-sm text-muted-foreground">({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -345,7 +334,7 @@ export default function HospitalDetail() {
                 </Card>
               </motion.div>
 
-              <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.6 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.6 }} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Users className="h-8 w-8 text-primary mx-auto mb-2" />
@@ -365,17 +354,6 @@ export default function HospitalDetail() {
                     <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
                     <p className="text-2xl font-bold text-foreground">{hospital.establishedYear || 'N/A'}</p>
                     <p className="text-sm text-muted-foreground">Established</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <Star className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-foreground">
-                      {reviews.length > 0 
-                        ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
-                        : '0'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Rating</p>
                   </CardContent>
                 </Card>
               </motion.div>
