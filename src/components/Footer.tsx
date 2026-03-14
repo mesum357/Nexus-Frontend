@@ -143,13 +143,34 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-slate-700 pt-8">
           <div className="flex flex-col md:flex-row justify-center items-center space-y-6 md:space-y-0">
+            {/* Registered With Section */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="flex flex-col items-center mb-8 md:mb-0 md:mr-12"
+            >
+              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">
+                Registered with
+              </p>
+              <div className="flex items-center gap-6">
+                <motion.div whileHover={{ scale: 1.1 }} className="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/5">
+                  <img src="/fbr.png" alt="FBR Logo" className="h-10 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300" />
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.1 }} className="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/5">
+                  <img src="/scep.png" alt="SECP Logo" className="h-10 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300" />
+                </motion.div>
+              </div>
+            </motion.div>
+
             {/* Copyright */}
             <motion.div 
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.5 }}
               viewport={{ once: true }}
-              className="text-slate-400 text-center"
+              className="text-slate-400 text-center md:text-left"
             >
               <p className="font-medium">
                 © 2024 E - Dunia. All rights reserved.

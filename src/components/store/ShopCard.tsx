@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
-import { Star, MapPin, Badge } from 'lucide-react'
+import { MapPin, Badge } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Shop } from '@/pages/Store'

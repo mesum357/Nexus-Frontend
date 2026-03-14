@@ -124,7 +124,6 @@ export default function Shop() {
             name: data.shop.shopName,
 
             categories: data.shop.categories || [],
-            rating: data.shop.rating || 4.5,
             totalReviews: data.shop.totalReviews || 0,
             ownerName: data.shop.ownerName || 'Shop Owner',
             ownerDp: data.shop.ownerDp || '',
@@ -679,11 +678,7 @@ export default function Shop() {
                           {shop.shopType}
                         </UIBadge>
                       </div>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                        <span className="font-medium">{shop.rating}</span>
-                        <span className="text-white/80 ml-1">({shop.totalReviews} reviews)</span>
-                      </div>
+                      {/* Rating removed by user request */}
                     </div>
                   </div>
                   

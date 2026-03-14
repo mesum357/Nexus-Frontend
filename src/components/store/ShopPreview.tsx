@@ -55,12 +55,7 @@ export default function ShopPreview({ shop, isVisible, position }: ShopPreviewPr
                   }`}>
                     {shop.businessType}
                   </div>
-                  {shop.rating && (
-                    <div className="flex items-center gap-1 text-yellow-600">
-                      <Star className="h-3 w-3 fill-current" />
-                      <span className="text-xs font-medium">{shop.rating}</span>
-                    </div>
-                  )}
+                  {/* Rating removed by user request */}
                 </div>
                 <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                   <MapPin className="h-3 w-3 mr-1" />
