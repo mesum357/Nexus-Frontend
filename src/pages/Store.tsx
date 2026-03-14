@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 import StoreFilters from '@/components/store/StoreFilters'
 import ShopGrid from '@/components/store/ShopGrid'
+import FeaturedProducts from '@/components/store/FeaturedProducts'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
@@ -111,6 +112,25 @@ export default function Store() {
       .map(shop => shop.area)
       .filter((area): area is string => !!area && area.trim() !== '')
   )).sort();
+  
+  // Extract all featured products from all shops
+  const featuredProducts = shops.reduce((acc, shop) => {
+    if (shop.products && Array.isArray(shop.products)) {
+      const shopFeatured = (shop.products as any[])
+        .filter(p => p.isFeatured)
+        .map(p => ({
+          shopId: shop._id,
+          shopName: shop.shopName,
+          name: p.name,
+          image: p.image || (p.images && p.images[0]), // Handle different image field names
+          price: p.price,
+          category: p.category,
+          discountPercentage: p.discountPercentage
+        }));
+      return [...acc, ...shopFeatured];
+    }
+    return acc;
+  }, [] as any[]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -190,6 +210,11 @@ export default function Store() {
           </div>
         </div>
       </motion.section>
+
+      {/* Featured Products */}
+      {!isLoading && featuredProducts.length > 0 && (
+        <FeaturedProducts products={featuredProducts} />
+      )}
 
       {/* Filters */}
       <StoreFilters onFilter={handleFilter} availableAreas={availableAreas} />
