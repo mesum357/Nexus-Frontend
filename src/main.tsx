@@ -31,4 +31,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+import { CartProvider } from './hooks/use-cart'
+
+createRoot(document.getElementById("root")!).render(
+  <CartProvider>
+    <App />
+  </CartProvider>
+);

@@ -14,9 +14,12 @@ import { Separator } from '@/components/ui/separator'
 import { useRef } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2, Info } from 'lucide-react'
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCart } from '@/hooks/use-cart';
+import ProductCard from '@/components/store/ProductCard';
+import ProductModal from '@/components/store/ProductModal';
+import CheckoutModal from '@/components/store/CheckoutModal';
+import OrdersDashboardModal from '@/components/store/OrdersDashboardModal';
 
 import { API_BASE_URL } from '@/lib/config'
 type ShopWithGallery = ShopType & {
@@ -44,6 +47,7 @@ type ProductType = {
   discountPercentage?: number;
   category?: string;
   isFeatured?: boolean;
+  inStock?: boolean;
 };
 
 const PRODUCT_CATEGORIES = [
@@ -61,7 +65,8 @@ interface CurrentUser {
 }
 
 export default function Shop() {
-  const { shopId } = useParams();
+  const { slug } = useParams();
+  const shopId = slug?.includes('+') ? slug.split('+')[1] : slug;
   const navigate = useNavigate();
   const [shop, setShop] = useState<ShopWithGallery | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,13 +92,16 @@ export default function Shop() {
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [showProductPreview, setShowProductPreview] = useState(false);
-  const [previewProduct, setPreviewProduct] = useState<ProductType | null>(null);
+  const [previewProduct, setPreviewProduct] = useState<any>(null);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [isOrdersDashboardOpen, setIsOrdersDashboardOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const generateQR = async () => {
       try {
-        const shopUrl = `${window.location.origin}/shop/${shopId}`
+        const shopUrl = `${window.location.origin}/shop/${slug}`
         const url = await QRCode.toDataURL(shopUrl, {
           width: 300,
           margin: 2,
@@ -307,7 +315,7 @@ export default function Shop() {
       formData.append('description', productForm.description);
       formData.append('price', productForm.price);
       formData.append('discountPercentage', productForm.discountPercentage);
-      formData.append('category', productForm.category);
+      formData.append('category', productForm.category || '');
       
       // Send the first image if available (either File or Cloudinary URL)
       if (productForm.images[0]) {
@@ -363,7 +371,7 @@ export default function Shop() {
     });
     
     // Reset form and close
-    setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
+    setProductForm({ name: '', description: '', price: '', discountPercentage: '', images: [], imagePreviews: [] });
     setFormErrors({});
     setShowAddProduct(false);
   };
@@ -379,7 +387,7 @@ export default function Shop() {
     });
     
     // Reset form and close
-    setProductForm({ name: '', description: '', price: '', discountPercentage: '', category: '', images: [], imagePreviews: [] });
+    setProductForm({ name: '', description: '', price: '', discountPercentage: '', images: [], imagePreviews: [] });
     setFormErrors({});
     setEditProductIndex(null);
   };
@@ -406,11 +414,11 @@ export default function Shop() {
     const product = shop.products[idx];
     setProductForm({
       name: product.name,
-      description: product.description,
+      description: product.description || '',
       price: String(product.price),
       discountPercentage: String(product.discountPercentage || ''),
       images: [],
-      imagePreviews: product.image ? [product.image] : [],
+      imagePreviews: product.image ? [product.image] : (product.images || []),
     });
     setEditProductIndex(idx);
     setShowAddProduct(false);
@@ -532,6 +540,38 @@ export default function Shop() {
     }
   };
 
+  const toggleStockProduct = async (productIndex: number) => {
+    if (!shop || !shop.products) return;
+    
+    const updatedProducts = [...shop.products];
+    const product = updatedProducts[productIndex];
+    const newStockStatus = product.inStock === false; // If explicitly false, set to true. If undefined/true, set to false.
+
+    try {
+      const formData = new FormData();
+      formData.append('inStock', String(newStockStatus));
+      
+      const response = await fetch(`${API_BASE_URL}/api/shop/${shopId}/update-product/${productIndex}`, {
+        method: 'PUT',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      const result = await response.json();
+      if (response.ok) {
+        setShop(result.shop);
+        toast({ 
+          title: newStockStatus ? 'Product In Stock' : 'Product Out of Stock', 
+          description: `"${product.name}" has been marked as ${newStockStatus ? 'in stock' : 'out of stock'}.`,
+        });
+      } else {
+        toast({ title: 'Error', description: result.error || 'Failed to update product', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Network Error', description: 'Could not connect to server.', variant: 'destructive' });
+    }
+  };
+
 
   const handleDeleteShop = async () => {
     if (!shopId) return;
@@ -558,7 +598,7 @@ export default function Shop() {
     }
   };
 
-  const handleProductPreview = (product: ProductType) => {
+  const handleProductPreview = (product: any) => {
     setPreviewProduct(product);
     setShowProductPreview(true);
   };
@@ -709,6 +749,15 @@ export default function Shop() {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => setIsOrdersDashboardOpen(true)}
+                          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                        >
+                          <Package className="h-4 w-4 mr-2" />
+                          Your Orders
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => navigate(`/shop/${shopId}/edit`)}
                           className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                         >
@@ -796,14 +845,32 @@ export default function Shop() {
                                   </div>
                                 )}
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleFeaturedProduct(index)}
-                                className={`h-8 w-8 rounded-full p-0 ${product.isFeatured ? 'text-yellow-500 hover:text-yellow-600' : 'text-muted-foreground hover:text-foreground'}`}
-                              >
-                                <Star className={`h-5 w-5 ${product.isFeatured ? 'fill-current' : ''}`} />
-                              </Button>
+                              <div className="flex flex-col gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleFeaturedProduct(index)}
+                                  className={`h-8 w-8 rounded-full p-0 ${product.isFeatured ? 'text-yellow-500 hover:text-yellow-600' : 'text-muted-foreground hover:text-foreground'}`}
+                                >
+                                  <Star className={`h-5 w-5 ${product.isFeatured ? 'fill-current' : ''}`} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditProduct(index)}
+                                  className="h-8 w-8 rounded-full p-0 text-muted-foreground hover:text-primary"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setDeleteProductIndex(index)}
+                                  className="h-8 w-8 rounded-full p-0 text-muted-foreground hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                             <h4 className="font-semibold text-sm line-clamp-1 mb-1">{product.name}</h4>
                             <p className="text-xs text-primary font-bold">PKR {product.price}</p>
@@ -825,35 +892,30 @@ export default function Shop() {
                       // Public View: Show only featured products
                       shop.products && shop.products.filter(p => p.isFeatured).length > 0 ? (
                         shop.products.filter(p => p.isFeatured).map((product, index) => (
-                          <div key={index} className="rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col group">
-                            <div className="relative aspect-square bg-muted">
-                              {product.image ? (
-                                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Package className="w-12 h-12 text-muted-foreground/40" />
-                                </div>
-                              )}
-                              <div className="absolute top-2 right-2">
-                                <UIBadge className="bg-yellow-500 hover:bg-yellow-600 border-none">Featured</UIBadge>
-                              </div>
-                            </div>
-                            <div className="p-4 flex-1 flex flex-col">
-                              <h4 className="font-semibold text-lg mb-1 line-clamp-1">{product.name}</h4>
-                              <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{product.category}</p>
-                              <div className="flex items-center justify-between mt-auto">
-                                <span className="font-bold text-primary">PKR {product.price}</span>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="h-8"
-                                  onClick={() => handleProductPreview(product)}
-                                >
-                                  View Details
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
+                          <ProductCard
+                            key={index}
+                            product={{
+                              ...product,
+                              id: index,
+                              images: product.images || (product.image ? [product.image] : [])
+                            } as any}
+                            shopId={shopId || ''}
+                            onViewDetails={() => handleProductPreview(product)}
+                            onAddToCart={() => {
+                              addToCart({
+                                productId: index.toString(),
+                                name: product.name,
+                                price: product.price,
+                                quantity: 1,
+                                image: product.image || '',
+                                shopId: shopId || ''
+                              });
+                            }}
+                            onBuyNow={() => {
+                              setPreviewProduct(product);
+                              setIsCheckoutModalOpen(true);
+                            }}
+                          />
                         ))
                       ) : (
                         <div className="col-span-full text-center py-12 bg-muted/30 rounded-2xl border-2 border-dashed">
@@ -866,116 +928,135 @@ export default function Shop() {
                   </div>
                 </CardContent>
               </Card>
+
               {/* Product Listing Section */}
               {shop.products && shop.products.length > 0 && (
                 <Card className="mb-8 mt-8">
                   <CardHeader>
-                    <CardTitle>Products</CardTitle>
+                    <CardTitle>All Products</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {(shop.products as ProductType[]).map((product, idx) => {
-                        return (
-                          <div key={idx} className="rounded-xl border bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
-                            <div className="relative w-full h-48 bg-muted flex items-center justify-center">
-                              {product.image ? (
-                                <img
-                                  src={product.image}
-                                  alt={product.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="text-center text-muted-foreground">
-                                  <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                  <p className="text-sm">No image</p>
-                                </div>
-                              )}
-                              {product.discountPercentage && product.discountPercentage > 0 && (
-                                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                  -{product.discountPercentage}%
-                                </span>
-                              )}
-                              {/* Preview Button */}
-                              <div className="absolute bottom-2 right-2">
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleProductPreview(product)}
-                                  className="bg-white/80 hover:bg-white h-8 w-8"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              {/* Mobile: Product action buttons in top right */}
-                              {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
-                                <div className="absolute top-2 left-2 flex gap-1 sm:hidden">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleEditProduct(idx)}
-                                    className="bg-white/80 hover:bg-white h-7 w-7"
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={() => setDeleteProductIndex(idx)}
-                                    disabled={isDeletingProduct}
-                                    className="bg-red-500/80 hover:bg-red-500 h-7 w-7"
-                                  >
-                                    {isDeletingProduct && deleteProductIndex === idx ? (
-                                      <Loader2 className="animate-spin h-3 w-3" />
-                                    ) : (
-                                      <Trash2 className="h-3 w-3" />
-                                    )}
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                            <div className="p-4 flex-1 flex flex-col">
-                              <h4 className="font-semibold text-lg mb-1 line-clamp-1">{product.name}</h4>
-                              <div className="text-xs text-muted-foreground mb-2 line-clamp-1">{product.category}</div>
-                              <div className="text-sm mb-3 line-clamp-2">{product.description}</div>
-                              <div className="flex items-center gap-2 mt-auto">
-                                <span className="font-bold text-primary text-lg">PKR {product.price}</span>
-                                {product.discountPercentage && product.discountPercentage > 0 && (
-                                  <span className="text-xs text-muted-foreground line-through">
-                                    PKR {(product.price / (1 - product.discountPercentage / 100)).toFixed(0)}
-                                  </span>
+                      {(shop.products as ProductType[]).map((product, idx) => (
+                        <ProductCard
+                          key={idx}
+                          product={{
+                            ...product,
+                            id: idx,
+                            images: product.images || (product.image ? [product.image] : [])
+                          } as any}
+                          shopId={shopId || ''}
+                          onViewDetails={() => handleProductPreview(product)}
+                          onAddToCart={() => {
+                            addToCart({
+                              productId: idx.toString(),
+                              name: product.name,
+                              price: product.price,
+                              quantity: 1,
+                              image: product.image || '',
+                              shopId: shopId || ''
+                            });
+                          }}
+                          onBuyNow={() => {
+                            setPreviewProduct(product);
+                            setIsCheckoutModalOpen(true);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+ 
+              {/* Product Management Section for Owner */}
+              {currentUser && shop && String(shop.owner) === String(currentUser._id) && (
+                <Card className="border-primary/20 shadow-sm overflow-hidden bg-primary/5 mb-8">
+                  <CardHeader className="bg-primary/10 border-b border-primary/10 py-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg flex items-center gap-2 text-primary">
+                        <Package className="w-5 h-5" />
+                        Product Management
+                      </CardTitle>
+                      <UIBadge className="bg-primary text-white hover:bg-primary/90">
+                        {shop.products?.length || 0} Total Products
+                      </UIBadge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-primary/10">
+                      {shop.products && shop.products.length > 0 ? (
+                        shop.products.map((product, index) => (
+                          <div key={index} className="flex items-center justify-between p-4 bg-white/50 hover:bg-white transition-colors">
+                            <div className="flex items-center gap-4 min-w-0">
+                              <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden flex-shrink-0 border">
+                                {product.image ? (
+                                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Package className="w-6 h-6 text-muted-foreground/30" />
+                                  </div>
                                 )}
                               </div>
-                              {/* Removed additional images preview since only one image is supported */}
+                              <div className="min-w-0">
+                                <h4 className="font-bold text-sm text-foreground truncate">{product.name}</h4>
+                                <p className="text-xs text-primary font-bold">PKR {product.price}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                   {product.inStock !== false ? (
+                                     <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-200 uppercase">In Stock</span>
+                                   ) : (
+                                     <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-200 uppercase">Out of Stock</span>
+                                   )}
+                                   {product.isFeatured && (
+                                     <span className="text-[10px] font-bold text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded border border-yellow-200 uppercase">Featured</span>
+                                   )}
+                                </div>
+                              </div>
                             </div>
-                            {/* Desktop: Product action buttons */}
-                            {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
-                              <div className="hidden sm:flex flex-col sm:flex-row gap-2 mt-2 w-full min-w-0">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  onClick={() => handleEditProduct(idx)}
-                                  className="flex-1 sm:flex-none min-w-0"
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <Button
+                                variant={product.inStock !== false ? "outline" : "default"}
+                                size="sm"
+                                onClick={() => toggleStockProduct(index)}
+                                className={`h-8 px-3 text-[11px] font-bold ${product.inStock !== false ? 'border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                              >
+                                {product.inStock !== false ? 'Mark Out of Stock' : 'Mark In Stock'}
+                              </Button>
+                              <div className="flex items-center gap-1 ml-2 border-l border-primary/10 pl-3">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => toggleFeaturedProduct(index)}
+                                  className={`h-8 w-8 ${product.isFeatured ? 'text-yellow-500' : 'text-muted-foreground'}`}
                                 >
-                                  Edit
+                                  <Star className={`h-4 w-4 ${product.isFeatured ? 'fill-current' : ''}`} />
                                 </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive" 
-                                  onClick={() => setDeleteProductIndex(idx)}
-                                  disabled={isDeletingProduct}
-                                  className="flex-1 sm:flex-none min-w-0"
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEditProduct(index)}
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
                                 >
-                                  {isDeletingProduct && deleteProductIndex === idx ? (
-                                    <Loader2 className="animate-spin w-4 h-4" />
-                                  ) : (
-                                    <Trash2 className="w-4 h-4" />
-                                  )}
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setDeleteProductIndex(index)}
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
-                            )}
+                            </div>
                           </div>
-                        );
-                      })}
+                        ))
+                      ) : (
+                        <div className="p-12 text-center text-muted-foreground">
+                          <Package className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                          <p className="font-medium">No products found</p>
+                          <p className="text-sm">Start by adding your first product to the shop.</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1117,19 +1198,22 @@ export default function Shop() {
               </Card>
             </motion.div>
           </div>
-          <div className="mb-8">
+
+          <div className="mb-8 mt-8">
             {currentUser && shop && String(currentUser._id) === String(shop.owner) && (
-            <Button onClick={() => {
-              if (showAddProduct) {
-                handleCancelAddProduct();
-              } else {
-                setShowAddProduct(true);
-              }
-            }}>
-              {showAddProduct ? 'Cancel' : 'Add Product'}
-            </Button>
+              <Button onClick={() => {
+                if (showAddProduct) {
+                  handleCancelAddProduct();
+                } else {
+                  setShowAddProduct(true);
+                }
+              }}>
+                <Plus className="w-4 h-4 mr-2" />
+                {showAddProduct ? 'Cancel' : 'Add Product'}
+              </Button>
             )}
           </div>
+
           {showAddProduct && currentUser && shop && String(currentUser._id) === String(shop.owner) && (
             <Card className="mb-8 max-w-2xl mx-auto border-primary/20 shadow-lg">
               <CardHeader>
@@ -1190,6 +1274,7 @@ export default function Shop() {
               </CardContent>
             </Card>
           )}
+
           {editProductIndex !== null && currentUser && shop && String(currentUser._id) === String(shop.owner) && (
             <Card className="mb-8 max-w-2xl mx-auto border-primary/20 shadow-lg">
               <CardHeader>
@@ -1323,48 +1408,55 @@ export default function Shop() {
               </div>
             </div>
           )}
-
-          {/* Product Preview Popup */}
-          {showProductPreview && previewProduct && (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-              <div className="bg-background rounded-lg shadow-xl max-w-md w-full max-h-full flex flex-col">
-                <div className="flex justify-between items-center p-4 border-b">
-                  <h3 className="font-semibold text-lg">{previewProduct.name}</h3>
-                  <button onClick={closeProductPreview} className="text-muted-foreground hover:text-foreground">
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-                <div className="flex-1 p-4 flex items-center justify-center">
-                  {previewProduct.image ? (
-                    <img
-                      src={previewProduct.image}
-                      alt={previewProduct.name}
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  ) : (
-                    <div className="text-center text-muted-foreground">
-                      <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg">No image available</p>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 border-t">
-                  <p className="text-muted-foreground text-sm mb-2">Description:</p>
-                  <p className="text-foreground text-base">{previewProduct.description}</p>
-                  <div className="flex items-center gap-2 mt-4">
-                    <span className="font-bold text-primary text-lg">PKR {previewProduct.price}</span>
-                    {previewProduct.discountPercentage && previewProduct.discountPercentage > 0 && (
-                      <span className="text-xs text-muted-foreground line-through">
-                        PKR {(previewProduct.price / (1 - previewProduct.discountPercentage / 100)).toFixed(0)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Premium Product Modal */}
+      {previewProduct && (
+        <ProductModal
+          product={{
+            ...previewProduct,
+            id: previewProduct.id || shop?.products?.indexOf(previewProduct) || 0,
+            images: previewProduct.images || (previewProduct.image ? [previewProduct.image] : [])
+          } as any}
+          shopId={shopId || ''}
+          isOpen={showProductPreview}
+          onClose={closeProductPreview}
+          onBuyNow={() => {
+            setShowProductPreview(false);
+            setIsCheckoutModalOpen(true);
+          }}
+        />
+      )}
+
+      {/* Checkout Modal */}
+      {previewProduct && (
+        <CheckoutModal
+          isOpen={isCheckoutModalOpen}
+          onClose={() => setIsCheckoutModalOpen(false)}
+          product={{
+            ...previewProduct,
+            id: previewProduct.id || shop?.products?.indexOf(previewProduct) || 0,
+            images: previewProduct.images || (previewProduct.image ? [previewProduct.image] : [])
+          } as any}
+          shopId={shopId || ''}
+        />
+      )}
+
+      {/* Orders Dashboard Modal */}
+      <OrdersDashboardModal
+        isOpen={isOrdersDashboardOpen}
+        onClose={() => setIsOrdersDashboardOpen(false)}
+        shopId={shopId || ''}
+      />
     </div>
   )
+}
+
+function Input(props: any) {
+  return <input {...props} className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${props.className || ''}`} />;
+}
+
+function Textarea(props: any) {
+  return <textarea {...props} className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${props.className || ''}`} />;
 }

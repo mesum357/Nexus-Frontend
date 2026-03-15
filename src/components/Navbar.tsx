@@ -1,7 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { User, Menu, X, Wifi, WifiOff } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { Bell, ShoppingCart } from 'lucide-react'
+import NotificationModal from './NotificationModal'
+import CartModal from './store/CartModal'
+import { useCart } from '../hooks/use-cart'
 import { API_BASE_URL } from '../lib/config'
 import { checkAuthStatus, isOnline, addNetworkListeners, isPWA } from '../lib/pwa-auth'
 import { useToast } from '@/hooks/use-toast'
@@ -32,6 +36,10 @@ export default function Navbar() {
   const [isOffline, setIsOffline] = useState(!isOnline());
   const [isPWAMode, setIsPWAMode] = useState(false);
   const [stats, setStats] = useState<{ shops: number; hospitals: number; institutes: number; products: number }>({ shops: 0, hospitals: 0, institutes: 0, products: 0 });
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const { totalItems } = useCart();
 
   useEffect(() => {
     // Check if running as PWA
@@ -64,6 +72,44 @@ export default function Navbar() {
 
     return cleanup;
   }, []);
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (!isLoggedIn) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/notifications`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        const unread = data.notifications.filter((n: any) => !n.isRead).length;
+        setUnreadNotifications(unread);
+      }
+    } catch (e) {
+      console.error('Failed to fetch unread count:', e);
+    }
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000); // Poll every 30s
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
+
+  // Check for welcome notification on login
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      const checkWelcome = async () => {
+        try {
+          await fetch(`${API_BASE_URL}/api/notifications/welcome`, {
+            method: 'POST',
+            credentials: 'include'
+          });
+          fetchUnreadCount();
+        } catch (e) {
+          console.error('Welcome notification error:', e);
+        }
+      };
+      checkWelcome();
+    }
+  }, [isLoggedIn, user, fetchUnreadCount]);
 
   // Load global counts for menu badges
   useEffect(() => {
@@ -202,7 +248,8 @@ export default function Navbar() {
   };
 
   return (
-    <motion.nav 
+    <>
+      <motion.nav 
       initial={{ y: -80 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
@@ -299,6 +346,41 @@ export default function Navbar() {
                 whileHover={{ scale: 1.2 }}
               />
             </motion.button>
+
+            {/* Notification Bell */}
+            {isLoggedIn && (
+              <motion.button
+                onClick={() => setShowNotifications(true)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="relative p-3 bg-primary/10 hover:bg-primary/20 text-primary rounded-full transition-all duration-300 group"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute top-2 right-2 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-red-600 text-[10px] items-center justify-center text-white font-bold">
+                      {unreadNotifications}
+                    </span>
+                  </span>
+                )}
+              </motion.button>
+            )}
+
+            {/* Cart Icon */}
+            <motion.button
+              onClick={() => setShowCart(true)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="relative p-3 bg-primary/10 hover:bg-primary/20 text-primary rounded-full transition-all duration-300 group"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <span className="absolute top-2 right-2 flex min-w-[16px] h-4 rounded-full bg-primary text-[10px] items-center justify-center text-white font-bold px-1">
+                  {totalItems}
+                </span>
+              )}
+            </motion.button>
             {isLoggedIn && showProfileMenu && (
               <div className="absolute right-0 top-12 bg-white rounded-xl shadow-2xl border border-gray-100 py-3 w-80 z-50">
                 {/* User Info Header */}
@@ -347,7 +429,7 @@ export default function Navbar() {
                           {myShops.map((shop) => (
                             <Link
                               key={shop._id}
-                              to={`/shop/${shop._id}`}
+                              to={`/shop/${shop.shopName.toLowerCase().replace(/\s+/g, '')}+${shop._id}`}
                               className="block px-3 py-2 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors duration-150"
                               onClick={() => setShowProfileMenu(false)}
                             >
@@ -536,6 +618,21 @@ export default function Navbar() {
           </div>
         </motion.div>
       </div>
-    </motion.nav>
+      
+      </motion.nav>
+      
+      <NotificationModal 
+        isOpen={showNotifications} 
+        onClose={() => {
+          setShowNotifications(false);
+          fetchUnreadCount();
+        }} 
+      />
+
+      <CartModal 
+        isOpen={showCart} 
+        onClose={() => setShowCart(false)} 
+      />
+    </>
   )
 }

@@ -113,24 +113,6 @@ export default function Store() {
       .filter((area): area is string => !!area && area.trim() !== '')
   )).sort();
   
-  // Extract all featured products from all shops
-  const featuredProducts = shops.reduce((acc, shop) => {
-    if (shop.products && Array.isArray(shop.products)) {
-      const shopFeatured = (shop.products as any[])
-        .filter(p => p.isFeatured)
-        .map(p => ({
-          shopId: shop._id,
-          shopName: shop.shopName,
-          name: p.name,
-          image: p.image || (p.images && p.images[0]), // Handle different image field names
-          price: p.price,
-          category: p.category,
-          discountPercentage: p.discountPercentage
-        }));
-      return [...acc, ...shopFeatured];
-    }
-    return acc;
-  }, [] as any[]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -211,10 +193,6 @@ export default function Store() {
         </div>
       </motion.section>
 
-      {/* Featured Products */}
-      {!isLoading && featuredProducts.length > 0 && (
-        <FeaturedProducts products={featuredProducts} />
-      )}
 
       {/* Filters */}
       <StoreFilters onFilter={handleFilter} availableAreas={availableAreas} />

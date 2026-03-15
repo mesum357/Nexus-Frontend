@@ -83,8 +83,8 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/store" element={<Store />} />
           <Route path="/create-shop" element={<CreateShop />} />
-          <Route path="/shop/:shopId" element={<Shop />} />
-          <Route path="/shop/:shopId/edit" element={<EditShop />} />
+          <Route path="/shop/:slug" element={<Shop />} />
+          <Route path="/shop/:slug/edit" element={<EditShop />} />
           <Route path="/education" element={<Education />} />
           <Route path="/education/institute/:id" element={<InstituteDetail />} />
           <Route path="/education/institute/:id/dashboard" element={<InstituteDashboard />} />
@@ -125,7 +125,7 @@ const App = () => (
           
 
           
-          <Route path="/store/shop/:shopId" element={<ShopDetail />} />
+          <Route path="/store/shop/:slug" element={<ShopDetail />} />
 
           {/* ✅ New sliding auth route */}
           <Route path="/auth" element={<AuthSlider />} />

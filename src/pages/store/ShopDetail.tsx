@@ -12,7 +12,14 @@ import { useToast } from '@/hooks/use-toast'
 import { useState } from 'react'
 import { RichTextDisplay } from '@/components/ui/rich-text-display'
 import QRCode from 'qrcode'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
+import Autoplay from 'embla-carousel-autoplay'
+import ProductCard from '@/components/store/ProductCard'
+import ProductModal from '@/components/store/ProductModal'
+import CheckoutModal from '@/components/store/CheckoutModal'
+import OrdersDashboardModal from '@/components/store/OrdersDashboardModal'
+import { ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react'
 
 // Mock shop data
 const shopData = {
@@ -42,32 +49,58 @@ const shopData = {
     instagram: "@zarafashionhub"
   },
   products: [
-    {
-      id: 1,
-      name: "Premium Cotton Shirt",
-      image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=300&h=300&fit=crop",
-      price: "PKR 2,500",
-      originalPrice: "PKR 3,000",
-      discount: 17,
-      isFeatured: true
+    { 
+      id: 1, 
+      name: "Handcrafted Blue Pottery Vase", 
+      image: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=800", 
+      images: [
+        "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=800",
+        "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=800",
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800"
+      ],
+      price: "PKR 3,500", 
+      originalPrice: "PKR 4,500", 
+      discount: 22, 
+      isFeatured: true,
+      description: "Traditional Multani blue pottery vase, handcrafted with intricate floral designs. Perfect for home decor."
     },
-    {
-      id: 2,
-      name: "Elegant Kurta Set",
-      image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=300&h=300&fit=crop",
-      price: "PKR 4,500",
-      originalPrice: null,
-      discount: 0,
-      isFeatured: true
+    { 
+      id: 2, 
+      name: "Embroidered Pashmina Shawl", 
+      image: "https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=800", 
+      images: [
+        "https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=800",
+        "https://images.unsplash.com/photo-1616091093714-c64882e9bd55?w=800"
+      ],
+      price: "PKR 12,000", 
+      originalPrice: "PKR 15,000", 
+      discount: 20, 
+      isFeatured: true,
+      description: "Authentic Kashmiri Pashmina shawl with delicate hand embroidery. Warm, soft, and elegant."
     },
-    {
-      id: 3,
-      name: "Designer Handbag",
-      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=300&fit=crop",
-      price: "PKR 3,200",
-      originalPrice: "PKR 4,000",
-      discount: 20,
-      isFeatured: false
+    { 
+      id: 3, 
+      name: "Antique Brass Tea Set", 
+      image: "https://images.unsplash.com/photo-1544253102-393282431668?w=800", 
+      images: [
+        "https://images.unsplash.com/photo-1544253102-393282431668?w=800",
+        "https://images.unsplash.com/photo-1545048702-79362596cdc9?w=800"
+      ],
+      price: "PKR 8,500", 
+      originalPrice: null, 
+      discount: 0, 
+      isFeatured: true,
+      description: "Vintage-style brass tea set including a teapot, sugar bowl, and six cups. Adds a royal touch to your tea time."
+    },
+    { 
+      id: 4, 
+      name: "Hand-knotted Silk Carpet", 
+      image: "https://images.unsplash.com/photo-1534349762230-e0cadf78f5db?w=800", 
+      price: "PKR 45,000", 
+      originalPrice: "PKR 55,000", 
+      discount: 18, 
+      isFeatured: false,
+      description: "Exquisite hand-knotted silk carpet with traditional patterns. High-quality craftsmanship."
     }
   ],
   reviews: [
@@ -91,16 +124,23 @@ const shopData = {
 }
 
 export default function ShopDetail() {
-  const { shopId } = useParams()
+  const { slug } = useParams()
+  const shopId = slug?.includes('+') ? slug.split('+')[1] : slug;
   const navigate = useNavigate()
   const { toast } = useToast()
   const [sharing, setSharing] = useState(false)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false)
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
+  const [isOrdersDashboardOpen, setIsOrdersDashboardOpen] = useState(false)
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' }, [Autoplay({ delay: 4000 })])
 
   useEffect(() => {
     const generateQR = async () => {
       try {
-        const shopUrl = `${window.location.origin}/store/shop/${shopId}`
+        const shopUrl = `${window.location.origin}/store/shop/${slug}`
         const url = await QRCode.toDataURL(shopUrl, {
           width: 300,
           margin: 2,
@@ -121,7 +161,7 @@ export default function ShopDetail() {
     setSharing(true)
     
     try {
-      const shopUrl = `${window.location.origin}/store/shop/${shopId}`
+      const shopUrl = `${window.location.origin}/store/shop/${slug}`
       const shareData: ShareData = {
         title: shopData.name,
         text: `Check out ${shopData.name} on Nexus!`,
@@ -329,43 +369,51 @@ export default function ShopDetail() {
             className="py-8"
           >
             {/* Featured Products Section */}
-            <div className="mb-12">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Star className="h-6 w-6 text-yellow-500 fill-current" />
-                Featured Products
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {shopData.products.filter(p => p.isFeatured).map((product, index) => (
-                  <motion.div
-                    key={`featured-${product.id}`}
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.1 * index }}
+            <div className="mb-16">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-extrabold flex items-center gap-3">
+                  <Star className="h-8 w-8 text-yellow-500 fill-current" />
+                  Featured Collection
+                </h2>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="rounded-full h-12 w-12 border-2"
+                    onClick={() => emblaApi?.scrollPrev()}
                   >
-                    <Card className="overflow-hidden border-2 border-primary/10 hover:border-primary/30 transition-all hover:shadow-lg group">
-                      <div className="relative aspect-square">
-                        <img 
-                          src={product.image} 
-                          alt={product.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <div className="absolute top-2 right-2">
-                          <Badge className="bg-yellow-500 hover:bg-yellow-600 border-none">Featured</Badge>
-                        </div>
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-lg line-clamp-1">{product.name}</h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xl font-bold text-primary">{product.price}</span>
-                          {product.originalPrice && (
-                            <span className="text-sm text-muted-foreground line-through">{product.originalPrice}</span>
-                          )}
-                        </div>
-                        <Button className="w-full mt-4" variant="outline">View Product</Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="rounded-full h-12 w-12 border-2"
+                    onClick={() => emblaApi?.scrollNext()}
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex gap-6 py-4">
+                  {shopData.products.filter(p => p.isFeatured).map((product) => (
+                    <div key={`featured-${product.id}`} className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0">
+                      <ProductCard 
+                        product={{...product, description: product.description || "No description available"}} 
+                        shopId={shopId || ''}
+                        onViewDetails={(p) => {
+                          setSelectedProduct(p);
+                          setIsProductModalOpen(true);
+                        }}
+                        onBuyNow={(p) => {
+                          setSelectedProduct(p);
+                          setIsCheckoutModalOpen(true);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -378,47 +426,20 @@ export default function ShopDetail() {
               
               <TabsContent value="products" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {shopData.products.map((product, index) => (
-                    <motion.div
+                  {shopData.products.map((product) => (
+                    <ProductCard 
                       key={product.id}
-                      initial={{ y: 50, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.1 * index, duration: 0.6 }}
-                    >
-                      <Card className="cursor-pointer hover:shadow-lg transition-all duration-300">
-                        <div className="relative">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-48 object-cover rounded-t-lg"
-                          />
-                          {product.discount > 0 && (
-                            <Badge className="absolute top-2 left-2 bg-marketplace-primary">
-                              {product.discount}% OFF
-                            </Badge>
-                          )}
-                        </div>
-
-                        <CardContent className="p-4">
-                          <h3 className="font-semibold text-foreground mb-2">
-                            {product.name}
-                          </h3>
-                          
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-lg font-bold text-primary">
-                              {product.price}
-                            </span>
-                            {product.originalPrice && (
-                              <span className="text-sm text-muted-foreground line-through">
-                                {product.originalPrice}
-                              </span>
-                            )}
-                          </div>
-
-                          <Button className="w-full">View Details</Button>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
+                      product={{...product, description: product.description || "No description available"}} 
+                      shopId={shopId || ''}
+                      onViewDetails={(p) => {
+                        setSelectedProduct(p);
+                        setIsProductModalOpen(true);
+                      }}
+                      onBuyNow={(p) => {
+                        setSelectedProduct(p);
+                        setIsCheckoutModalOpen(true);
+                      }}
+                    />
                   ))}
                 </div>
               </TabsContent>
@@ -527,6 +548,34 @@ export default function ShopDetail() {
           </motion.div>
         </div>
       </div>
+
+      {selectedProduct && (
+        <>
+          <ProductModal
+            product={selectedProduct}
+            shopId={shopId || ''}
+            isOpen={isProductModalOpen}
+            onClose={() => setIsProductModalOpen(false)}
+            onBuyNow={() => {
+              setIsProductModalOpen(false);
+              setIsCheckoutModalOpen(true);
+            }}
+          />
+          <CheckoutModal
+            product={selectedProduct}
+            shopId={shopId || ''}
+            isOpen={isCheckoutModalOpen}
+            onClose={() => setIsCheckoutModalOpen(false)}
+            onSuccess={() => {}}
+          />
+        </>
+      )}
+
+      <OrdersDashboardModal 
+        shopId={shopId || ''} 
+        isOpen={isOrdersDashboardOpen} 
+        onClose={() => setIsOrdersDashboardOpen(false)} 
+      />
     </div>
   )
 }

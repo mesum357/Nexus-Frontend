@@ -113,7 +113,7 @@ export default function ShopCard({ shop, index }: ShopCardProps) {
 
           {/* Visit Shop Button */}
           <Button asChild className="w-full rounded-full group/btn h-9 sm:h-10 text-sm sm:text-base">
-            <Link to={`/shop/${shop._id}`}>
+            <Link to={`/shop/${shop.shopName.toLowerCase().replace(/\s+/g, '')}+${shop._id}`}>
               <span className="group-hover/btn:scale-105 transition-transform">
                 Visit Shop
               </span>
