@@ -1,90 +1,241 @@
-import { Button } from "@/components/ui/button";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
-import heroHomeImage from "@/assets/hero-home.jpg";
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import heroStore from "@/assets/hero-slide-store.png";
+import heroEducation from "@/assets/hero-slide-education.png";
+import heroSocial from "@/assets/hero-slide-social.png";
+import heroMarketplace from "@/assets/hero-slide-marketplace.png";
+import heroHealthcare from "@/assets/hero-slide-healthcare.png";
+
+const slides = [
+  {
+    image: heroStore,
+    title: "Multi‑Vendor Store",
+    subtitle: "Shop from local vendors",
+    description: "Discover a wide range of products from trusted local vendors across your city. Browse, compare, and shop with confidence.",
+    link: "/store",
+    accent: "from-emerald-500/80 to-teal-600/80",
+  },
+  {
+    image: heroEducation,
+    title: "Education Hub",
+    subtitle: "Online courses & classes",
+    description: "Access quality education from the best institutes. Enroll in courses, attend live classes, and grow your skills.",
+    link: "/education",
+    accent: "from-blue-500/80 to-indigo-600/80",
+  },
+  {
+    image: heroSocial,
+    title: "Social Feed",
+    subtitle: "City posts & events",
+    description: "Stay connected with your community. Share updates, discover events, and engage with people around you.",
+    link: "/feed",
+    accent: "from-purple-500/80 to-pink-600/80",
+  },
+  {
+    image: heroMarketplace,
+    title: "Marketplace",
+    subtitle: "Buy & sell items",
+    description: "Your digital marketplace for buying and selling. List your items or find great deals from sellers nearby.",
+    link: "/marketplace",
+    accent: "from-orange-500/80 to-red-600/80",
+  },
+  {
+    image: heroHealthcare,
+    title: "Healthcare",
+    subtitle: "Find hospitals & doctors",
+    description: "Search for hospitals, clinics, and doctors near you. Book appointments and access healthcare services easily.",
+    link: "/hospitals",
+    accent: "from-cyan-500/80 to-blue-600/80",
+  },
+];
+
+const AUTOPLAY_INTERVAL = 5000;
 
 export function HeroSection() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"]
-  });
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const navigate = useNavigate();
 
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const goTo = useCallback(
+    (index: number) => {
+      setDirection(index > current ? 1 : -1);
+      setCurrent(index);
+    },
+    [current]
+  );
+
+  const next = useCallback(() => {
+    setDirection(1);
+    setCurrent((prev) => (prev + 1) % slides.length);
+  }, []);
+
+  const prev = useCallback(() => {
+    setDirection(-1);
+    setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
+  }, []);
+
+  // Auto-play
+  useEffect(() => {
+    const timer = setInterval(next, AUTOPLAY_INTERVAL);
+    return () => clearInterval(timer);
+  }, [next]);
+
+  const slideVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? "100%" : "-100%",
+      opacity: 0,
+      scale: 1.08,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? "-100%" : "100%",
+      opacity: 0,
+      scale: 0.95,
+    }),
+  };
+
+  const slide = slides[current];
 
   return (
-    <section ref={ref} className="relative overflow-hidden bg-background h-screen">
-      {/* Hero Background Image */}
-      <div className="absolute inset-0 z-0">
+    <section className="relative w-full h-screen overflow-hidden bg-black">
+      {/* Background Slide Image */}
+      <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.5 }}
-          className="w-full h-full"
+          key={current}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.8, ease: [0.42, 0, 0.2, 1] }}
+          className="absolute inset-0"
         >
-          <img 
-            src={heroHomeImage} 
-            alt="E - Dunia Hero" 
+          <img
+            src={slide.image}
+            alt={slide.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/50 to-background/90" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/40" />
+          {/* Dark gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
         </motion.div>
-      </div>
-      
-      {/* Hero Content */}
-      <motion.div 
-        style={{ opacity }}
-        className="relative z-10 container mx-auto px-8 py-24 text-center h-full flex items-center justify-center"
-      >
-        <div className="max-w-5xl mx-auto">
-          <motion.h1 
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent mb-8 leading-tight"
-          >
-            Welcome to E - Dunia
-          </motion.h1>
-          <motion.p 
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
-          >
-            Your city's all‑in‑one digital hub for shopping, learning, and community engagement across E - Dunia.
-          </motion.p>
-          {/* Video positioned at bottom right */}
-          <motion.div
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1, delay: 0.7 }}
-            className="absolute bottom-8 right-8 z-20"
-          >
-            <div className="relative group cursor-pointer" onClick={() => window.open('https://www.youtube.com/watch?v=xcNcLHXyytY', '_blank')}>
-              <div className="relative w-64 h-40 rounded-2xl overflow-hidden shadow-2xl shadow-primary/25 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 group-hover:scale-105">
-                <iframe
-                  src=""
-                  title="How to Create a Shop"
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-                {/* Play Button Overlay */}
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center group-hover:bg-white transition-colors duration-300">
-                    <i className="fas fa-play text-primary text-lg ml-1"></i>
-                  </div>
-                </div>
-              </div>
-              <p className="text-center text-xs text-muted-foreground mt-2 font-medium">
-                How to create a shop
-              </p>
-            </div>
-          </motion.div>
+      </AnimatePresence>
+
+      {/* Slide Content */}
+      <div className="relative z-10 h-full flex items-center">
+        <div className="container mx-auto px-8 lg:px-16">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="max-w-2xl"
+            >
+              {/* Accent Badge */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <span
+                  className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium text-white bg-gradient-to-r ${slide.accent} backdrop-blur-sm mb-6`}
+                >
+                  {slide.subtitle}
+                </span>
+              </motion.div>
+
+              {/* Title */}
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="text-5xl md:text-7xl font-bold text-white mb-4 leading-tight tracking-tight"
+              >
+                {slide.title}
+              </motion.h1>
+
+              {/* Description */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.55 }}
+                className="text-lg md:text-xl text-white/80 mb-8 leading-relaxed max-w-xl"
+              >
+                {slide.description}
+              </motion.p>
+
+              {/* CTA Button */}
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate(slide.link)}
+                className={`px-8 py-3.5 rounded-full text-white font-semibold bg-gradient-to-r ${slide.accent} hover:shadow-lg hover:shadow-white/10 transition-shadow duration-300 text-base`}
+              >
+                Explore Now
+              </motion.button>
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
+
+      {/* Navigation Arrows */}
+      <button
+        onClick={prev}
+        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 group"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+      </button>
+      <button
+        onClick={next}
+        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 group"
+        aria-label="Next slide"
+      >
+        <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+      </button>
+
+      {/* Dot Indicators */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
+        {slides.map((s, i) => (
+          <button
+            key={s.title}
+            onClick={() => goTo(i)}
+            aria-label={`Go to slide: ${s.title}`}
+            className="group relative flex items-center justify-center"
+          >
+            <span
+              className={`block rounded-full transition-all duration-500 ${
+                i === current
+                  ? "w-10 h-3 bg-white"
+                  : "w-3 h-3 bg-white/40 hover:bg-white/60"
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+
+      {/* Progress Bar */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/10">
+        <motion.div
+          key={current}
+          className={`h-full bg-gradient-to-r ${slide.accent}`}
+          initial={{ width: "0%" }}
+          animate={{ width: "100%" }}
+          transition={{ duration: AUTOPLAY_INTERVAL / 1000, ease: "linear" }}
+        />
+      </div>
     </section>
   );
 }
