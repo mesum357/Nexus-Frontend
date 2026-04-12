@@ -21,6 +21,9 @@ export default function Signup() {
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [awaitingVerification, setAwaitingVerification] = useState(false)
+  const [verificationEmail, setVerificationEmail] = useState('')
+  const [isResendingVerification, setIsResendingVerification] = useState(false)
   const navigate = useNavigate()
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -116,12 +119,13 @@ export default function Signup() {
         // Check if user needs email verification
         if (data.user && !data.user.verified) {
           console.log('📧 Frontend: User needs email verification')
-          toast({ 
-            title: 'Registration successful!', 
+          setVerificationEmail(email)
+          setAwaitingVerification(true)
+          toast({
+            title: 'Registration successful!',
             description: 'Please check your email and click the verification link to activate your account.',
-            duration: 8000
+            duration: 8000,
           })
-          navigate('/login?message=Registration successful! Please check your email to verify your account.')
         } else if (data.user && data.user.verified) {
           console.log('✅ Frontend: User is auto-verified')
           toast({ 
@@ -166,6 +170,32 @@ export default function Signup() {
     }
   }
 
+  const handleResendVerification = async () => {
+    const target = verificationEmail || email
+    if (!target.trim()) {
+      toast({ title: 'Email required', description: 'Enter the email you signed up with.', variant: 'destructive' })
+      return
+    }
+    setIsResendingVerification(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: target.trim() }),
+      })
+      const data = await response.json()
+      if (response.ok) {
+        toast({ title: 'Email sent', description: data.message || 'Check your inbox for the verification link.' })
+      } else {
+        toast({ title: 'Could not resend', description: data.error || 'Try again later.', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Network error', description: 'Could not connect to server.', variant: 'destructive' })
+    } finally {
+      setIsResendingVerification(false)
+    }
+  }
+
   return (
     <div
       className="min-h-screen bg-cover bg-center flex items-center justify-center"
@@ -180,8 +210,33 @@ export default function Signup() {
           <h2 className="text-2xl font-semibold text-black">Welcome</h2>
         </div>
 
+        {awaitingVerification ? (
+          <div className="space-y-5 text-center">
+            <p className="text-black text-sm">
+              We sent a verification link to <strong>{verificationEmail || email}</strong>. Open it to activate your
+              account, then sign in.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-gray-300 text-black"
+              onClick={handleResendVerification}
+              disabled={isResendingVerification}
+            >
+              {isResendingVerification ? 'Sending…' : 'Resend verification email'}
+            </Button>
+            <Button
+              type="button"
+              className="w-full bg-blue-500 hover:bg-blue-600 rounded-full py-2 font-semibold"
+              onClick={() => navigate('/login')}
+            >
+              Go to sign in
+            </Button>
+          </div>
+        ) : null}
+
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className={`space-y-5 ${awaitingVerification ? 'hidden' : ''}`}>
           {/* Profile Image Section */}
           <div className="text-center">
             <Label className="text-black mb-3 block">Profile Photo</Label>

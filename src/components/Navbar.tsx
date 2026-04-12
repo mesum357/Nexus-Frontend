@@ -20,6 +20,44 @@ const navigationLinks = [
   { name: 'E-Career', href: '#', comingSoon: true },
 ]
 
+/** Expo build / install page for the Android app */
+const ANDROID_APP_URL =
+  'https://expo.dev/accounts/mesumm/projects/eride/builds/eb15786f-d92c-45f5-8c52-a7c6122cd1f1'
+
+function AppStoreLinks({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <motion.a
+        href={ANDROID_APP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        className="p-2 rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 transition-colors"
+        aria-label="Download Android app (Google Play build on Expo)"
+        title="Google Play / Android"
+      >
+        <svg className="h-6 w-6" viewBox="0 0 512 512" fill="currentColor" aria-hidden>
+          <path d="M48 59.49v393a12.11 12.11 0 0 0 12.59 12 12 12 0 0 0 6.61-2l116.15-66.69v-99.09l-135.35 77.9V61.49a12 12 0 0 0-12-12 12.13 12.13 0 0 0-1 .05zM343.93 210.47l-62.05-35.86-62.06 35.86v71.84l62.06 35.86 62.05-35.86zm-62.05 122.24l-135.35 78.1a12 12 0 0 0 6.61 2 12.11 12.11 0 0 0 12.59-12v-78.1zm193.84-91.91L381.77 256l93.95 54.2a12 12 0 0 0 18-10.39V212.2a12 12 0 0 0-18-10.4zm-21.23-123.2L281.9 256l93.95 54.2a12 12 0 0 0 18-10.39V141.59a12 12 0 0 0-18-10.39z" />
+        </svg>
+      </motion.a>
+      <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}>
+        <Link
+          to="/iphone-app"
+          onClick={onNavigate}
+          className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors block"
+          aria-label="Install on iPhone — instructions"
+          title="iPhone app"
+        >
+          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+          </svg>
+        </Link>
+      </motion.div>
+    </div>
+  )
+}
+
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
@@ -311,8 +349,11 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right side - Network Status, Profile & Mobile Menu */}
+          {/* Right side - App stores, Network Status, Profile & Mobile Menu */}
           <div className="flex items-center space-x-4 relative">
+            <div className="hidden sm:flex items-center">
+              <AppStoreLinks />
+            </div>
             {/* Network Status Indicator (PWA mode only) */}
             {isPWAMode && (
               <motion.div
@@ -582,6 +623,10 @@ export default function Navbar() {
           className="min-[907px]:hidden overflow-hidden border-t border-border/50"
         >
           <div className="py-4 space-y-2">
+            <div className="flex sm:hidden items-center justify-center gap-2 px-4 pb-4 border-b border-border/50">
+              <AppStoreLinks onNavigate={() => setIsMobileMenuOpen(false)} />
+              <span className="text-xs text-muted-foreground ml-2">Get the app</span>
+            </div>
             {navigationLinks.map((link) => (
               <motion.div
                 key={link.name}

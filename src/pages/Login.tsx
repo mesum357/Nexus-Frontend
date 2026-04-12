@@ -94,8 +94,15 @@ export default function Login() {
         toast({ title: 'Login successful', description: 'Welcome back!' })
         navigate('/')
       } else {
-        // Check if account is frozen (403 status)
-        if (response.status === 403 && data.error) {
+        if (response.status === 403 && data.needsVerification) {
+          setNeedsVerification(true)
+          toast({
+            title: 'Verify your email',
+            description: data.error || 'Check your inbox for the link, or resend the verification email below.',
+            variant: 'destructive',
+            duration: 8000,
+          })
+        } else if (response.status === 403 && data.error) {
           toast({ 
             title: 'Account Frozen', 
             description: data.error || 'This account is frozen. Please contact support.',
@@ -148,7 +155,7 @@ export default function Login() {
       const data = await response.json()
 
       if (response.ok) {
-        toast({ title: 'Verification disabled', description: data.message })
+        toast({ title: 'Email sent', description: data.message || 'Check your inbox for the verification link.' })
       } else {
         toast({ title: 'Failed to send email', description: data.error, variant: 'destructive' })
       }
@@ -255,21 +262,32 @@ export default function Login() {
           </Button>
         </form>
 
-        {/* Email Verification Section - Disabled */}
-        {false && needsVerification && (
-          <div className="mt-4 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center">
-            <p className="text-sm text-yellow-200 mb-3">
-              Your email needs to be verified before you can log in.
+        {needsVerification ? (
+          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-center">
+            <p className="text-sm text-amber-900 mb-3">
+              Your email must be verified before you can sign in. Check your inbox or resend the link.
             </p>
             <Button
+              type="button"
               onClick={handleResendVerification}
               disabled={isResendingVerification}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2 rounded"
+              className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2 rounded"
             >
-              {isResendingVerification ? 'Sending...' : 'Resend Verification Email'}
+              {isResendingVerification ? 'Sending…' : 'Resend verification email'}
             </Button>
           </div>
-        )}
+        ) : null}
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={handleResendVerification}
+            disabled={isResendingVerification || !email.trim()}
+            className="text-sm text-blue-600 hover:underline disabled:opacity-50 disabled:no-underline"
+          >
+            {isResendingVerification ? 'Sending…' : 'Resend verification email'}
+          </button>
+        </div>
 
         {/* Bottom Links */}
         <div className="mt-6 text-center text-sm">

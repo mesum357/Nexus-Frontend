@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import AuthSlider from "./pages/AuthSlider";
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import IphoneAppInstructions from './pages/IphoneAppInstructions';
 
 // Education Module Pages
 import InstituteDetail from "./pages/education/InstituteDetail";
@@ -80,6 +81,7 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/iphone-app" element={<IphoneAppInstructions />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/store" element={<Store />} />
           <Route path="/create-shop" element={<CreateShop />} />
