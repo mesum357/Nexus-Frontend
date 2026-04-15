@@ -9,6 +9,9 @@ import heroSocial from "@/assets/hero-slide-social.png";
 import heroMarketplace from "@/assets/hero-slide-marketplace.png";
 import heroHealthcare from "@/assets/hero-slide-healthcare.png";
 
+const PLAY_STORE_URL = import.meta.env.VITE_PLAY_STORE_URL as string | undefined;
+const APP_STORE_URL = import.meta.env.VITE_APP_STORE_URL as string | undefined;
+
 const slides = [
   {
     image: heroStore,
@@ -174,17 +177,122 @@ export function HeroSection() {
               </motion.p>
 
               {/* CTA Button */}
-              <motion.button
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.7 }}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigate(slide.link)}
-                className={`px-8 py-3.5 rounded-full text-white font-semibold bg-gradient-to-r ${slide.accent} hover:shadow-lg hover:shadow-white/10 transition-shadow duration-300 text-base`}
+                className="flex flex-col gap-5"
               >
-                Explore Now
-              </motion.button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate(slide.link)}
+                    className={`px-8 py-3.5 rounded-full text-white font-semibold bg-gradient-to-r ${slide.accent} hover:shadow-lg hover:shadow-white/10 transition-shadow duration-300 text-base`}
+                  >
+                    Explore Now
+                  </motion.button>
+
+                  {(PLAY_STORE_URL || APP_STORE_URL) && (
+                    <div className="flex items-center gap-2 text-xs text-white/70">
+                      <span className="hidden sm:inline">or</span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white/50" />
+                        Download the app
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {(PLAY_STORE_URL || APP_STORE_URL) ? (
+                  <div className="relative">
+                    {/* soft glow / creative layout base */}
+                    <div className="absolute -inset-6 rounded-3xl bg-gradient-to-r from-white/10 via-white/5 to-transparent blur-2xl" />
+                    <div className="relative flex flex-wrap items-center gap-3">
+                      {PLAY_STORE_URL ? (
+                        <a
+                          href={PLAY_STORE_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors"
+                          aria-label="Download on Google Play"
+                        >
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-emerald-400/10 via-cyan-400/10 to-transparent" />
+                          <div className="relative flex items-center gap-3">
+                            <span className="grid h-10 w-10 place-items-center rounded-xl bg-black/30 border border-white/10">
+                              {/* Google Play icon (simple triangle) */}
+                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path
+                                  d="M4.8 3.4c-.6.3-.8.8-.8 1.5v14.2c0 .7.2 1.2.8 1.5l9-9.1-9-8.1Z"
+                                  fill="currentColor"
+                                  className="text-white/90"
+                                />
+                                <path
+                                  d="M14.6 12 20 6.9c.6.4 1 .9 1 1.4 0 .5-.4 1-1 1.4L14.6 12Z"
+                                  fill="currentColor"
+                                  className="text-white/65"
+                                />
+                                <path
+                                  d="M14.6 12 20 17.1c.6-.4 1-.9 1-1.4 0-.5-.4-1-1-1.4L14.6 12Z"
+                                  fill="currentColor"
+                                  className="text-white/65"
+                                />
+                                <path
+                                  d="M4.8 20.6c.4.2.9.2 1.6-.2l10.6-6.2L13.8 12l-8.9 8.6Z"
+                                  fill="currentColor"
+                                  className="text-white/80"
+                                />
+                                <path
+                                  d="M6.4 3.6c-.7-.4-1.2-.4-1.6-.2l9 8.5 3.2-2.2L6.4 3.6Z"
+                                  fill="currentColor"
+                                  className="text-white/80"
+                                />
+                              </svg>
+                            </span>
+                            <div className="leading-tight">
+                              <div className="text-[11px] text-white/70">Get it on</div>
+                              <div className="text-base font-semibold text-white">Google Play</div>
+                            </div>
+                          </div>
+                        </a>
+                      ) : null}
+
+                      {APP_STORE_URL ? (
+                        <a
+                          href={APP_STORE_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors sm:-rotate-2"
+                          aria-label="Download on the App Store"
+                        >
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-indigo-400/10 via-purple-400/10 to-transparent" />
+                          <div className="relative flex items-center gap-3">
+                            <span className="grid h-10 w-10 place-items-center rounded-xl bg-black/30 border border-white/10">
+                              {/* Apple icon (simple) */}
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path
+                                  d="M16.2 2.5c-.9.6-1.5 1.6-1.4 2.7 1.1.1 2.1-.6 2.7-1.2.6-.7 1.1-1.7 1-2.8-1 .1-2 .6-2.3 1.3Z"
+                                  fill="currentColor"
+                                  className="text-white/85"
+                                />
+                                <path
+                                  d="M20.7 17.2c-.5 1.2-1.1 2.3-1.9 3.3-.9 1.1-1.7 1.9-3 1.9-1.2 0-1.6-.7-3.1-.7-1.5 0-2 .7-3.2.7-1.2 0-2-.7-3.1-2-2-2.5-3.5-7.1-1.5-10.2 1-1.5 2.7-2.5 4.6-2.5 1.2 0 2.3.8 3.1.8.8 0 2.2-.9 3.7-.8.6 0 2.3.2 3.4 1.8-.1.1-2 .9-2 3.2 0 2.7 2.4 3.6 2.5 3.7Z"
+                                  fill="currentColor"
+                                  className="text-white/90"
+                                />
+                              </svg>
+                            </span>
+                            <div className="leading-tight">
+                              <div className="text-[11px] text-white/70">Download on the</div>
+                              <div className="text-base font-semibold text-white">App Store</div>
+                            </div>
+                          </div>
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+              </motion.div>
             </motion.div>
           </AnimatePresence>
         </div>
