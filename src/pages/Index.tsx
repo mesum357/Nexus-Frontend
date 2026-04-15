@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
+import { DownloadOurAppSection } from "@/components/DownloadOurAppSection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { MockupCarousel } from "@/components/MockupCarousel";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
@@ -34,6 +35,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
+      <DownloadOurAppSection />
       <HowItWorksSection />
       <MockupCarousel />
       <TestimonialsSection />
