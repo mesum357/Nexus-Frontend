@@ -208,7 +208,7 @@ export function HeroSection() {
                   <div className="relative">
                     {/* soft glow / creative layout base */}
                     <div className="absolute -inset-8 rounded-[28px] bg-gradient-to-r from-white/12 via-white/6 to-transparent blur-2xl" />
-                    <div className="absolute -inset-10 rounded-[32px] bg-gradient-to-tr from-emerald-400/10 via-indigo-400/10 to-transparent blur-3xl" />
+                    <div className={`absolute -inset-10 rounded-[32px] bg-gradient-to-r ${slide.accent} blur-3xl opacity-25`} />
 
                     {/* layered cards */}
                     <div className="relative flex items-start gap-3">
@@ -224,7 +224,11 @@ export function HeroSection() {
                           animate={{ y: [0, -3, 0] }}
                           transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
                         >
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-emerald-400/12 via-cyan-400/10 to-transparent" />
+                          <div
+                            className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r ${slide.accent}`}
+                            style={{ opacity: 0 }}
+                          />
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-15 transition-opacity bg-gradient-to-r from-white/0 via-white/10 to-white/0" />
                           <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
                           <div className="relative flex items-center gap-3">
                             <span className="grid h-10 w-10 place-items-center rounded-xl bg-black/30 border border-white/10">
@@ -276,7 +280,11 @@ export function HeroSection() {
                           animate={{ y: [0, 3, 0] }}
                           transition={{ duration: 5.2, repeat: Infinity, ease: 'easeInOut' }}
                         >
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-indigo-400/12 via-purple-400/10 to-transparent" />
+                          <div
+                            className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r ${slide.accent}`}
+                            style={{ opacity: 0 }}
+                          />
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-15 transition-opacity bg-gradient-to-r from-white/0 via-white/10 to-white/0" />
                           <div className="absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-indigo-400/10 blur-2xl" />
                           <div className="relative flex items-center gap-3">
                             <span className="grid h-10 w-10 place-items-center rounded-xl bg-black/30 border border-white/10">
@@ -303,8 +311,15 @@ export function HeroSection() {
                     </div>
 
                     {/* tiny caption */}
-                    <div className="mt-3 text-xs text-white/55">
-                      Fast install • Secure payments • Local services
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/60">
+                      <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 bg-gradient-to-r ${slide.accent} text-white/90`}>
+                        Available now
+                      </span>
+                      <span>Fast install</span>
+                      <span className="text-white/35">•</span>
+                      <span>Secure payments</span>
+                      <span className="text-white/35">•</span>
+                      <span>Local services</span>
                     </div>
                   </div>
                 ) : null}
