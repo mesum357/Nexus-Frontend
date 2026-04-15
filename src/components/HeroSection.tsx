@@ -207,20 +207,27 @@ export function HeroSection() {
                 {(PLAY_STORE_URL || APP_STORE_URL) ? (
                   <div className="relative">
                     {/* soft glow / creative layout base */}
-                    <div className="absolute -inset-6 rounded-3xl bg-gradient-to-r from-white/10 via-white/5 to-transparent blur-2xl" />
-                    <div className="relative flex flex-wrap items-center gap-3">
+                    <div className="absolute -inset-8 rounded-[28px] bg-gradient-to-r from-white/12 via-white/6 to-transparent blur-2xl" />
+                    <div className="absolute -inset-10 rounded-[32px] bg-gradient-to-tr from-emerald-400/10 via-indigo-400/10 to-transparent blur-3xl" />
+
+                    {/* layered cards */}
+                    <div className="relative flex items-start gap-3">
                       {PLAY_STORE_URL ? (
-                        <a
+                        <motion.a
                           href={PLAY_STORE_URL}
                           target="_blank"
                           rel="noreferrer"
-                          className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors"
                           aria-label="Download on Google Play"
+                          className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors"
+                          whileHover={{ y: -2, rotate: -1 }}
+                          whileTap={{ scale: 0.98 }}
+                          animate={{ y: [0, -3, 0] }}
+                          transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
                         >
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-emerald-400/10 via-cyan-400/10 to-transparent" />
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-emerald-400/12 via-cyan-400/10 to-transparent" />
+                          <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
                           <div className="relative flex items-center gap-3">
                             <span className="grid h-10 w-10 place-items-center rounded-xl bg-black/30 border border-white/10">
-                              {/* Google Play icon (simple triangle) */}
                               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path
                                   d="M4.8 3.4c-.6.3-.8.8-.8 1.5v14.2c0 .7.2 1.2.8 1.5l9-9.1-9-8.1Z"
@@ -254,21 +261,25 @@ export function HeroSection() {
                               <div className="text-base font-semibold text-white">Google Play</div>
                             </div>
                           </div>
-                        </a>
+                        </motion.a>
                       ) : null}
 
                       {APP_STORE_URL ? (
-                        <a
+                        <motion.a
                           href={APP_STORE_URL}
                           target="_blank"
                           rel="noreferrer"
-                          className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors sm:-rotate-2"
                           aria-label="Download on the App Store"
+                          className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors sm:mt-4 sm:-ml-2 sm:-rotate-3"
+                          whileHover={{ y: -2, rotate: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          animate={{ y: [0, 3, 0] }}
+                          transition={{ duration: 5.2, repeat: Infinity, ease: 'easeInOut' }}
                         >
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-indigo-400/10 via-purple-400/10 to-transparent" />
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-indigo-400/12 via-purple-400/10 to-transparent" />
+                          <div className="absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-indigo-400/10 blur-2xl" />
                           <div className="relative flex items-center gap-3">
                             <span className="grid h-10 w-10 place-items-center rounded-xl bg-black/30 border border-white/10">
-                              {/* Apple icon (simple) */}
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path
                                   d="M16.2 2.5c-.9.6-1.5 1.6-1.4 2.7 1.1.1 2.1-.6 2.7-1.2.6-.7 1.1-1.7 1-2.8-1 .1-2 .6-2.3 1.3Z"
@@ -287,8 +298,13 @@ export function HeroSection() {
                               <div className="text-base font-semibold text-white">App Store</div>
                             </div>
                           </div>
-                        </a>
+                        </motion.a>
                       ) : null}
+                    </div>
+
+                    {/* tiny caption */}
+                    <div className="mt-3 text-xs text-white/55">
+                      Fast install • Secure payments • Local services
                     </div>
                   </div>
                 ) : null}
