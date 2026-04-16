@@ -9,8 +9,9 @@ import heroSocial from "@/assets/hero-slide-social.png";
 import heroMarketplace from "@/assets/hero-slide-marketplace.png";
 import heroHealthcare from "@/assets/hero-slide-healthcare.png";
 
-const PLAY_STORE_URL = import.meta.env.VITE_PLAY_STORE_URL as string | undefined;
 const APP_STORE_URL = import.meta.env.VITE_APP_STORE_URL as string | undefined;
+/** Served from `public/downloads/edunia-android.apk` */
+const ANDROID_DOWNLOAD_URL = "/downloads/edunia-android.apk";
 
 const slides = [
   {
@@ -193,37 +194,32 @@ export function HeroSection() {
                     Explore Now
                   </motion.button>
 
-                  {(PLAY_STORE_URL || APP_STORE_URL) && (
-                    <div className="flex items-center gap-2 text-xs text-white/70">
-                      <span className="hidden sm:inline">or</span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-white/50" />
-                        Download the app
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 text-xs text-white/70">
+                    <span className="hidden sm:inline">or</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white/50" />
+                      Download the app
+                    </span>
+                  </div>
                 </div>
 
-                {(PLAY_STORE_URL || APP_STORE_URL) ? (
-                  <div className="relative">
+                <div className="relative">
                     {/* soft glow / creative layout base */}
                     <div className="absolute -inset-8 rounded-[28px] bg-gradient-to-r from-white/12 via-white/6 to-transparent blur-2xl" />
                     <div className={`absolute -inset-10 rounded-[32px] bg-gradient-to-r ${slide.accent} blur-3xl opacity-25`} />
 
                     {/* layered cards */}
                     <div className="relative flex items-start gap-3">
-                      {PLAY_STORE_URL ? (
-                        <motion.a
-                          href={PLAY_STORE_URL}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label="Download on Google Play"
-                          className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors"
-                          whileHover={{ y: -2, rotate: -1 }}
-                          whileTap={{ scale: 0.98 }}
-                          animate={{ y: [0, -3, 0] }}
-                          transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-                        >
+                      <motion.a
+                        href={ANDROID_DOWNLOAD_URL}
+                        download="edunia-android.apk"
+                        aria-label="Download Android app (APK)"
+                        className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors"
+                        whileHover={{ y: -2, rotate: -1 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+                      >
                           <div
                             className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r ${slide.accent}`}
                             style={{ opacity: 0 }}
@@ -265,8 +261,7 @@ export function HeroSection() {
                               <div className="text-base font-semibold text-white">Google Play</div>
                             </div>
                           </div>
-                        </motion.a>
-                      ) : null}
+                      </motion.a>
 
                       {APP_STORE_URL ? (
                         <motion.a
@@ -311,18 +306,17 @@ export function HeroSection() {
                     </div>
 
                     {/* tiny caption */}
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/60">
-                      <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 bg-gradient-to-r ${slide.accent} text-white/90`}>
-                        Available now
-                      </span>
-                      <span>Fast install</span>
-                      <span className="text-white/35">•</span>
-                      <span>Secure payments</span>
-                      <span className="text-white/35">•</span>
-                      <span>Local services</span>
-                    </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/60">
+                    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 bg-gradient-to-r ${slide.accent} text-white/90`}>
+                      Available now
+                    </span>
+                    <span>Fast install</span>
+                    <span className="text-white/35">•</span>
+                    <span>Secure payments</span>
+                    <span className="text-white/35">•</span>
+                    <span>Local services</span>
                   </div>
-                ) : null}
+                </div>
               </motion.div>
             </motion.div>
           </AnimatePresence>

@@ -17,6 +17,11 @@ function androidApkDevPlugin(): Plugin {
         if (!req.url?.startsWith(ANDROID_APK_PUBLIC_PATH)) return next();
 
         try {
+          // Prefer the committed/static file in `public/downloads` when present.
+          if (fs.existsSync(ANDROID_APK_OUT)) {
+            return next();
+          }
+
           if (!fs.existsSync(ANDROID_APK_SOURCE)) {
             res.statusCode = 404;
             res.setHeader("content-type", "text/plain; charset=utf-8");
