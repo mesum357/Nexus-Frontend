@@ -29,3 +29,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated during `vite build` (copied from repo-root APK for static hosting)
+public/downloads/*.apk

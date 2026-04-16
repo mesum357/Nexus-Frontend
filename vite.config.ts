@@ -1,8 +1,82 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 // import { VitePWA } from 'vite-plugin-pwa'; // Temporarily disabled for deployment
+
+const ANDROID_APK_PUBLIC_PATH = "/downloads/edunia-android.apk";
+const ANDROID_APK_SOURCE = path.resolve(__dirname, "../Edunia-AndriodAPK.apk");
+const ANDROID_APK_OUT = path.resolve(__dirname, "public/downloads/edunia-android.apk");
+
+function androidApkDevPlugin(): Plugin {
+  return {
+    name: "android-apk-dev-download",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!req.url?.startsWith(ANDROID_APK_PUBLIC_PATH)) return next();
+
+        try {
+          if (!fs.existsSync(ANDROID_APK_SOURCE)) {
+            res.statusCode = 404;
+            res.setHeader("content-type", "text/plain; charset=utf-8");
+            res.end(
+              `Missing APK at: ${ANDROID_APK_SOURCE}\nExpected repo file: Edunia-AndriodAPK.apk`,
+            );
+            return;
+          }
+
+          res.statusCode = 200;
+          res.setHeader("content-type", "application/vnd.android.package-archive");
+          res.setHeader(
+            "content-disposition",
+            `attachment; filename="Edunia-AndriodAPK.apk"`,
+          );
+
+          const stream = fs.createReadStream(ANDROID_APK_SOURCE);
+          stream.on("error", () => {
+            try {
+              if (!res.headersSent) res.statusCode = 500;
+              res.end("Failed to read APK");
+            } catch {
+              /* ignore */
+            }
+          });
+          stream.pipe(res);
+        } catch {
+          res.statusCode = 500;
+          res.setHeader("content-type", "text/plain; charset=utf-8");
+          res.end("Failed to serve APK");
+        }
+      });
+    },
+  };
+}
+
+function copyAndroidApkToPublic(): Plugin {
+  return {
+    name: "copy-android-apk-to-public",
+    apply: "build",
+    buildStart() {
+      try {
+        if (!fs.existsSync(ANDROID_APK_SOURCE)) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[vite] APK not found at ${ANDROID_APK_SOURCE}. Skipping copy to public/downloads.`,
+          );
+          return;
+        }
+        fs.mkdirSync(path.dirname(ANDROID_APK_OUT), { recursive: true });
+        fs.copyFileSync(ANDROID_APK_SOURCE, ANDROID_APK_OUT);
+        // eslint-disable-next-line no-console
+        console.log(`[vite] Copied Android APK -> ${ANDROID_APK_OUT}`);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("[vite] Failed to copy Android APK to public/downloads:", e);
+      }
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -16,6 +90,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    androidApkDevPlugin(),
+    copyAndroidApkToPublic(),
     mode === 'development' && componentTagger(),
     // Temporarily disabled PWA plugin for deployment
     // VitePWA({

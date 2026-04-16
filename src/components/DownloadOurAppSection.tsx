@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const PLAY_STORE_URL = import.meta.env.VITE_PLAY_STORE_URL as string | undefined;
+const ANDROID_DOWNLOAD_URL = "/downloads/edunia-android.apk";
 
 function GlowOrbs() {
   return (
@@ -19,8 +20,7 @@ function StoreCard({
   kind: "android" | "ios";
 }) {
   const isAndroid = kind === "android";
-  const href = isAndroid ? PLAY_STORE_URL : undefined;
-  const isDisabled = isAndroid ? !href : false;
+  const href = isAndroid ? ANDROID_DOWNLOAD_URL : undefined;
 
   const shell =
     "group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]";
@@ -58,7 +58,7 @@ function StoreCard({
           <div>
             <div className={header}>{isAndroid ? "Android" : "iPhone"}</div>
             <div className={title}>
-              {isAndroid ? "Get it on Google Play" : "Install on iPhone"}
+              {isAndroid ? "Download for Android" : "Install on iPhone"}
             </div>
           </div>
           <div className="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-black/20 text-white/90">
@@ -87,21 +87,30 @@ function StoreCard({
               ? "Install the app for the smoothest experience — store, education, feed, and marketplace in your pocket."
               : "Use our quick instructions to install on iPhone. It takes a minute and works great."}
           </div>
-          {isDisabled ? (
-            <div className="text-amber-200/90 text-xs">
-              Play Store link not set. Add `VITE_PLAY_STORE_URL` to enable downloads.
+          {isAndroid && PLAY_STORE_URL ? (
+            <div className="text-xs text-white/55">
+              Prefer Play Store?{" "}
+              <button
+                type="button"
+                className="text-white/80 underline underline-offset-4 hover:text-white"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.open(PLAY_STORE_URL, "_blank", "noopener,noreferrer");
+                }}
+              >
+                Open listing
+              </button>
             </div>
           ) : null}
         </div>
 
         <div className="flex items-center gap-3">
-          <span
-            className={`${cta} ${ctaAccent} ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            {isAndroid ? "Download" : "View instructions"}
+          <span className={`${cta} ${ctaAccent}`}>
+            {isAndroid ? "Download APK" : "View instructions"}
           </span>
           <span className="text-xs text-white/50">
-            {isAndroid ? "Opens in a new tab" : "Opens on this site"}
+            {isAndroid ? "Downloads the Android package" : "Opens on this site"}
           </span>
         </div>
       </div>
@@ -111,13 +120,8 @@ function StoreCard({
   if (isAndroid) {
     return (
       <motion.a
-        href={href || "#"}
-        target={href ? "_blank" : undefined}
-        rel={href ? "noreferrer" : undefined}
-        aria-disabled={isDisabled}
-        onClick={(e) => {
-          if (isDisabled) e.preventDefault();
-        }}
+        href={href}
+        download="Edunia-AndriodAPK.apk"
         whileHover={{ y: -6, rotate: -0.5 }}
         whileTap={{ scale: 0.99 }}
         className="block"
