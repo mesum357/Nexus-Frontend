@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import heroStore from "@/assets/hero-slide-store.png";
@@ -9,7 +9,6 @@ import heroSocial from "@/assets/hero-slide-social.png";
 import heroMarketplace from "@/assets/hero-slide-marketplace.png";
 import heroHealthcare from "@/assets/hero-slide-healthcare.png";
 
-const APP_STORE_URL = import.meta.env.VITE_APP_STORE_URL as string | undefined;
 /** Served from `public/downloads/edunia-android.apk` */
 const ANDROID_DOWNLOAD_URL = "/downloads/edunia-android.apk";
 
@@ -263,17 +262,17 @@ export function HeroSection() {
                           </div>
                       </motion.a>
 
-                      {APP_STORE_URL ? (
-                        <motion.a
-                          href={APP_STORE_URL}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label="Download on the App Store"
-                          className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors sm:mt-4 sm:-ml-2 sm:-rotate-3"
-                          whileHover={{ y: -2, rotate: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          animate={{ y: [0, 3, 0] }}
-                          transition={{ duration: 5.2, repeat: Infinity, ease: 'easeInOut' }}
+                      <motion.div
+                        whileHover={{ y: -2, rotate: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={{ y: [0, 3, 0] }}
+                        transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+                        className="sm:mt-4 sm:-ml-2 sm:-rotate-3"
+                      >
+                        <Link
+                          to="/iphone-app"
+                          aria-label="Install on iPhone — instructions"
+                          className="group relative block overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors"
                         >
                           <div
                             className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r ${slide.accent}`}
@@ -297,12 +296,12 @@ export function HeroSection() {
                               </svg>
                             </span>
                             <div className="leading-tight">
-                              <div className="text-[11px] text-white/70">Download on the</div>
-                              <div className="text-base font-semibold text-white">App Store</div>
+                              <div className="text-[11px] text-white/70">Get it on</div>
+                              <div className="text-base font-semibold text-white">iPhone</div>
                             </div>
                           </div>
-                        </motion.a>
-                      ) : null}
+                        </Link>
+                      </motion.div>
                     </div>
 
                     {/* tiny caption */}
