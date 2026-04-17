@@ -9,8 +9,78 @@ import heroSocial from "@/assets/hero-slide-social.png";
 import heroMarketplace from "@/assets/hero-slide-marketplace.png";
 import heroHealthcare from "@/assets/hero-slide-healthcare.png";
 
-/** Served from `public/downloads/edunia-android.apk` */
-const ANDROID_DOWNLOAD_URL = "/downloads/edunia-android.apk";
+/** Served from `public/downloads/edunia-android.apk` (Vite copies `public/` to dist root). */
+const APK_CACHE_BUST = (import.meta.env.VITE_APK_CACHE_BUST as string | undefined)?.trim();
+const ANDROID_DOWNLOAD_URL =
+  "/downloads/edunia-android.apk" +
+  (APK_CACHE_BUST ? `?v=${encodeURIComponent(APK_CACHE_BUST)}` : "");
+
+const STORE_CARD_CLASS =
+  "group relative flex min-h-[4.5rem] w-full items-center overflow-hidden rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-md transition-colors hover:bg-white/15 sm:px-5";
+
+/** Logs what the server actually returns for the APK URL (helps catch HTML/SW/cache/CDN issues). */
+function logAndroidApkDownloadDiagnostics(apkPath: string) {
+  if (typeof window === "undefined") return;
+
+  const absolute = new URL(apkPath, window.location.origin).href;
+
+  const report = (via: string, r: Response) => {
+    const len = r.headers.get("content-length");
+    const cr = r.headers.get("content-range");
+    const ct = r.headers.get("content-type");
+    const bytes = len ? Number(len) : NaN;
+    const diag = {
+      via,
+      requested: absolute,
+      finalUrl: r.url,
+      status: r.status,
+      ok: r.ok,
+      contentType: ct,
+      contentLength: len,
+      contentRange: cr,
+      sizeMB: Number.isFinite(bytes) ? (bytes / (1024 * 1024)).toFixed(2) : "unknown",
+    };
+    console.info("[Edunia APK]", diag);
+
+    if (r.ok && Number.isFinite(bytes) && bytes < 500_000) {
+      console.warn(
+        "[Edunia APK] Declared size is under ~500KB — often HTML, an error page, or a bad cached response. Expect tens of MB for edunia-android.apk.",
+        diag,
+      );
+    }
+    if (ct?.toLowerCase().includes("text/html")) {
+      console.warn("[Edunia APK] content-type looks like HTML (SPA fallback or 404 page).", diag);
+    }
+  };
+
+  void fetch(absolute, { method: "HEAD", cache: "no-store", credentials: "same-origin" })
+    .then((r) => {
+      if (r.status === 405) {
+        return fetch(absolute, {
+          method: "GET",
+          cache: "no-store",
+          credentials: "same-origin",
+          headers: { Range: "bytes=0-0" },
+        }).then((r2) => {
+          report("GET bytes=0-0 (HEAD not allowed)", r2);
+        });
+      }
+      report("HEAD", r);
+    })
+    .catch((e) => {
+      console.error("[Edunia APK] Probe failed (open Network tab → edunia-android.apk)", e);
+    });
+
+  if ("serviceWorker" in navigator) {
+    void navigator.serviceWorker.getRegistration().then((reg) => {
+      console.info("[Edunia APK] serviceWorker", {
+        hasController: Boolean(navigator.serviceWorker.controller),
+        scope: reg?.scope ?? null,
+        activeScript: navigator.serviceWorker.controller?.scriptURL ?? null,
+      });
+    });
+  }
+}
 
 const slides = [
   {
@@ -202,22 +272,21 @@ export function HeroSection() {
                   </div>
                 </div>
 
-                <div className="relative">
-                    {/* soft glow / creative layout base */}
-                    <div className="absolute -inset-8 rounded-[28px] bg-gradient-to-r from-white/12 via-white/6 to-transparent blur-2xl" />
-                    <div className={`absolute -inset-10 rounded-[32px] bg-gradient-to-r ${slide.accent} blur-3xl opacity-25`} />
+                <div className="relative w-full max-w-xl">
+                    <div className="pointer-events-none absolute -inset-6 rounded-[28px] bg-gradient-to-r from-white/12 via-white/6 to-transparent blur-2xl sm:-inset-8" />
+                    <div
+                      className={`pointer-events-none absolute -inset-8 rounded-[32px] bg-gradient-to-r ${slide.accent} blur-3xl opacity-25 sm:-inset-10`}
+                    />
 
-                    {/* layered cards */}
-                    <div className="relative flex items-start gap-3">
+                    <div className="relative grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
                       <motion.a
                         href={ANDROID_DOWNLOAD_URL}
                         download="edunia-android.apk"
                         aria-label="Download Android app (APK)"
-                        className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors"
-                        whileHover={{ y: -2, rotate: -1 }}
+                        className={STORE_CARD_CLASS}
+                        whileHover={{ y: -1 }}
                         whileTap={{ scale: 0.98 }}
-                        animate={{ y: [0, -3, 0] }}
-                        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+                        onClick={() => logAndroidApkDownloadDiagnostics(ANDROID_DOWNLOAD_URL)}
                       >
                           <div
                             className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r ${slide.accent}`}
@@ -225,7 +294,7 @@ export function HeroSection() {
                           />
                           <div className="absolute inset-0 opacity-0 group-hover:opacity-15 transition-opacity bg-gradient-to-r from-white/0 via-white/10 to-white/0" />
                           <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-emerald-400/10 blur-2xl" />
-                          <div className="relative flex items-center gap-3">
+                          <div className="relative flex w-full min-w-0 items-center gap-3">
                             <span className="grid h-10 w-10 place-items-center rounded-xl bg-black/30 border border-white/10">
                               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path
@@ -262,17 +331,11 @@ export function HeroSection() {
                           </div>
                       </motion.a>
 
-                      <motion.div
-                        whileHover={{ y: -2, rotate: -2 }}
-                        whileTap={{ scale: 0.98 }}
-                        animate={{ y: [0, 3, 0] }}
-                        transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
-                        className="sm:mt-4 sm:-ml-2 sm:-rotate-3"
-                      >
+                      <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }} className="min-w-0">
                         <Link
                           to="/iphone-app"
                           aria-label="Install on iPhone — instructions"
-                          className="group relative block overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-5 py-3 hover:bg-white/15 transition-colors"
+                          className={STORE_CARD_CLASS}
                         >
                           <div
                             className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r ${slide.accent}`}
@@ -280,7 +343,7 @@ export function HeroSection() {
                           />
                           <div className="absolute inset-0 opacity-0 group-hover:opacity-15 transition-opacity bg-gradient-to-r from-white/0 via-white/10 to-white/0" />
                           <div className="absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-indigo-400/10 blur-2xl" />
-                          <div className="relative flex items-center gap-3">
+                          <div className="relative flex w-full min-w-0 items-center gap-3">
                             <span className="grid h-10 w-10 place-items-center rounded-xl bg-black/30 border border-white/10">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path
@@ -304,8 +367,8 @@ export function HeroSection() {
                       </motion.div>
                     </div>
 
-                    {/* tiny caption */}
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/60">
+                    {/* Caption — spaced below cards so it does not collide with the row */}
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 text-xs text-white/60">
                     <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 bg-gradient-to-r ${slide.accent} text-white/90`}>
                       Available now
                     </span>
