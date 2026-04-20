@@ -9,10 +9,10 @@ import heroSocial from "@/assets/hero-slide-social.png";
 import heroMarketplace from "@/assets/hero-slide-marketplace.png";
 import heroHealthcare from "@/assets/hero-slide-healthcare.png";
 
-/** Served from `public/downloads/edunia-android.apk` (Vite copies `public/` to dist root). */
+/** Served from `public/downloads/EDUNIA_APP.apk` (Vite copies `public/` to dist root). */
 const APK_CACHE_BUST = (import.meta.env.VITE_APK_CACHE_BUST as string | undefined)?.trim();
 const ANDROID_DOWNLOAD_URL =
-  "/downloads/edunia-android.apk" +
+  "/downloads/EDUNIA_APP.apk" +
   (APK_CACHE_BUST ? `?v=${encodeURIComponent(APK_CACHE_BUST)}` : "");
 
 const STORE_CARD_CLASS =
@@ -44,7 +44,7 @@ function logAndroidApkDownloadDiagnostics(apkPath: string) {
 
     if (r.ok && Number.isFinite(bytes) && bytes < 500_000) {
       console.warn(
-        "[Edunia APK] Declared size is under ~500KB — often HTML, an error page, or a bad cached response. Expect tens of MB for edunia-android.apk.",
+        "[Edunia APK] Declared size is under ~500KB — often HTML, an error page, or a bad cached response. Expect tens of MB for EDUNIA_APP.apk.",
         diag,
       );
     }
@@ -68,7 +68,7 @@ function logAndroidApkDownloadDiagnostics(apkPath: string) {
       report("HEAD", r);
     })
     .catch((e) => {
-      console.error("[Edunia APK] Probe failed (open Network tab → edunia-android.apk)", e);
+      console.error("[Edunia APK] Probe failed (open Network tab → EDUNIA_APP.apk)", e);
     });
 
   if ("serviceWorker" in navigator) {
@@ -281,7 +281,7 @@ export function HeroSection() {
                     <div className="relative grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
                       <motion.a
                         href={ANDROID_DOWNLOAD_URL}
-                        download="edunia-android.apk"
+                        download="EDUNIA_APP.apk"
                         aria-label="Download Android app (APK)"
                         className={STORE_CARD_CLASS}
                         whileHover={{ y: -1 }}
