@@ -1,5 +1,5 @@
 #root {
-  /* Custom CSS Variable */
+  /* Custom CSS Variablessss */
   --background: 0 0% 100%;
   --foreground: 222.2 47.4% 11.2%;
   --primary: 221.2 83.2% 53.3%;
@@ -29,9 +29,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -40,6 +42,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
