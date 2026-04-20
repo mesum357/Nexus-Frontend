@@ -13,7 +13,7 @@ import heroHealthcare from "@/assets/hero-slide-healthcare.png";
 const APK_CACHE_BUST = (import.meta.env.VITE_APK_CACHE_BUST as string | undefined)?.trim();
 const ANDROID_DOWNLOAD_URL =
   "/downloads/EDUNIA_APP.apk" +
-  (APK_CACHE_BUST ? `?v=${encodeURIComponent(APK_CACHE_BUST)}` : "");
+  (APK_CACHE_BUST ? `?v=${encodeURIComponent(APK_CACHE_BUST)}` : "?v=2.0");
 
 const STORE_CARD_CLASS =
   "group relative flex min-h-[4.5rem] w-full items-center overflow-hidden rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-md transition-colors hover:bg-white/15 sm:px-5";

@@ -1,7 +1,7 @@
 // E Duniya PWA Service Worker
-const CACHE_NAME = 'nexus-pwa-v3';
-const STATIC_CACHE_NAME = 'nexus-static-v3';
-const DYNAMIC_CACHE_NAME = 'nexus-dynamic-v3';
+const CACHE_NAME = 'nexus-pwa-v4';
+const STATIC_CACHE_NAME = 'nexus-static-v4';
+const DYNAMIC_CACHE_NAME = 'nexus-dynamic-v4';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
