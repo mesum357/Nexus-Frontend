@@ -1,4 +1,3 @@
-// E Duniya PWA Service Worker
 const CACHE_NAME = 'nexus-pwa-v4';
 const STATIC_CACHE_NAME = 'nexus-static-v4';
 const DYNAMIC_CACHE_NAME = 'nexus-dynamic-v4';
@@ -84,7 +83,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   
   // Never intercept large/binary installers — stale/wrong cached responses here look like "tiny APK" downloads.
-  if (url.pathname.startsWith('/downloads/') && url.pathname.toLowerCase().endsWith('.apk')) {
+  if (url.pathname.toLowerCase().endsWith('.apk') || url.pathname.toLowerCase().includes('/downloads/')) {
     return;
   }
 
